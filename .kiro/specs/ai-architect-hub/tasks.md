@@ -37,8 +37,8 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Include CHECK constraint for artifact_type enum
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 4. Implement authentication components
-  - [ ] 4.1 Create LoginPage component
+- [x] 4. Implement authentication components
+  - [x] 4.1 Create LoginPage component
     - Build email/password input form with Tailwind styling
     - Implement Supabase signUp method integration
     - Implement Supabase signIn method integration
@@ -46,7 +46,7 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Add loading state during authentication
     - _Requirements: 1.1, 1.2, 15.1_
   
-  - [ ] 4.2 Create AuthGuard component
+  - [x] 4.2 Create AuthGuard component
     - Check authentication state using Supabase auth.getSession()
     - Redirect unauthenticated users to /login
     - Maintain session state across page refreshes
