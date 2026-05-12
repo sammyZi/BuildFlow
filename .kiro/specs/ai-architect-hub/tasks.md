@@ -142,8 +142,8 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Apply light theme colors consistently
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [-] 11. Implement Gemini LLM client
-  - [ ] 11.1 Create GeminiClient class
+- [x] 11. Implement Gemini LLM client
+  - [x] 11.1 Create GeminiClient class
     - Configure Google Gemini API with credentials from env
     - Implement generateRequirements(appIdea) method
     - Implement generateDesign(appIdea, requirements) method
@@ -246,15 +246,15 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Call download function on button click
     - _Requirements: 12.1_
 
-- [-] 17. Implement project history feature
-  - [-] 17.1 Create ProjectHistory component
+- [x] 17. Implement project history feature
+  - [x] 17.1 Create ProjectHistory component
     - Fetch user's projects using SupabaseService.getProjectsByUser()
     - Sort projects by created_at descending
     - Display project list with creation timestamp
     - Show app idea preview (first 100 characters)
     - _Requirements: 14.1, 14.3, 14.4, 14.5_
   
-  - [ ] 17.2 Add project selection functionality
+  - [x] 17.2 Add project selection functionality
     - Handle click event on project list item
     - Fetch artifacts using SupabaseService.getArtifactsByProject()
     - Display artifacts in ResultsGrid

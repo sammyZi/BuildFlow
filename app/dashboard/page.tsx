@@ -8,6 +8,7 @@ import ResultsGrid from '@/components/ResultsGrid';
 import ProjectHistory from '@/components/ProjectHistory';
 import { Artifact } from '@/types';
 import { supabase } from '@/lib/supabase/client';
+import { SupabaseService } from '@/lib/supabase/service';
 
 export default function DashboardPage() {
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
@@ -23,15 +24,8 @@ export default function DashboardPage() {
     async function loadArtifacts() {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('artifacts')
-          .select('*')
-          .eq('project_id', currentProjectId)
-          .order('created_at', { ascending: true });
-          
-        if (!error && data) {
-          setArtifacts(data as Artifact[]);
-        }
+        const data = await SupabaseService.getArtifactsByProject(currentProjectId!);
+        setArtifacts(data);
       } catch (err) {
         console.error('Failed to load artifacts:', err);
       } finally {

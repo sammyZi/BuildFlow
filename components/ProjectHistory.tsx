@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Project } from '@/types';
 import { supabase } from '@/lib/supabase/client';
+import { SupabaseService } from '@/lib/supabase/service';
 
 interface ProjectHistoryProps {
   onSelectProject: (projectId: string) => void;
   currentProjectId?: string;
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function getPreview(prompt: string): string {
+  if (!prompt) return 'Untitled Project';
+  return prompt.length > 100 ? prompt.substring(0, 100) + '…' : prompt;
 }
 
 export default function ProjectHistory({ onSelectProject, currentProjectId }: ProjectHistoryProps) {
@@ -16,15 +27,12 @@ export default function ProjectHistory({ onSelectProject, currentProjectId }: Pr
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          const { data, error } = await supabase
-            .from('projects')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .order('created_at', { ascending: false });
-
-          if (!error && data) {
-            setProjects(data);
-          }
+          const data = await SupabaseService.getProjectsByUser(session.user.id);
+          // Sort by created_at descending (newest first)
+          const sorted = [...data].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setProjects(sorted);
         }
       } catch (error) {
         console.error('Failed to load projects:', error);
@@ -74,13 +82,18 @@ export default function ProjectHistory({ onSelectProject, currentProjectId }: Pr
                 <button
                   key={project.id}
                   onClick={() => onSelectProject(project.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg text-[13.5px] truncate transition-colors border-l-2 ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors border-l-2 ${
                     currentProjectId === project.id 
                       ? 'bg-chat-bubbleUser text-chat-text font-semibold border-chat-accent' 
                       : 'text-chat-text hover:bg-chat-bubbleUser border-transparent font-medium'
                   }`}
                 >
-                  {project.prompt || 'Untitled Project'}
+                  <div className="text-[13.5px] leading-snug line-clamp-2 break-words">
+                    {getPreview(project.prompt)}
+                  </div>
+                  <div className="text-[11px] text-chat-textMuted mt-1 font-normal">
+                    {formatDate(project.created_at)}
+                  </div>
                 </button>
               ))
             )}
