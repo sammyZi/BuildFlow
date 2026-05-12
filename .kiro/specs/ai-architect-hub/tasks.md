@@ -23,14 +23,14 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Define GenerationContext and LLMResponse interfaces
     - _Requirements: 17.1, 17.2, 17.3, 17.4_
 
-- [ ] 3. Set up Supabase configuration and database schema
-  - [ ] 3.1 Configure Supabase client
+- [x] 3. Set up Supabase configuration and database schema
+  - [x] 3.1 Configure Supabase client
     - Create Supabase client utility with environment variables
     - Configure authentication helpers
     - Set up server-side and client-side client instances
     - _Requirements: 16.2, 1.1, 1.2_
   
-  - [ ] 3.2 Create database migration scripts
+  - [x] 3.2 Create database migration scripts
     - Write SQL migration for profiles table
     - Write SQL migration for projects table with RLS policies
     - Write SQL migration for artifacts table with RLS policies
