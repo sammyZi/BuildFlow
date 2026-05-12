@@ -142,21 +142,21 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
 - [-] 11. Implement Gemini LLM client
-  - [-] 11.1 Create GeminiClient class
+  - [ ] 11.1 Create GeminiClient class
     - Configure Google Gemini API with credentials from env
     - Implement generateRequirements(appIdea) method
     - Implement generateDesign(appIdea, requirements) method
     - Implement generateTasks(appIdea, requirements, design) method
     - _Requirements: 13.1, 13.2, 13.3_
   
-  - [ ] 11.2 Add retry logic with exponential backoff
+  - [x] 11.2 Add retry logic with exponential backoff
     - Retry failed API calls up to 3 times
     - Use exponential backoff: 1s, 2s, 4s
     - Handle rate limit errors gracefully
     - Return error after 3 failed attempts
     - _Requirements: 13.4, 13.5_
   
-  - [ ] 11.3 Configure system prompts for each generation type
+  - [x] 11.3 Configure system prompts for each generation type
     - Requirements prompt: "You are an expert Product Manager. Given the following app idea, generate a requirements.md file detailing the target audience, core user stories, and strict feature scope."
     - Design prompt: "You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure."
     - Tasks prompt: "You are a Lead Developer. Break down the attached requirements and design into a tasks.md file. Format this as a highly granular checklist where each item is small enough to be independently executed by an AI IDE without additional context."
@@ -169,15 +169,15 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Mock Gemini API responses
     - _Requirements: 13.1, 13.5_
 
-- [ ] 12. Build generation orchestration pipeline
-  - [ ] 12.1 Create GenerationOrchestrator class
+- [x] 12. Build generation orchestration pipeline
+  - [x] 12.1 Create GenerationOrchestrator class
     - Implement sequential pipeline: requirements → design → tasks
     - Pass accumulated context to each generation step
     - Save each artifact to database immediately after generation
     - Return project ID on completion
     - _Requirements: 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
   
-  - [ ] 12.2 Add error handling to pipeline
+  - [x] 12.2 Add error handling to pipeline
     - Catch generation failures at each step
     - Return descriptive error messages
     - Stop pipeline on first failure
