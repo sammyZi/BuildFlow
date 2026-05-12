@@ -1,16 +1,55 @@
+'use client';
+
+import { useState } from 'react';
 import AuthGuard from '@/components/AuthGuard';
+import DashboardLayout from '@/components/DashboardLayout';
+import InputPanel from '@/components/InputPanel';
+import ResultsGrid from '@/components/ResultsGrid';
+import { Artifact } from '@/types';
 
 export default function DashboardPage() {
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (appIdea: string) => {
+    setIsLoading(true);
+    try {
+      // TODO: Implement API call to /api/generate
+      console.log('Submitting app idea:', appIdea);
+      
+      // Placeholder - will be implemented in later tasks
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+    } catch (error) {
+      console.error('Failed to generate artifacts:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadBundle = () => {
+    // TODO: Implement download bundle functionality
+    console.log('Downloading bundle...');
+  };
+
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-[#f8f9fa] p-4">
-        <div className="glassmorphism-card max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-[#212529]">Dashboard</h1>
-          <p className="mt-4 text-[#6c757d]">
-            Welcome to AI Architect Hub! You are now authenticated.
-          </p>
-        </div>
-      </main>
+      <DashboardLayout
+        leftPanel={
+          <InputPanel 
+            onSubmit={handleSubmit} 
+            isLoading={isLoading}
+          />
+        }
+        rightPanel={
+          <ResultsGrid 
+            artifacts={artifacts}
+            isLoading={isLoading}
+            onDownloadBundle={handleDownloadBundle}
+          />
+        }
+      />
     </AuthGuard>
   );
 }
