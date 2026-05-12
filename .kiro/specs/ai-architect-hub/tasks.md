@@ -94,11 +94,11 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Render "Download Bundle" button when all 3 artifacts complete
     - _Requirements: 10.4, 11.1, 12.1_
 
-- [ ] 7. Checkpoint - Verify UI components render correctly
+- [x] 7. Checkpoint - Verify UI components render correctly
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement Supabase service layer
-  - [ ] 8.1 Create SupabaseService class
+- [x] 8. Implement Supabase service layer
+  - [x] 8.1 Create SupabaseService class
     - Implement createProject(userId, prompt) method
     - Implement saveArtifact(projectId, type, content) method
     - Implement getProjectsByUser(userId) method
@@ -113,27 +113,27 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Test RLS policies enforce user isolation
     - _Requirements: 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 9. Implement real-time artifact subscription
-  - [ ] 9.1 Add subscribeToArtifacts method to SupabaseService
+- [x] 9. Implement real-time artifact subscription
+  - [x] 9.1 Add subscribeToArtifacts method to SupabaseService
     - Set up Supabase realtime channel for artifacts table
     - Filter subscription by project_id
     - Return subscription object for cleanup
     - _Requirements: 10.1_
   
-  - [ ] 9.2 Integrate realtime updates in ResultsGrid
+  - [x] 9.2 Integrate realtime updates in ResultsGrid
     - Establish subscription when component mounts
     - Update state when INSERT event received
     - Render new ArtifactCard when artifact arrives
     - Clean up subscription on component unmount
     - _Requirements: 10.2, 10.3, 10.4_
   
-  - [ ] 9.3 Add reconnection logic for realtime subscription
+  - [x] 9.3 Add reconnection logic for realtime subscription
     - Detect subscription disconnect events
     - Attempt automatic reconnection up to 5 times
     - Display manual refresh prompt after 5 failed attempts
     - _Requirements: 15.4, 15.5_
 
-- [ ] 10. Create ArtifactCard component
+- [-] 10. Create ArtifactCard component
   - [ ] 10.1 Build ArtifactCard with glassmorphism styling
     - Use GlassmorphismCard as base component
     - Display artifact_type as heading (Requirements, Design, Tasks)

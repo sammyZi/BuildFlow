@@ -1,20 +1,87 @@
 'use client';
 
-import React from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import GlassmorphismCard from './GlassmorphismCard';
 import { Artifact } from '@/types';
+import { SupabaseService } from '@/lib/supabase/service';
 
 interface ResultsGridProps {
   artifacts: Artifact[];
   isLoading?: boolean;
   onDownloadBundle?: () => void;
+  projectId?: string;
 }
 
+const MAX_RECONNECTION_ATTEMPTS = 5;
+
 export default function ResultsGrid({ 
-  artifacts, 
+  artifacts: initialArtifacts, 
   isLoading = false,
-  onDownloadBundle 
+  onDownloadBundle,
+  projectId
 }: ResultsGridProps) {
+  const [artifacts, setArtifacts] = useState<Artifact[]>(initialArtifacts);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
+
+  // Update local state when props change
+  useEffect(() => {
+    setArtifacts(initialArtifacts);
+  }, [initialArtifacts]);
+
+  // Handle new artifact from realtime subscription
+  const handleNewArtifact = useCallback((newArtifact: Artifact) => {
+    setArtifacts((prev) => {
+      // Check if artifact already exists
+      const exists = prev.some((a) => a.id === newArtifact.id);
+      if (exists) return prev;
+      
+      // Add new artifact and sort
+      const updated = [...prev, newArtifact];
+      return updated.sort((a, b) => {
+        const order = { requirements: 0, design: 1, tasks: 2 };
+        return order[a.artifact_type] - order[b.artifact_type];
+      });
+    });
+  }, []);
+
+  // Handle subscription disconnect with reconnection logic
+  const handleDisconnect = useCallback(() => {
+    setReconnectAttempts((prev) => {
+      const newAttempts = prev + 1;
+      
+      if (newAttempts >= MAX_RECONNECTION_ATTEMPTS) {
+        setShowRefreshPrompt(true);
+      }
+      
+      return newAttempts;
+    });
+  }, []);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!projectId) return;
+
+    const subscription = SupabaseService.subscribeToArtifacts(
+      projectId,
+      handleNewArtifact,
+      handleDisconnect
+    );
+
+    // Reset reconnection attempts on successful connection
+    setReconnectAttempts(0);
+    setShowRefreshPrompt(false);
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [projectId, handleNewArtifact, handleDisconnect, reconnectAttempts]);
+
+  // Handle manual refresh
+  const handleRefresh = () => {
+    window.location.reload();
+  };
   // Check if all 3 artifacts are complete
   const hasAllArtifacts = artifacts.length === 3;
   const artifactTypes = new Set(artifacts.map(a => a.artifact_type));
@@ -35,6 +102,56 @@ export default function ResultsGrid({
         <h2 className="text-2xl font-bold text-light-text mb-4">
           Generated Artifacts
         </h2>
+
+        {/* Manual Refresh Prompt */}
+        {showRefreshPrompt && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg 
+                className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-yellow-800 mb-1">
+                  Connection Lost
+                </h3>
+                <p className="text-sm text-yellow-700 mb-3">
+                  Unable to reconnect to real-time updates after {MAX_RECONNECTION_ATTEMPTS} attempts. 
+                  Please refresh the page to continue receiving updates.
+                </p>
+                <button
+                  onClick={handleRefresh}
+                  className="
+                    px-4 
+                    py-2 
+                    bg-yellow-600 
+                    hover:bg-yellow-700 
+                    text-white 
+                    text-sm 
+                    font-medium 
+                    rounded-md 
+                    transition-colors
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-yellow-600
+                    focus:ring-offset-2
+                  "
+                >
+                  Refresh Page
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Empty State */}
         {!isLoading && artifacts.length === 0 && (

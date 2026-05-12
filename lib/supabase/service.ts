@@ -103,11 +103,13 @@ export class SupabaseService {
    * Subscribe to real-time artifact updates for a project
    * @param projectId - The project ID to subscribe to
    * @param callback - Function to call when artifacts are inserted/updated
+   * @param onDisconnect - Optional callback when subscription disconnects
    * @returns Subscription object with unsubscribe method
    */
   static subscribeToArtifacts(
     projectId: string,
-    callback: (artifact: Artifact) => void
+    callback: (artifact: Artifact) => void,
+    onDisconnect?: () => void
   ) {
     const channel = supabase
       .channel(`artifacts:${projectId}`)
@@ -123,12 +125,17 @@ export class SupabaseService {
           callback(payload.new as Artifact);
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'CHANNEL_ERROR' && onDisconnect) {
+          onDisconnect();
+        }
+      });
 
     return {
       unsubscribe: () => {
         supabase.removeChannel(channel);
       },
+      channel,
     };
   }
 
