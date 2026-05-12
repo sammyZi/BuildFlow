@@ -1,52 +1,128 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import InputPanel from '@/components/InputPanel';
 import ResultsGrid from '@/components/ResultsGrid';
+import ProjectHistory from '@/components/ProjectHistory';
 import { Artifact } from '@/types';
+import { supabase } from '@/lib/supabase/client';
 
 export default function DashboardPage() {
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!currentProjectId) {
+      setArtifacts([]);
+      return;
+    }
+    
+    async function loadArtifacts() {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('artifacts')
+          .select('*')
+          .eq('project_id', currentProjectId)
+          .order('created_at', { ascending: true });
+          
+        if (!error && data) {
+          setArtifacts(data as Artifact[]);
+        }
+      } catch (err) {
+        console.error('Failed to load artifacts:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadArtifacts();
+  }, [currentProjectId]);
 
   const handleSubmit = async (appIdea: string) => {
     setIsLoading(true);
+    setArtifacts([]);
+    setCurrentProjectId(undefined);
     try {
-      // TODO: Implement API call to /api/generate
-      console.log('Submitting app idea:', appIdea);
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      // Placeholder - will be implemented in later tasks
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (sessionError || !session) {
+        throw new Error('Authentication error: Unable to get session token. Please log in again.');
+      }
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          appIdea,
+          userId: session.user.id
+        })
+      });
+
+      if (!response.ok) {
+        let errorMsg = 'Failed to generate artifacts';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
       
-    } catch (error) {
-      console.error('Failed to generate artifacts:', error);
-      throw error;
+      if (!data.success) {
+        throw new Error(data.error || 'Generation pipeline error');
+      }
+
+      console.log('Successfully started generation for project:', data.projectId);
+      setCurrentProjectId(data.projectId);
+    } catch (error: any) {
+      console.error('Failed to submit app idea:', error);
+      throw new Error(error.message || 'Network connectivity error. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDownloadBundle = () => {
-    // TODO: Implement download bundle functionality
-    console.log('Downloading bundle...');
+  const handleDownloadBundle = async () => {
+    if (!currentProjectId) return;
+    try {
+      // Dynamic import to avoid SSR issues if it uses browser APIs
+      const { downloadBundle } = await import('@/lib/downloadBundle');
+      await downloadBundle(artifacts, currentProjectId);
+    } catch (error) {
+      console.error('Failed to download bundle:', error);
+    }
   };
 
   return (
     <AuthGuard>
       <DashboardLayout
+        sidebar={
+          <ProjectHistory 
+            onSelectProject={setCurrentProjectId} 
+            currentProjectId={currentProjectId} 
+          />
+        }
         leftPanel={
           <InputPanel 
             onSubmit={handleSubmit} 
-            isLoading={isLoading}
+            isLoading={isLoading && !currentProjectId}
           />
         }
         rightPanel={
           <ResultsGrid 
             artifacts={artifacts}
-            isLoading={isLoading}
+            isLoading={isLoading && !!currentProjectId}
             onDownloadBundle={handleDownloadBundle}
+            projectId={currentProjectId}
           />
         }
       />

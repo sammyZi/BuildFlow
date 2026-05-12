@@ -6,34 +6,22 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-outfit)', 'sans-serif'],
+      },
       colors: {
-        light: {
-          bg: '#f0f4f8',
-          bgSecondary: '#ffffff',
-          card: '#ffffff',
-          cardGlass: 'rgba(255, 255, 255, 0.4)',
-          border: '#e1e8ed',
-          borderGlass: 'rgba(255, 255, 255, 0.6)',
-          text: '#1a202c',
-          textSecondary: '#718096',
-          accent: '#4a90e2',
-          accentHover: '#357abd',
-          accentLight: '#e3f2fd',
-          glow: 'rgba(74, 144, 226, 0.3)',
-          glowSubtle: 'rgba(200, 200, 255, 0.3)',
-        },
-      },
-      backdropBlur: {
-        xs: '2px',
-      },
-      boxShadow: {
-        glow: '0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(200, 200, 255, 0.3)',
-        'glow-sm': '0 0 10px rgba(255, 255, 255, 0.4), 0 0 20px rgba(200, 200, 255, 0.2)',
-        'glow-lg': '0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(200, 200, 255, 0.4)',
-      },
-      screens: {
-        mobile: '768px',
-        desktop: '1024px',
+        chat: {
+          sidebar1: '#F9FAFB', // gray-50
+          sidebar2: '#FFFFFF', // white
+          main: '#FFFFFF',
+          border: '#E5E7EB', // gray-200
+          text: '#374151', // gray-700
+          textMuted: '#6B7280', // gray-500
+          accent: '#6366F1', // indigo-500
+          accentHover: '#4F46E5', // indigo-600
+          bubbleUser: '#F3F4F6', // gray-100
+          bubbleAi: '#FFFFFF', // white
+        }
       },
     },
   },

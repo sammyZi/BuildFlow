@@ -1,23 +1,77 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 
 interface DashboardLayoutProps {
+  sidebar?: React.ReactNode;
   leftPanel: React.ReactNode;
   rightPanel: React.ReactNode;
 }
 
-export default function DashboardLayout({ leftPanel, rightPanel }: DashboardLayoutProps) {
+export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: DashboardLayoutProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
-    <div className="min-h-screen bg-light-bg p-4 md:p-6">
-      <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-4 md:gap-6 max-w-[1600px] mx-auto">
-        {/* Left Panel - Input Area */}
-        <div className="w-full">
-          {leftPanel}
+    <div className="flex h-screen bg-chat-main text-chat-text overflow-hidden font-sans selection:bg-chat-accent/20">
+
+      {/* Main Sidebar (Project History) */}
+      {sidebar && (
+        <div 
+          className={`${
+            isSidebarOpen ? 'w-[280px] opacity-100' : 'w-0 opacity-0'
+          } transition-all duration-300 ease-in-out bg-chat-sidebar1 border-r border-chat-border flex-col flex-shrink-0 z-10 hidden lg:flex`}
+        >
+          <div className="w-[280px] h-full flex flex-col">
+            {sidebar}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col relative h-full bg-chat-main w-full min-w-0">
+        
+        {/* Top Header */}
+        <header className="h-[60px] border-b border-chat-border flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-10 bg-chat-main">
+          <div className="flex items-center gap-3">
+            {sidebar && (
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="p-2 -ml-2 text-chat-textMuted hover:text-chat-text hover:bg-chat-sidebar1 rounded-md transition-colors"
+                title={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+              </button>
+            )}
+            <div className="text-sm font-semibold text-chat-text">
+              AI Architect 
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-chat-textMuted overflow-hidden flex items-center justify-center text-white text-xs font-bold ring-2 ring-chat-border">
+              US
+            </div>
+          </div>
+        </header>
+
+        {/* Chat / Results Area */}
+        <div className="flex-1 overflow-y-auto px-4 md:px-8 pt-8 pb-40 scroll-smooth custom-scrollbar">
+          <div className="max-w-3xl mx-auto w-full">
+            {rightPanel}
+          </div>
+        </div>
+
+        {/* Input Area Fixed Bottom */}
+        <div className="absolute bottom-0 left-0 right-0 pt-6 pb-4 px-4 bg-chat-main pointer-events-none">
+          <div className="max-w-3xl mx-auto w-full pointer-events-auto border-t border-transparent">
+            {leftPanel}
+            <div className="text-center text-[11px] text-chat-textMuted mt-3 pb-1 font-medium">
+              AI Architect Hub can make mistakes. Check generated code and docs.
+            </div>
+          </div>
         </div>
         
-        {/* Right Panel - Results Area */}
-        <div className="w-full">
-          {rightPanel}
-        </div>
       </div>
     </div>
   );

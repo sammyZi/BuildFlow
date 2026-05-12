@@ -1,35 +1,41 @@
 @import "tailwindcss";
 
-/* Glassmorphism Utility Classes */
-.glassmorphism {
-  background-color: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(200, 200, 255, 0.3);
+@theme {
+  --color-chat-sidebar1: #F9FAFB;
+  --color-chat-sidebar2: #FFFFFF;
+  --color-chat-main: #FFFFFF;
+  --color-chat-border: #E5E7EB;
+  --color-chat-text: #374151;
+  --color-chat-textMuted: #6B7280;
+  --color-chat-accent: #6366F1;
+  --color-chat-accentHover: #4F46E5;
+  --color-chat-bubbleUser: #F3F4F6;
+  --color-chat-bubbleAi: #FFFFFF;
+  --font-sans: var(--font-outfit), sans-serif;
 }
 
-.glassmorphism-card {
-  background-color: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(200, 200, 255, 0.3);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
+:root {
+  --font-outfit: 'Outfit', sans-serif;
 }
 
-.glassmorphism-strong {
-  background-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(200, 200, 255, 0.4);
-}
-
-/* Light Theme Base Styles */
 body {
-  background: linear-gradient(135deg, #f0f4f8 0%, #e3f2fd 100%);
-  color: #1a202c;
-  min-height: 100vh;
+  background-color: var(--color-chat-main);
+  color: var(--color-chat-text);
+  font-family: var(--font-sans);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+  background: #E5E7EB; 
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D1D5DB; 
 }

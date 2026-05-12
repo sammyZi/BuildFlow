@@ -121,6 +121,7 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - _Requirements: 10.1_
   
   - [x] 9.2 Integrate realtime updates in ResultsGrid
+  
     - Establish subscription when component mounts
     - Update state when INSERT event received
     - Render new ArtifactCard when artifact arrives
@@ -193,44 +194,44 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
 - [ ] 13. Checkpoint - Verify generation pipeline works end-to-end
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement Express API endpoint
-  - [ ] 14.1 Create POST /api/generate endpoint
+- [x] 14. Implement Express API endpoint
+  - [x] 14.1 Create POST /api/generate endpoint
     - Set up Express router with TypeScript
     - Parse GenerateRequest from request body
     - Validate appIdea is non-empty string
     - Authenticate request using Supabase JWT from Authorization header
     - _Requirements: 6.1, 6.2_
   
-  - [ ] 14.2 Wire endpoint to generation pipeline
+  - [x] 14.2 Wire endpoint to generation pipeline
     - Call SupabaseService.createProject() with userId and appIdea
     - Invoke GenerationOrchestrator with project ID
     - Return GenerateResponse with success and projectId
     - Return error response if pipeline fails
     - _Requirements: 5.3, 5.4, 6.9_
   
-  - [ ]* 14.3 Write API endpoint tests
+  - [x]* 14.3 Write API endpoint tests
     - Test authenticated request succeeds
     - Test unauthenticated request returns 401
     - Test invalid appIdea returns 400
     - Test successful generation returns projectId
     - _Requirements: 6.1, 6.2, 6.9_
 
-- [ ] 15. Implement app idea submission flow
-  - [ ] 15.1 Connect InputPanel submit to API
+- [x] 15. Implement app idea submission flow
+  - [x] 15.1 Connect InputPanel submit to API
     - Call POST /api/generate with appIdea and userId
     - Include Supabase session token in Authorization header
     - Disable submit button while request in progress
     - Display error message if API call fails
     - _Requirements: 5.3, 5.5, 5.6_
   
-  - [ ] 15.2 Handle submission errors
+  - [x] 15.2 Handle submission errors
     - Show authentication errors from API
     - Show network connectivity errors
     - Show generation pipeline errors
     - _Requirements: 15.1, 15.2, 15.3_
 
-- [ ] 16. Implement download bundle feature
-  - [ ] 16.1 Create download bundle function
+- [x] 16. Implement download bundle feature
+  - [x] 16.1 Create download bundle function
     - Use jszip to create zip file
     - Add requirements.md to zip with artifact content
     - Add design.md to zip with artifact content
@@ -239,14 +240,14 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Trigger browser download using Blob and URL.createObjectURL
     - _Requirements: 12.2, 12.3, 12.4, 12.5, 12.6, 12.7_
   
-  - [ ] 16.2 Show download button when all artifacts ready
+  - [x] 16.2 Show download button when all artifacts ready
     - Check if all 3 artifact types exist for project
     - Display "Download Bundle" button in ResultsGrid
     - Call download function on button click
     - _Requirements: 12.1_
 
-- [ ] 17. Implement project history feature
-  - [ ] 17.1 Create ProjectHistory component
+- [-] 17. Implement project history feature
+  - [-] 17.1 Create ProjectHistory component
     - Fetch user's projects using SupabaseService.getProjectsByUser()
     - Sort projects by created_at descending
     - Display project list with creation timestamp

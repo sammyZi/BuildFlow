@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import GlassmorphismCard from './GlassmorphismCard';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface InputPanelProps {
   onSubmit: (appIdea: string) => Promise<void>;
@@ -11,24 +10,29 @@ interface InputPanelProps {
 export default function InputPanel({ onSubmit, isLoading = false }: InputPanelProps) {
   const [appIdea, setAppIdea] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [charCount, setCharCount] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = '24px';
+      const scrollHeight = textarea.scrollHeight;
+      textarea.style.height = `${Math.min(scrollHeight, 200)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustHeight();
+  }, [appIdea]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setAppIdea(value);
-    setCharCount(value.length);
-    // Clear error when user starts typing
+    setAppIdea(e.target.value);
     if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
-    if (!appIdea.trim()) {
-      setError('Please enter your app idea');
-      return;
-    }
+    if (!appIdea.trim() || isLoading) return;
 
     if (appIdea.trim().length < 10) {
       setError('App idea must be at least 10 characters');
@@ -38,117 +42,62 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
     try {
       setError(null);
       await onSubmit(appIdea.trim());
+      setAppIdea(''); // Clear input after submit
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit app idea');
     }
   };
 
   return (
-    <GlassmorphismCard>
-      <h2 className="text-2xl font-bold text-light-text mb-4">
-        Describe Your App Idea
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <textarea
-            value={appIdea}
-            onChange={handleTextChange}
-            disabled={isLoading}
-            placeholder="Enter your app idea here... Be as detailed as possible to get better results."
-            className="
-              w-full 
-              min-h-[300px] 
-              p-4 
-              rounded-lg 
-              bg-white/60 
-              backdrop-blur-sm
-              border 
-              border-light-border
-              text-light-text
-              placeholder:text-light-textSecondary/60
-              focus:outline-none 
-              focus:ring-2 
-              focus:ring-light-accent
-              focus:border-transparent
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-              resize-y
-              transition-all
-            "
-            rows={12}
-          />
-          
-          {/* Character Count */}
-          <div className="flex justify-end mt-2">
-            <span className="text-sm text-light-textSecondary">
-              {charCount} characters
-            </span>
-          </div>
+    <div className="w-full flex flex-col gap-2">
+      {error && (
+        <div className="mx-auto w-full max-w-lg p-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[13px] text-center shadow-sm">
+          {error}
         </div>
+      )}
+      
+      <form 
+        onSubmit={handleSubmit} 
+        className="relative bg-white border border-chat-border shadow-sm rounded-3xl flex items-end p-2 px-4 transition-shadow focus-within:ring-2 focus-within:ring-chat-accent/20 focus-within:border-chat-accent focus-within:shadow-md w-full"
+      >
+        <textarea
+          ref={textareaRef}
+          value={appIdea}
+          onChange={handleTextChange}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
+          disabled={isLoading}
+          placeholder="Message AI Architect..."
+          className="flex-1 max-h-[200px] bg-transparent border-0 focus:ring-0 resize-none py-3 px-2 text-[15px] leading-relaxed text-chat-text placeholder:text-chat-textMuted overflow-y-auto outline-none custom-scrollbar"
+          rows={1}
+          style={{ minHeight: '24px' }}
+        />
 
-        {/* Error Message */}
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading || !appIdea.trim()}
-          className="
-            w-full 
-            py-3 
-            px-6 
-            rounded-lg 
-            bg-light-accent 
-            hover:bg-light-accentHover
-            text-white 
-            font-semibold
-            transition-all
-            disabled:opacity-50
-            disabled:cursor-not-allowed
-            disabled:hover:bg-light-accent
-            shadow-md
-            hover:shadow-lg
-            focus:outline-none
-            focus:ring-2
-            focus:ring-light-accent
-            focus:ring-offset-2
-            min-h-[44px]
-          "
+          className={`p-2.5 mb-[1px] ml-2 rounded-full flex items-center justify-center transition-all shadow-sm ${
+            appIdea.trim() && !isLoading 
+              ? 'bg-chat-accent text-white hover:bg-chat-accentHover hover:shadow-md' 
+              : 'bg-gray-100 text-gray-300'
+          }`}
         >
           {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg 
-                className="animate-spin h-5 w-5" 
-                xmlns="http://www.w3.org/2000/svg" 
-                fill="none" 
-                viewBox="0 0 24 24"
-              >
-                <circle 
-                  className="opacity-25" 
-                  cx="12" 
-                  cy="12" 
-                  r="10" 
-                  stroke="currentColor" 
-                  strokeWidth="4"
-                />
-                <path 
-                  className="opacity-75" 
-                  fill="currentColor" 
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Generating...
-            </span>
+            <svg className="animate-spin h-[18px] w-[18px]" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
           ) : (
-            'Generate Documentation'
+            <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
           )}
         </button>
       </form>
-    </GlassmorphismCard>
+    </div>
   );
 }

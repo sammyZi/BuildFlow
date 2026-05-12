@@ -1,5 +1,4 @@
 import { supabase } from './client';
-import { supabaseAdmin } from './server';
 import type { Profile, Project, Artifact, ArtifactType } from '@/types';
 
 /**
@@ -44,6 +43,9 @@ export class SupabaseService {
     type: ArtifactType,
     content: string
   ): Promise<Artifact> {
+    // Dynamically import admin client to keep this module client-bundle safe.
+    // saveArtifact is only called from server-side API routes.
+    const { supabaseAdmin } = await import('./server');
     const { data, error } = await supabaseAdmin
       .from('artifacts')
       .insert({
