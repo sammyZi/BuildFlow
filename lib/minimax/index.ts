@@ -1,0 +1,1 @@
+export { MiniMaxClient } from './client';

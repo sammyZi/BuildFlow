@@ -2,14 +2,14 @@
 
 ## Overview
 
-This implementation plan breaks down the AI Architect Hub into granular, executable tasks. The system is a full-stack SaaS application with Next.js frontend, Express backend API, Supabase for data/auth, and MiniMax LLM integration. Tasks are ordered to build incrementally, with early validation through automated tests.
+This implementation plan breaks down the AI Architect Hub into granular, executable tasks. The system is a full-stack SaaS application with Next.js frontend, Express backend API, Supabase for data/auth, and Google Gemini LLM integration. Tasks are ordered to build incrementally, with early validation through automated tests.
 
 ## Tasks
 
 - [x] 1. Initialize project structure and dependencies
   - Create Next.js 14+ project with TypeScript and App Router
   - Install core dependencies: @supabase/supabase-js, express, tailwindcss, jszip
-  - Install MiniMax SDK for opencode zen integration
+  - Install @google/generative-ai for Gemini integration
   - Configure TypeScript with strict mode enabled
   - Set up Tailwind CSS configuration with glassmorphism utilities
   - Create folder structure: /app, /components, /lib, /api, /types
@@ -133,17 +133,17 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Display manual refresh prompt after 5 failed attempts
     - _Requirements: 15.4, 15.5_
 
-- [-] 10. Create ArtifactCard component
-  - [ ] 10.1 Build ArtifactCard with glassmorphism styling
+- [x] 10. Create ArtifactCard component
+  - [x] 10.1 Build ArtifactCard with glassmorphism styling
     - Use GlassmorphismCard as base component
     - Display artifact_type as heading (Requirements, Design, Tasks)
     - Render markdown content with proper formatting using markdown parser
     - Apply light theme colors consistently
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [ ] 11. Implement MiniMax LLM client
-  - [ ] 11.1 Create MiniMaxClient class
-    - Configure MiniMax M2.5 Free API with credentials from env
+- [-] 11. Implement Gemini LLM client
+  - [-] 11.1 Create GeminiClient class
+    - Configure Google Gemini API with credentials from env
     - Implement generateRequirements(appIdea) method
     - Implement generateDesign(appIdea, requirements) method
     - Implement generateTasks(appIdea, requirements, design) method
@@ -162,11 +162,11 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Tasks prompt: "You are a Lead Developer. Break down the attached requirements and design into a tasks.md file. Format this as a highly granular checklist where each item is small enough to be independently executed by an AI IDE without additional context."
     - _Requirements: 7.1, 7.2, 8.1, 8.2, 9.1, 9.2_
   
-  - [ ]* 11.4 Write unit tests for MiniMaxClient
+  - [ ]* 11.4 Write unit tests for GeminiClient
     - Test successful generation returns markdown content
     - Test retry logic triggers on API failure
     - Test exponential backoff timing
-    - Mock MiniMax API responses
+    - Mock Gemini API responses
     - _Requirements: 13.1, 13.5_
 
 - [ ] 12. Build generation orchestration pipeline
@@ -276,7 +276,7 @@ This implementation plan breaks down the AI Architect Hub into granular, executa
     - Add NEXT_PUBLIC_SUPABASE_URL
     - Add NEXT_PUBLIC_SUPABASE_ANON_KEY
     - Add SUPABASE_SERVICE_ROLE_KEY (server-side only)
-    - Add MINIMAX_API_KEY
+    - Add GEMINI_API_KEY
     - _Requirements: 16.2, 16.3_
 
 - [ ] 19. Implement responsive design refinements

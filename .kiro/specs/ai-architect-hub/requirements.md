@@ -14,7 +14,7 @@ AI Architect Hub is a SaaS application that transforms user app ideas into three
 - **Dashboard**: The authenticated user interface displaying input and results
 - **Project**: A database record storing the original App_Idea and metadata
 - **Supabase_Client**: The authentication and database service integration
-- **MiniMax_LLM**: The AI model (M2.5 Free by opencode zen) used for generation
+- **Gemini_LLM**: The Google Gemini AI model used for generation
 - **Realtime_Subscription**: Supabase's live database change notification system
 - **Glassmorphism_Card**: A translucent UI component with backdrop-blur effects
 
@@ -106,8 +106,8 @@ AI Architect Hub is a SaaS application that transforms user app ideas into three
 #### Acceptance Criteria
 
 1. THE Generation_Pipeline SHALL use the following system prompt for requirements generation: "You are an expert Product Manager. Given the following app idea, generate a requirements.md file detailing the target audience, core user stories, and strict feature scope."
-2. THE Generation_Pipeline SHALL include the App_Idea in the user message to MiniMax_LLM
-3. THE MiniMax_LLM SHALL return markdown-formatted requirements content
+2. THE Generation_Pipeline SHALL include the App_Idea in the user message to Gemini_LLM
+3. THE Gemini_LLM SHALL return markdown-formatted requirements content
 
 ### Requirement 8: Design Generation Prompt
 
@@ -117,7 +117,7 @@ AI Architect Hub is a SaaS application that transforms user app ideas into three
 
 1. THE Generation_Pipeline SHALL use the following system prompt for design generation: "You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure."
 2. THE Generation_Pipeline SHALL include both the App_Idea and requirements.md content in the context
-3. THE MiniMax_LLM SHALL return markdown-formatted design content
+3. THE Gemini_LLM SHALL return markdown-formatted design content
 
 ### Requirement 9: Tasks Generation Prompt
 
@@ -127,7 +127,7 @@ AI Architect Hub is a SaaS application that transforms user app ideas into three
 
 1. THE Generation_Pipeline SHALL use the following system prompt for tasks generation: "You are a Lead Developer. Break down the attached requirements and design into a tasks.md file. Format this as a highly granular checklist where each item is small enough to be independently executed by an AI IDE without additional context."
 2. THE Generation_Pipeline SHALL include the App_Idea, requirements.md, and design.md in the context
-3. THE MiniMax_LLM SHALL return markdown-formatted tasks content
+3. THE Gemini_LLM SHALL return markdown-formatted tasks content
 
 ### Requirement 10: Real-Time Artifact Updates
 
@@ -167,17 +167,17 @@ AI Architect Hub is a SaaS application that transforms user app ideas into three
 6. THE Dashboard SHALL trigger a browser download of the zip file
 7. THE zip file SHALL be named with the Project identifier and timestamp
 
-### Requirement 13: MiniMax LLM Integration
+### Requirement 13: Gemini LLM Integration
 
-**User Story:** As a developer, I want to integrate MiniMax M2.5 Free API, so that the system can generate high-quality documentation.
+**User Story:** As a developer, I want to integrate Google Gemini API, so that the system can generate high-quality documentation.
 
 #### Acceptance Criteria
 
-1. THE Generation_Pipeline SHALL use the MiniMax M2.5 Free API by opencode zen
+1. THE Generation_Pipeline SHALL use the Google Gemini API
 2. THE Generation_Pipeline SHALL configure the LLM SDK with appropriate API credentials
-3. WHEN calling MiniMax_LLM, THE Generation_Pipeline SHALL include the system prompt and user message
+3. WHEN calling Gemini_LLM, THE Generation_Pipeline SHALL include the system prompt and user message
 4. THE Generation_Pipeline SHALL handle API rate limits gracefully
-5. IF the MiniMax_LLM returns an error, THEN THE Generation_Pipeline SHALL retry up to 3 times with exponential backoff
+5. IF the Gemini_LLM returns an error, THEN THE Generation_Pipeline SHALL retry up to 3 times with exponential backoff
 
 ### Requirement 14: Project History
 
@@ -211,7 +211,7 @@ AI Architect Hub is a SaaS application that transforms user app ideas into three
 
 1. THE AI_Architect_Hub SHALL include a vercel.json configuration file
 2. THE AI_Architect_Hub SHALL configure environment variables for Supabase credentials
-3. THE AI_Architect_Hub SHALL configure environment variables for MiniMax API credentials
+3. THE AI_Architect_Hub SHALL configure environment variables for Gemini API credentials
 4. THE Generation_Pipeline SHALL be deployable as Vercel serverless functions
 5. THE Dashboard SHALL be deployable as a Next.js application on Vercel
 

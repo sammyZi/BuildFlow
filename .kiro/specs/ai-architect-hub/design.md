@@ -4,7 +4,7 @@
 
 AI Architect Hub is a full-stack SaaS application that transforms user app ideas into three developer-ready markdown artifacts (requirements.md, design.md, tasks.md) through AI orchestration. The system employs a sequential chain-of-thought generation pipeline where each artifact builds upon the previous one, ensuring contextual coherence and comprehensive documentation.
 
-The architecture follows a modern serverless pattern with a Next.js frontend, Express backend API, Supabase for authentication and data persistence, and MiniMax M2.5 Free LLM for content generation. Real-time updates are delivered via Supabase subscriptions, providing immediate feedback as artifacts are generated.
+The architecture follows a modern serverless pattern with a Next.js frontend, Express backend API, Supabase for authentication and data persistence, and Google Gemini LLM for content generation. Real-time updates are delivered via Supabase subscriptions, providing immediate feedback as artifacts are generated.
 
 ### Key Design Principles
 
@@ -24,14 +24,14 @@ graph TB
     NextJS[Next.js Frontend]
     Express[Express Backend API]
     Supabase[Supabase Service]
-    MiniMax[MiniMax M2.5 LLM]
+    Gemini[Google Gemini LLM]
     
     User -->|HTTPS| NextJS
     NextJS -->|API Calls| Express
     NextJS -->|Auth & Data| Supabase
     NextJS -->|Realtime Sub| Supabase
     Express -->|Store Artifacts| Supabase
-    Express -->|Generate Content| MiniMax
+    Express -->|Generate Content| Gemini
     
     subgraph "Frontend Layer"
         NextJS
@@ -43,7 +43,7 @@ graph TB
     
     subgraph "External Services"
         Supabase
-        MiniMax
+        Gemini
     end
 ```
 
@@ -60,7 +60,7 @@ graph TB
 - Node.js 18+
 - Express.js
 - TypeScript 5+
-- MiniMax SDK (opencode zen)
+- @google/generative-ai (Gemini SDK)
 - Supabase JS Client
 
 **Infrastructure:**
@@ -76,14 +76,14 @@ graph LR
     NextApp[Next.js App]
     API[Express API Functions]
     Supabase[Supabase Cloud]
-    MiniMax[MiniMax API]
+    Gemini[Google Gemini API]
     
     Client -->|HTTPS| Vercel
     Vercel --> NextApp
     NextApp -->|/api/generate| API
     NextApp -->|Auth/Data/Realtime| Supabase
     API -->|Store Data| Supabase
-    API -->|Generate| MiniMax
+    API -->|Generate| Gemini
 ```
 
 ## Components and Interfaces
@@ -190,8 +190,8 @@ graph LR
 
 #### 3. LLM Integration
 
-**MiniMaxClient**
-- Wraps MiniMax M2.5 Free API
+**GeminiClient**
+- Wraps Google Gemini API
 - Configures API credentials from environment
 - Implements retry logic (3 attempts, exponential backoff)
 - Handles rate limiting
