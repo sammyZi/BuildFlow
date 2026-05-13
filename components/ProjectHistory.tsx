@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Project } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
-import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft } from 'lucide-react';
+import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut } from 'lucide-react';
 
 interface ProjectHistoryProps {
   onSelectProject: (projectId: string) => void;
   currentProjectId?: string;
   onCollapse?: () => void;
+  onSignOut?: () => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -30,7 +31,7 @@ function getPreview(prompt: string): string {
   return prompt.length > 70 ? prompt.substring(0, 70) + '…' : prompt;
 }
 
-export default function ProjectHistory({ onSelectProject, currentProjectId, onCollapse }: ProjectHistoryProps) {
+export default function ProjectHistory({ onSelectProject, currentProjectId, onCollapse, onSignOut }: ProjectHistoryProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -142,6 +143,22 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
           )}
         </div>
       </div>
+
+      {/* Sign out button at bottom */}
+      {onSignOut && (
+        <>
+          <div className="mx-3 border-t border-sidebar-border" />
+          <div className="px-3 py-3">
+            <button
+              onClick={onSignOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors"
+            >
+              <LogOut size={14} strokeWidth={1.5} />
+              Sign out
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,321 +1,442 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import ReactMarkdown from 'react-markdown';
 import {
-  ArrowRight, ArrowLeft, Loader2, Send,
-  Users, Scaling, ShieldCheck, Monitor,
-  Palette, Sun, LayoutGrid, Smartphone,
-  Code2, Server, Database, Cloud
+  ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3
 } from 'lucide-react';
 
-interface Question {
-  id: string;
-  question: string;
-  options: string[];
-  icon: React.ComponentType<any>;
-}
+type Step = 'questions' | 'requirements' | 'design' | 'tasks';
 
-interface Step {
-  id: string;
-  title: string;
-  questions: Question[];
-}
-
-const STEPS: Step[] = [
-  {
-    id: 'requirements',
-    title: 'Requirements',
-    questions: [
-      {
-        id: 'users',
-        question: 'Who are the target users?',
-        options: ['Individual consumers', 'Small teams', 'Enterprise organizations', 'All of the above'],
-        icon: Users,
-      },
-      {
-        id: 'scale',
-        question: 'What scale are you building for?',
-        options: ['MVP / Proof of concept', 'Small (< 1K users)', 'Medium (1K–100K users)', 'Large scale (100K+ users)'],
-        icon: Scaling,
-      },
-      {
-        id: 'auth',
-        question: 'What authentication is needed?',
-        options: ['Email & password', 'Social login (Google, GitHub)', 'SSO / Enterprise auth', 'No authentication'],
-        icon: ShieldCheck,
-      },
-      {
-        id: 'platforms',
-        question: 'Which platforms should it support?',
-        options: ['Web only', 'Mobile only', 'Web + Mobile', 'Desktop application'],
-        icon: Monitor,
-      },
-    ],
-  },
-  {
-    id: 'design',
-    title: 'Design & UX',
-    questions: [
-      {
-        id: 'ui_style',
-        question: 'What UI style do you prefer?',
-        options: ['Minimal & clean', 'Feature-rich dashboard', 'Content-heavy / editorial', 'Interactive & animated'],
-        icon: Palette,
-      },
-      {
-        id: 'theme',
-        question: 'Preferred color theme?',
-        options: ['Light mode', 'Dark mode', 'Both (user toggle)', 'Match system preference'],
-        icon: Sun,
-      },
-      {
-        id: 'layout',
-        question: 'Primary layout pattern?',
-        options: ['Sidebar navigation', 'Top navigation bar', 'Tab-based navigation', 'Single page / scroll'],
-        icon: LayoutGrid,
-      },
-      {
-        id: 'responsive',
-        question: 'Mobile responsiveness priority?',
-        options: ['Mobile-first design', 'Desktop-first, responsive', 'Equal priority both', 'Not required'],
-        icon: Smartphone,
-      },
-    ],
-  },
-  {
-    id: 'tech',
-    title: 'Tech Stack',
-    questions: [
-      {
-        id: 'frontend',
-        question: 'Frontend framework?',
-        options: ['React / Next.js', 'Vue / Nuxt', 'Svelte / SvelteKit', 'No preference'],
-        icon: Code2,
-      },
-      {
-        id: 'backend',
-        question: 'Backend approach?',
-        options: ['Node.js / Express', 'Python / FastAPI', 'Serverless functions', 'No preference'],
-        icon: Server,
-      },
-      {
-        id: 'database',
-        question: 'Database preference?',
-        options: ['PostgreSQL', 'MongoDB', 'Firebase / Supabase', 'No preference'],
-        icon: Database,
-      },
-      {
-        id: 'deployment',
-        question: 'Deployment target?',
-        options: ['Vercel / Netlify', 'AWS / GCP', 'Docker / self-hosted', 'No preference'],
-        icon: Cloud,
-      },
-    ],
-  },
-];
-
-export default function QuestionnairePage() {
+export default function DetailedPipelinePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idea = searchParams.get('idea') || '';
 
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState<Step>('questions');
+  
+  // Questionnaire state
+  const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Document states
+  const [requirements, setRequirements] = useState<string>('');
+  const [design, setDesign] = useState<string>('');
+  const [tasks, setTasks] = useState<string>('');
+  
+  // UI states
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [refinePrompt, setRefinePrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const initRef = useRef(false);
+
+  // Auto-start generating questions on load
   useEffect(() => {
-    if (!idea) router.push('/dashboard');
+    if (!idea) {
+      router.push('/dashboard');
+      return;
+    }
+    
+    if (!initRef.current) {
+      initRef.current = true;
+      generateStage('generate_questions');
+    }
   }, [idea, router]);
 
-  const step = STEPS[currentStep];
-  const totalSteps = STEPS.length;
+  const fetchApi = async (payload: any) => {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) throw new Error('Authentication error. Please sign in again.');
 
-  // Check if all questions in current step are answered
-  const stepComplete = step.questions.every(q => answers[q.id]);
-  const allComplete = STEPS.every(s => s.questions.every(q => answers[q.id]));
+    const response = await fetch('/api/detailed', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify(payload)
+    });
 
-  const selectAnswer = (questionId: string, option: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: option }));
+    if (!response.ok) {
+      let msg = 'API error';
+      try { const d = await response.json(); msg = d.error || msg; } catch {}
+      throw new Error(msg);
+    }
+    
+    return response.json();
   };
 
-  const nextStep = () => {
-    if (currentStep < totalSteps - 1) setCurrentStep(currentStep + 1);
-  };
-
-  const prevStep = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
-  };
-
-  const handleGenerate = async () => {
-    setIsSubmitting(true);
+  const generateStage = async (action: string) => {
+    setIsGenerating(true);
     setError(null);
-
-    // Compile all answers into a structured prompt
-    const sections = STEPS.map(s => {
-      const qas = s.questions.map(q => `- ${q.question} → ${answers[q.id]}`).join('\n');
-      return `## ${s.title}\n${qas}`;
-    }).join('\n\n');
-
-    const fullPrompt = `App Idea: ${idea}\n\nDetailed Requirements Gathered:\n\n${sections}`;
-
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) throw new Error('Authentication error. Please sign in again.');
+      const payload: any = {
+        action,
+        idea,
+        requirements,
+        design
+      };
 
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ appIdea: fullPrompt, userId: session.user.id })
-      });
-
-      if (!response.ok) {
-        let msg = 'Failed to generate';
-        try { const d = await response.json(); msg = d.error || msg; } catch {}
-        throw new Error(msg);
+      if (action === 'generate_requirements' && Object.keys(answers).length > 0) {
+        payload.answers = JSON.stringify(answers);
       }
 
-      const data = await response.json();
-      if (!data.success) throw new Error(data.error || 'Generation failed');
+      console.log('Calling API with action:', action);
+      const data = await fetchApi(payload);
+      console.log('API response:', data);
+      
+      if (!data.success) throw new Error('Generation failed');
 
-      router.push(`/dashboard/results/${data.projectId}`);
+      if (action === 'generate_questions') {
+        try {
+          console.log('Raw questions content:', data.content);
+          const parsed = JSON.parse(data.content);
+          console.log('Parsed questions:', parsed);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setQuestions(parsed);
+            console.log('Questions set successfully:', parsed);
+          } else {
+            throw new Error('Invalid questions format - not an array or empty');
+          }
+        } catch (parseError) {
+          console.error('Failed to parse questions:', parseError);
+          console.error('Content was:', data.content);
+          setError('Failed to generate questions. Please try again.');
+        }
+      }
+      if (action === 'generate_requirements') setRequirements(data.content);
+      if (action === 'generate_design') setDesign(data.content);
+      if (action === 'generate_tasks') setTasks(data.content);
+
     } catch (err: any) {
+      console.error('Error in generateStage:', err);
       setError(err.message || 'Something went wrong.');
-      setIsSubmitting(false);
+    } finally {
+      setIsGenerating(false);
     }
+  };
+
+  const handleRefine = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!refinePrompt.trim() || isGenerating) return;
+
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const currentContent = currentStep === 'requirements' ? requirements : currentStep === 'design' ? design : tasks;
+      
+      const data = await fetchApi({
+        action: 'refine_content',
+        currentContent,
+        prompt: refinePrompt
+      });
+      
+      if (!data.success) throw new Error('Refinement failed');
+
+      if (currentStep === 'requirements') setRequirements(data.content);
+      if (currentStep === 'design') setDesign(data.content);
+      if (currentStep === 'tasks') setTasks(data.content);
+      
+      setRefinePrompt('');
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong during refinement.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const advanceStep = async () => {
+    if (currentStep === 'questions') {
+      // User answered questions, now generate requirements
+      setCurrentStep('requirements');
+      generateStage('generate_requirements');
+    } else if (currentStep === 'requirements') {
+      // User commits to requirements, now generate design
+      setCurrentStep('design');
+      generateStage('generate_design');
+    } else if (currentStep === 'design') {
+      // User commits to design, now generate tasks
+      setCurrentStep('tasks');
+      generateStage('generate_tasks');
+    } else {
+      // Finalize and save
+      setIsGenerating(true);
+      setError(null);
+      try {
+        const data = await fetchApi({
+          action: 'save_project',
+          idea,
+          requirements,
+          design,
+          tasks
+        });
+        
+        if (!data.success) throw new Error('Failed to save project');
+        
+        router.push(`/dashboard/results/${data.projectId}`);
+      } catch (err: any) {
+        setError(err.message || 'Failed to save project.');
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  const handleAnswerSelect = (questionId: string, answer: string) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
   if (!idea) return null;
 
+  const allQuestionsAnswered = questions.length > 0 && questions.every(q => answers[q.id]);
+  const currentContent = currentStep === 'requirements' ? requirements : currentStep === 'design' ? design : tasks;
+  
+  const stepConfig = {
+    questions: { title: 'Answer Questions', icon: FileText, next: 'Generate Requirements' },
+    requirements: { title: 'Review Requirements', icon: FileText, next: 'Commit & Continue to Design' },
+    design: { title: 'Review System Design', icon: GitBranch, next: 'Commit & Continue to Tasks' },
+    tasks: { title: 'Review Tasks', icon: ListChecks, next: 'Finish & Save Project' }
+  };
+
+  const activeConfig = stepConfig[currentStep];
+  const StepIcon = activeConfig.icon;
+
   return (
-    <div className="h-full overflow-y-auto bg-bg">
-      <div className="max-w-[640px] mx-auto px-6 py-10">
-
-        {/* Header */}
-        <div className="mb-8 animate-fade-in-up">
-          <p className="text-[11px] font-bold text-primary uppercase tracking-[0.1em] mb-1">Detailed Mode</p>
-          <h1 className="text-[24px] font-extrabold text-text-primary tracking-tight leading-tight mb-2">
-            {step.title}
-          </h1>
-          <p className="text-[13px] text-text-muted leading-relaxed line-clamp-2">
-            {idea}
+    <div className="h-full flex flex-col bg-gradient-to-br from-bg via-bg to-surface">
+      {/* Header */}
+      <div className="flex-shrink-0 px-6 py-3 border-b border-border/50 bg-surface/80 backdrop-blur-sm">
+        <div className="max-w-[900px] mx-auto">
+          <p className="text-[10px] font-bold text-primary uppercase tracking-[0.12em] mb-1">
+            Detailed Pipeline
           </p>
-        </div>
+          <h1 className="text-[16px] font-bold text-text-primary tracking-tight truncate">
+            {idea}
+          </h1>
+          
+          {/* Progress stepper */}
+          <div className="flex items-center gap-2 mt-2">
+            {(['questions', 'requirements', 'design', 'tasks'] as Step[]).map((step, idx) => {
+              const isActive = currentStep === step;
+              const isPast = 
+                (currentStep === 'requirements' && step === 'questions') ||
+                (currentStep === 'design' && (step === 'questions' || step === 'requirements')) || 
+                (currentStep === 'tasks' && step !== 'tasks');
+              
+              const stepLabels = {
+                questions: 'Questions',
+                requirements: 'Requirements',
+                design: 'Design',
+                tasks: 'Tasks'
+              };
 
-        {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-8 animate-fade-in-up anim-delay-1">
-          {STEPS.map((s, i) => {
-            const done = s.questions.every(q => answers[q.id]);
-            const active = i === currentStep;
-            return (
-              <button
-                key={s.id}
-                onClick={() => setCurrentStep(i)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                  active
-                    ? 'bg-primary text-white'
-                    : done
-                      ? 'bg-primary-muted text-primary'
-                      : 'bg-surface-alt text-text-muted'
-                }`}
-              >
-                <span className="w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center border ${
-                  active ? 'border-white/40' : done ? 'border-primary/30' : 'border-text-faint'
-                }">
-                  {i + 1}
-                </span>
-                {s.title}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Questions */}
-        <div className="space-y-6 animate-fade-in-up anim-delay-2">
-          {step.questions.map((q) => {
-            const QIcon = q.icon;
-            const selected = answers[q.id];
-            return (
-              <div key={q.id}>
-                <div className="flex items-center gap-2 mb-3">
-                  <QIcon size={16} className="text-primary" strokeWidth={1.8} />
-                  <h3 className="text-[14px] font-bold text-text-primary">{q.question}</h3>
+              return (
+                <div key={step} className="flex items-center gap-2">
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-primary/10 border border-primary' 
+                      : isPast 
+                      ? 'bg-success/10 border border-success/30' 
+                      : 'bg-surface-alt border border-border/50 opacity-60'
+                  }`}>
+                    {isPast ? (
+                      <CheckCircle2 size={12} className="text-success" />
+                    ) : (
+                      <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-primary' : 'bg-text-muted'}`} />
+                    )}
+                    <span className={`text-[11px] font-semibold ${isActive ? 'text-primary' : isPast ? 'text-success' : 'text-text-muted'}`}>
+                      {stepLabels[step]}
+                    </span>
+                  </div>
+                  {idx < 3 && <ArrowRight size={12} className="text-border/60" />}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {q.options.map((option) => {
-                    const isSelected = selected === option;
-                    return (
-                      <button
-                        key={option}
-                        onClick={() => selectAnswer(q.id, option)}
-                        className={`text-left px-4 py-3 rounded-lg text-[13px] font-medium transition-all border ${
-                          isSelected
-                            ? 'bg-primary-faint border-primary text-primary'
-                            : 'bg-surface border-border text-text-secondary hover:border-text-faint hover:bg-surface-alt'
-                        }`}
-                      >
-                        {option}
-                      </button>
-                    );
-                  })}
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg">
+        <div className="max-w-[900px] mx-auto">
+          {error && (
+            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[13px] font-medium">
+              {error}
+            </div>
+          )}
+          
+          {isGenerating && (currentStep === 'questions' ? questions.length === 0 : !currentContent) ? (
+            <div className="flex flex-col items-center justify-center py-24 animate-fade-in">
+              <div className="relative mb-6">
+                <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+              </div>
+              <p className="text-[16px] font-bold text-text-primary mb-2">
+                {currentStep === 'questions' ? 'Generating Questions' : `Generating ${activeConfig.title}`}
+              </p>
+              <p className="text-[13px] text-text-muted">Analyzing your idea and creating a detailed document...</p>
+            </div>
+          ) : currentStep === 'questions' ? (
+            <div className="animate-fade-in-up space-y-5">
+              {/* Questions Display */}
+              <div className="bg-white border border-border rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-border">
+                  <h2 className="text-[15px] font-bold text-text-primary">Discovery Questions</h2>
+                  <p className="text-[12px] text-text-muted mt-1">Help us understand your project better</p>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  {questions.map((q, idx) => (
+                    <div key={q.id} className="space-y-3">
+                      <p className="text-[14px] font-semibold text-text-primary">
+                        {idx + 1}. {q.question}
+                      </p>
+                      <div className="space-y-2">
+                        {q.options.map((option: string) => (
+                          <button
+                            key={option}
+                            onClick={() => handleAnswerSelect(q.id, option)}
+                            className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                              answers[q.id] === option
+                                ? 'border-primary bg-primary/5 text-primary font-medium'
+                                : 'border-border hover:border-primary/40 hover:bg-surface/50 text-text-secondary'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                answers[q.id] === option ? 'border-primary' : 'border-border'
+                              }`}>
+                                {answers[q.id] === option && (
+                                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                )}
+                              </div>
+                              <span className="text-[13px]">{option}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Error */}
-        {error && (
-          <div className="mt-5 p-2.5 rounded-lg bg-red-50 border border-red-200 text-error text-[12px] font-medium text-center">
-            {error}
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-10 pt-6 border-t border-border-light">
-          <button
-            onClick={currentStep === 0 ? () => router.push('/dashboard') : prevStep}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-text-muted hover:text-text-primary hover:bg-surface-alt transition-colors"
-          >
-            <ArrowLeft size={15} strokeWidth={2} />
-            {currentStep === 0 ? 'Back' : 'Previous'}
-          </button>
-
-          {currentStep < totalSteps - 1 ? (
-            <button
-              onClick={nextStep}
-              disabled={!stepComplete}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-primary text-white hover:bg-primary-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-              <ArrowRight size={15} strokeWidth={2} />
-            </button>
+              {/* Action Panel */}
+              <div className="flex justify-end">
+                <button
+                  onClick={advanceStep}
+                  disabled={!allQuestionsAnswered || isGenerating}
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[14px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {isGenerating ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <CheckCircle2 size={16} />
+                  )}
+                  {activeConfig.next}
+                  <ArrowRight size={16} strokeWidth={2.5} />
+                </button>
+              </div>
+            </div>
           ) : (
-            <button
-              onClick={handleGenerate}
-              disabled={!allComplete || isSubmitting}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-primary text-white hover:bg-primary-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 size={15} className="animate-spin" />
-                  Generating…
-                </>
-              ) : (
-                <>
-                  Generate
-                  <Send size={14} strokeWidth={2} />
-                </>
-              )}
-            </button>
+            <div className="animate-fade-in-up space-y-5">
+              {/* Document Display */}
+              <div className="bg-white border border-border rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <StepIcon size={20} className="text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-[15px] font-bold text-text-primary">{activeConfig.title}</h2>
+                      <p className="text-[12px] text-text-muted">Review and refine before proceeding</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8">
+                  <div className="prose prose-sm max-w-none
+                    prose-headings:text-text-primary prose-headings:font-bold
+                    prose-h1:text-[24px] prose-h1:border-b prose-h1:border-border prose-h1:pb-3 prose-h1:mb-4
+                    prose-h2:text-[19px] prose-h2:mt-6 prose-h2:mb-3
+                    prose-h3:text-[16px] prose-h3:mt-4 prose-h3:mb-2
+                    prose-p:text-text-secondary prose-p:leading-[1.75] prose-p:mb-4
+                    prose-li:text-text-secondary prose-li:leading-[1.7] prose-li:my-1
+                    prose-ul:my-3 prose-ol:my-3
+                    prose-strong:text-text-primary prose-strong:font-semibold
+                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[13px] prose-code:font-mono">
+                    <ReactMarkdown>{currentContent}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Panel */}
+              <div className="bg-white border border-border rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-surface px-6 py-4 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <Edit3 size={16} className="text-primary" />
+                    <h3 className="text-[14px] font-bold text-text-primary">Request Changes</h3>
+                  </div>
+                  <p className="text-[12px] text-text-muted mt-1">
+                    Describe any modifications you'd like, or commit to proceed to the next step.
+                  </p>
+                </div>
+                
+                <div className="p-6">
+                  <form onSubmit={handleRefine} className="space-y-4">
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={refinePrompt}
+                        onChange={(e) => setRefinePrompt(e.target.value)}
+                        disabled={isGenerating}
+                        placeholder="e.g., Add mobile app support, include API rate limiting, use PostgreSQL instead..."
+                        className="flex-1 px-4 py-3 rounded-lg border border-border bg-bg text-[13px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!refinePrompt.trim() || isGenerating}
+                        className="flex items-center gap-2 px-5 py-3 rounded-lg bg-surface-alt text-text-primary font-semibold text-[13px] border border-border hover:bg-border hover:border-border disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            Refining...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            Refine
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {error && (
+                      <div className="p-3 rounded-lg bg-red-50 text-error text-[12px] font-medium border border-red-200">
+                        {error}
+                      </div>
+                    )}
+                  </form>
+
+                  <div className="flex justify-end pt-5 mt-5 border-t border-border">
+                    <button
+                      onClick={advanceStep}
+                      disabled={isGenerating}
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[14px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+                    >
+                      {isGenerating && refinePrompt.trim() === '' ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <CheckCircle2 size={16} />
+                      )}
+                      {activeConfig.next}
+                      <ArrowRight size={16} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-
       </div>
     </div>
   );

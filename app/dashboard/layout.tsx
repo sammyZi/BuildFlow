@@ -46,44 +46,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onSelectProject={handleSelectProject}
               currentProjectId={currentProjectId}
               onCollapse={() => setIsSidebarOpen(false)}
+              onSignOut={handleSignOut}
             />
           </div>
         </aside>
 
         {/* Main */}
         <div className="flex-1 flex flex-col min-w-0 h-full">
-          {/* Header */}
-          <header className="h-[48px] border-b border-border flex items-center justify-between px-4 flex-shrink-0 bg-surface z-10">
-            <div className="flex items-center gap-2.5">
-              {!isSidebarOpen && (
-                <button
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface-alt rounded-lg transition-colors"
-                  title="Open sidebar"
-                >
-                  <PanelLeft size={17} strokeWidth={1.5} />
-                </button>
-              )}
-              <div className="flex items-center gap-2">
-                <div className="w-5.5 h-5.5 rounded bg-primary flex items-center justify-center">
-                  <Layers size={12} className="text-white" strokeWidth={2.5} />
-                </div>
-                <span className="text-[13px] font-bold text-text-primary tracking-tight">AI Architect</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium text-text-muted hover:text-text-primary hover:bg-surface-alt rounded-lg transition-colors"
-              >
-                <LogOut size={14} strokeWidth={1.5} />
-                Sign out
-              </button>
-            </div>
-          </header>
-
           {/* Page content */}
           <main className="flex-1 overflow-hidden">
+            {!isSidebarOpen && (
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="fixed top-4 left-4 z-20 p-2 text-text-muted hover:text-text-primary hover:bg-surface border border-border rounded-lg transition-colors"
+                title="Open sidebar"
+              >
+                <PanelLeft size={18} strokeWidth={1.5} />
+              </button>
+            )}
             {children}
           </main>
         </div>
