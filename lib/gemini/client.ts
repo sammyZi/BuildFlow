@@ -47,7 +47,18 @@ export class MiniMaxClient {
    * @returns Markdown-formatted design document
    */
   async generateDesign(appIdea: string, requirements: string): Promise<string> {
-    const systemPrompt = "You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure.";
+    const systemPrompt = `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure.
+
+IMPORTANT: When including Mermaid diagrams in your markdown:
+1. Wrap diagrams in code blocks with the 'mermaid' language identifier
+2. Always quote edge labels that contain special characters (parentheses, slashes, brackets, etc.)
+3. Example of correct syntax:
+   \`\`\`mermaid
+   graph TD
+       A[Start] -->|"Step 1 (with details)"| B[Process]
+       B -->|"Data (JSON/XML)"| C[End]
+   \`\`\`
+4. Use quotes around ANY label text that contains: ( ) / [ ] { } or other special characters`;
 
     const userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}`;
 

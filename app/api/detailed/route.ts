@@ -17,7 +17,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, idea, currentContent, prompt, requirements, design, answers } = await req.json();
+    // Read the body once and reuse it
+    const body = await req.json();
+    const { action, idea, currentContent, prompt, requirements, design, answers } = body;
 
     const model = google(process.env.GEMINI_MODEL || 'gemini-2.5-flash');
 
@@ -93,7 +95,7 @@ Make the questions and options SPECIFIC to: ${idea}`,
     }
 
     if (action === 'save_project') {
-      const { requirements: reqDoc, design: desDoc, tasks: taskDoc } = await req.json();
+      const { requirements: reqDoc, design: desDoc, tasks: taskDoc } = body;
       
       // 1. Create project
       const { data: project, error: insertError } = await supabaseAdmin

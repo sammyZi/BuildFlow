@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Artifact, ArtifactType } from '@/types';
 import ReactMarkdown from 'react-markdown';
+import MermaidDiagram from './MermaidDiagram';
 import {
   FileText, GitBranch, ListChecks, Download,
   Folder, Copy, Check, Loader2, Clock, WifiOff, CheckCircle2
@@ -171,7 +172,44 @@ export default function ResultsViewer({
                   prose-strong:text-text-primary prose-strong:font-bold
                   prose-blockquote:border-primary/30 prose-blockquote:bg-primary-faint prose-blockquote:rounded-r-lg prose-blockquote:py-1"
                 >
-                  <ReactMarkdown>{activeContent}</ReactMarkdown>
+                  <ReactMarkdown
+                    components={{
+                      code({ node, inline, className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const language = match ? match[1] : '';
+                        const codeString = String(children).replace(/\n$/, '');
+
+                        // Render Mermaid diagrams
+                        if (language === 'mermaid') {
+                          return (
+                            <div className="my-6 p-4 bg-white rounded-lg border border-border">
+                              <MermaidDiagram chart={codeString} />
+                            </div>
+                          );
+                        }
+
+                        // Regular code blocks
+                        if (!inline && match) {
+                          return (
+                            <pre className={className}>
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            </pre>
+                          );
+                        }
+
+                        // Inline code
+                        return (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                    }}
+                  >
+                    {activeContent}
+                  </ReactMarkdown>
                 </div>
               </div>
             ) : (
