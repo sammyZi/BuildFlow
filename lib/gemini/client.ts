@@ -81,7 +81,7 @@ export class MiniMaxClient {
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const result = await generateText({
-          model: this.google('gemini-2.5-flash'),
+          model: this.google(process.env.GEMINI_MODEL || 'gemini-2.5-flash'),
           system: systemPrompt,
           prompt: userMessage,
         });

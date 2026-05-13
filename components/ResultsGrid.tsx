@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Artifact, ArtifactType } from '@/types';
 import { SupabaseService } from '@/lib/supabase/service';
 import ReactMarkdown from 'react-markdown';
@@ -15,9 +15,9 @@ interface ResultsGridProps {
 const MAX_RECONNECTION_ATTEMPTS = 5;
 
 const TABS: Array<{ id: ArtifactType; label: string; icon: string }> = [
-  { id: 'requirements', label: 'requirements.md', icon: '📝' },
-  { id: 'design', label: 'design.md', icon: '🏗️' },
-  { id: 'tasks', label: 'tasks.md', icon: '✅' },
+  { id: 'requirements', label: 'requirements.md', icon: 'description' },
+  { id: 'design', label: 'design.md', icon: 'account_tree' },
+  { id: 'tasks', label: 'tasks.md', icon: 'checklist' },
 ];
 
 export default function ResultsGrid({ 
@@ -66,10 +66,8 @@ export default function ResultsGrid({
     return () => { subscription.unsubscribe(); };
   }, [projectId, handleNewArtifact, handleDisconnect, reconnectAttempts]);
 
-  // Compute states
-  const hasAllArtifacts = artifacts.length === 3;
   const artifactTypes = new Set(artifacts.map(a => a.artifact_type));
-  const isComplete = hasAllArtifacts && artifactTypes.has('requirements') && artifactTypes.has('design') && artifactTypes.has('tasks');
+  const isComplete = artifacts.length === 3 && artifactTypes.has('requirements') && artifactTypes.has('design') && artifactTypes.has('tasks');
   const showEmptyState = !isLoading && artifacts.length === 0 && !projectId;
 
   const getArtifactContent = (type: string) => {
@@ -81,13 +79,13 @@ export default function ResultsGrid({
 
   if (showEmptyState) {
     return (
-      <div className="flex flex-col items-center justify-center h-full pt-32 text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-chat-accent text-white flex items-center justify-center shadow-lg">
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+      <div className="flex flex-col items-center justify-center h-full pt-32 text-center space-y-5">
+        <div className="w-14 h-14 rounded-2xl bg-chat-accent/10 text-chat-accent flex items-center justify-center">
+          <span className="material-symbols-outlined text-[32px]">architecture</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-chat-text tracking-tight">How can I help you architect today?</h1>
-        <p className="text-chat-textMuted max-w-md mx-auto text-sm">
-          Describe your application idea below, and I will generate comprehensive requirements, technical designs, and engineering tasks.
+        <h1 className="text-2xl font-bold text-chat-text tracking-tight">AI Architect Hub</h1>
+        <p className="text-chat-textMuted max-w-sm mx-auto text-sm leading-relaxed">
+          Select a mode below, describe your app idea, and get comprehensive requirements, system design, and engineering tasks.
         </p>
       </div>
     );
@@ -95,83 +93,118 @@ export default function ResultsGrid({
 
   return (
     <div className="flex flex-col h-full gap-4 pb-4">
-      {/* Manual Refresh Prompt */}
       {showRefreshPrompt && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm flex-shrink-0">
-          Connection lost. Please <button onClick={() => window.location.reload()} className="underline font-semibold">refresh the page</button>.
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex-shrink-0 flex items-center gap-2">
+          <span className="material-symbols-outlined text-[18px]">wifi_off</span>
+          Connection lost. <button onClick={() => window.location.reload()} className="underline font-semibold">Refresh</button>
         </div>
       )}
 
-      {/* VSCode-style Editor Window */}
-      <div className="flex flex-col flex-1 border border-chat-border rounded-xl overflow-hidden bg-[#1E1E1E] shadow-2xl min-h-[500px]">
+      {/* File Viewer */}
+      <div className="flex flex-1 border border-chat-border rounded-xl overflow-hidden bg-white shadow-sm min-h-[500px]">
         
-        {/* Editor Tabs */}
-        <div className="flex bg-[#252526] overflow-x-auto custom-scrollbar flex-shrink-0">
-          {TABS.map((tab) => {
-            const isReady = artifactTypes.has(tab.id);
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 text-[13px] transition-colors border-r border-[#1E1E1E] ${
-                  isActive 
-                    ? 'bg-[#1E1E1E] text-white border-t-2 border-t-blue-500' 
-                    : 'bg-[#2D2D2D] text-gray-400 hover:bg-[#2D2D2D]/80 border-t-2 border-t-transparent'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span className="font-mono">{tab.label}</span>
-                {!isReady && isLoading && (
-                  <svg className="animate-spin h-3 w-3 text-blue-400 ml-1" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-          
-          <div className="flex-1 bg-[#252526]" /> {/* Empty space filler */}
+        {/* Sidebar file tree */}
+        <div className="w-[200px] bg-gray-50 border-r border-chat-border flex flex-col shrink-0">
+          <div className="px-3 py-2.5 border-b border-chat-border">
+            <p className="text-[11px] font-semibold text-chat-textMuted uppercase tracking-wider">Files</p>
+          </div>
+          <div className="flex-1 py-1">
+            {TABS.map((tab) => {
+              const isReady = artifactTypes.has(tab.id);
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[13px] transition-colors ${
+                    isActive 
+                      ? 'bg-chat-accent/10 text-chat-accent font-medium' 
+                      : 'text-chat-text hover:bg-gray-100'
+                  }`}
+                >
+                  <span className={`material-symbols-outlined text-[16px] ${isActive ? 'text-chat-accent' : 'text-chat-textMuted'}`}>{tab.icon}</span>
+                  <span className="truncate">{tab.label}</span>
+                  {!isReady && isLoading && (
+                    <svg className="animate-spin h-3 w-3 text-chat-accent ml-auto shrink-0" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  )}
+                  {isReady && (
+                    <span className="material-symbols-outlined text-[14px] text-green-500 ml-auto shrink-0">check_circle</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-          {/* Download Action */}
+          {/* Download */}
           {isComplete && onDownloadBundle && (
-            <button
-              onClick={onDownloadBundle}
-              className="flex items-center gap-2 px-4 py-1.5 my-1 mr-2 bg-blue-600 hover:bg-blue-500 rounded text-white text-[12px] font-medium transition-colors"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-              Download Bundle
-            </button>
+            <div className="p-2 border-t border-chat-border">
+              <button
+                onClick={onDownloadBundle}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-chat-accent hover:bg-chat-accentHover rounded-lg text-white text-[12px] font-semibold transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">download</span>
+                Download All
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Editor Content Area */}
-        <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar relative bg-[#1E1E1E]">
-          {activeContent ? (
-            <div className="prose prose-invert prose-sm md:prose-base max-w-none font-sans
-              prose-headings:text-gray-100 prose-headings:font-bold 
-              prose-a:text-blue-400 prose-p:text-gray-300 prose-li:text-gray-300
-              prose-code:text-pink-400 prose-code:bg-[#2D2D2D] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-              prose-pre:bg-[#151515] prose-pre:border prose-pre:border-gray-800"
-            >
-              <ReactMarkdown>{activeContent}</ReactMarkdown>
+        {/* Content pane */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Breadcrumb bar */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-chat-border bg-white shrink-0">
+            <div className="flex items-center gap-1.5 text-[12px] text-chat-textMuted">
+              <span className="material-symbols-outlined text-[14px]">folder</span>
+              <span>output</span>
+              <span>/</span>
+              <span className="text-chat-text font-medium">{TABS.find(t => t.id === activeTab)?.label}</span>
             </div>
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 space-y-4">
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin h-8 w-8 text-blue-500" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <p className="text-sm font-mono animate-pulse">Generating {TABS.find(t => t.id === activeTab)?.label}...</p>
-                </>
-              ) : (
-                <p className="text-sm font-mono">Waiting for generation to begin...</p>
-              )}
-            </div>
-          )}
+            {activeContent && (
+              <button
+                onClick={() => { navigator.clipboard.writeText(activeContent); }}
+                className="flex items-center gap-1 text-[11px] text-chat-textMuted hover:text-chat-text transition-colors"
+              >
+                <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                Copy
+              </button>
+            )}
+          </div>
+
+          {/* Markdown content */}
+          <div className="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar relative">
+            {activeContent ? (
+              <div className="prose prose-sm md:prose-base max-w-none
+                prose-headings:text-chat-text prose-headings:font-bold 
+                prose-a:text-chat-accent prose-p:text-chat-text/80 prose-li:text-chat-text/80
+                prose-code:text-pink-600 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[13px]
+                prose-pre:bg-gray-50 prose-pre:border prose-pre:border-chat-border prose-pre:rounded-lg
+                prose-hr:border-chat-border
+                prose-strong:text-chat-text"
+              >
+                <ReactMarkdown>{activeContent}</ReactMarkdown>
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-chat-textMuted space-y-3">
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-6 w-6 text-chat-accent" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <p className="text-sm animate-pulse">Generating {TABS.find(t => t.id === activeTab)?.label}...</p>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[28px] text-chat-textMuted/50">hourglass_empty</span>
+                    <p className="text-sm">Waiting for generation...</p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

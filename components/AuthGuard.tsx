@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession, onAuthStateChange } from '@/lib/supabase/auth';
+import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -57,12 +58,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
-        <div className="glassmorphism-card">
-          <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4a90e2]"></div>
-            <span className="text-[#212529]">Loading...</span>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="flex items-center gap-3">
+          <Loader2 size={20} className="animate-spin text-primary" />
+          <span className="text-text-muted text-[14px] font-medium">Loading…</span>
         </div>
       </div>
     );
