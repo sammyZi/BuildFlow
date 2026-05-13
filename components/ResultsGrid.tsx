@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Artifact } from '@/types';
+import { Artifact, ArtifactType } from '@/types';
 import { SupabaseService } from '@/lib/supabase/service';
 import ReactMarkdown from 'react-markdown';
 
@@ -14,7 +14,7 @@ interface ResultsGridProps {
 
 const MAX_RECONNECTION_ATTEMPTS = 5;
 
-const TABS = [
+const TABS: Array<{ id: ArtifactType; label: string; icon: string }> = [
   { id: 'requirements', label: 'requirements.md', icon: '📝' },
   { id: 'design', label: 'design.md', icon: '🏗️' },
   { id: 'tasks', label: 'tasks.md', icon: '✅' },
