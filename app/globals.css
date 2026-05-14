@@ -3,10 +3,10 @@
 
 @theme {
   /* Primary */
-  --color-primary: #7C5CFC;
-  --color-primary-hover: #6A4CE0;
-  --color-primary-muted: #EDE9FE;
-  --color-primary-faint: #F5F3FF;
+  --color-primary: #8C542E;
+  --color-primary-hover: #734221;
+  --color-primary-muted: #F3EAE4;
+  --color-primary-faint: #FAF6F3;
 
   /* Surfaces */
   --color-bg: #FAFAFA;

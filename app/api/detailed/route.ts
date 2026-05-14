@@ -76,11 +76,32 @@ Make the questions and options SPECIFIC to: ${idea}`,
       return NextResponse.json({ success: true, content: text });
     }
 
+    if (action === 'generate_design_questions') {
+      const { text } = await generateText({
+        model,
+        system: 'You are an expert Software Architect identifying technical trade-offs. Generate exactly 3 focused questions around tech stack options for this app system. Each question should have exactly 4 defined technical options. Return ONLY valid JSON array format.',
+        prompt: `App Idea: "${idea}"
+Requirements:
+${requirements}
+
+Generate 3 technical discovery questions covering:
+1. Frontend Framework / UI Tech Stack
+2. Backend Infrastructure / Language
+3. Database / Storage approach
+
+Return ONLY a JSON array in this format:
+[{"id":"tech1","question":"Your tech question?","options":["Tech Option 1","Tech Option 2","Tech Option 3","Tech Option 4"]}]`,
+      });
+      
+      let cleanedText = text.trim().replace(/```json\n?/gi, '').replace(/```\n?$/g, '').replace(/^```\n?/g, '').trim();
+      return NextResponse.json({ success: true, content: cleanedText });
+    }
+
     if (action === 'generate_design') {
       const { text } = await generateText({
         model,
-        system: 'You are an expert Software Architect. Generate a technical system design document based on the given app idea and requirements. Include System Architecture, Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting.',
-        prompt: `App Idea: ${idea}\n\nApproved Requirements:\n${requirements}`,
+        system: 'You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices. Include System Architecture, Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting.',
+        prompt: `App Idea: ${idea}\n\nApproved Requirements:\n${requirements}\n\n${answers ? `Selected Tech Stack Options:\n${answers}\n\n` : ''}`,
       });
       return NextResponse.json({ success: true, content: text });
     }

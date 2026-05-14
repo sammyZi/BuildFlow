@@ -8,7 +8,7 @@ import {
   ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3
 } from 'lucide-react';
 
-type Step = 'questions' | 'requirements' | 'design' | 'tasks';
+type Step = 'questions' | 'requirements' | 'design-questions' | 'design' | 'tasks';
 
 export default function DetailedPipelinePage() {
   const router = useRouter();
@@ -20,6 +20,9 @@ export default function DetailedPipelinePage() {
   // Questionnaire state
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  const [designQuestions, setDesignQuestions] = useState<any[]>([]);
+  const [designAnswers, setDesignAnswers] = useState<Record<string, string>>({});
   
   // Document states
   const [requirements, setRequirements] = useState<string>('');
@@ -82,6 +85,10 @@ export default function DetailedPipelinePage() {
       if (action === 'generate_requirements' && Object.keys(answers).length > 0) {
         payload.answers = JSON.stringify(answers);
       }
+      
+      if (action === 'generate_design' && Object.keys(designAnswers).length > 0) {
+        payload.answers = JSON.stringify(designAnswers);
+      }
 
       console.log('Calling API with action:', action);
       const data = await fetchApi(payload);
@@ -104,6 +111,19 @@ export default function DetailedPipelinePage() {
           console.error('Failed to parse questions:', parseError);
           console.error('Content was:', data.content);
           setError('Failed to generate questions. Please try again.');
+        }
+      }
+      if (action === 'generate_design_questions') {
+        try {
+          const parsed = JSON.parse(data.content);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setDesignQuestions(parsed);
+          } else {
+            throw new Error('Invalid design questions format');
+          }
+        } catch (parseError) {
+          console.error('Failed to parse design questions:', parseError);
+          setError('Failed to generate design questions. Please try again.');
         }
       }
       if (action === 'generate_requirements') setRequirements(data.content);
@@ -153,7 +173,11 @@ export default function DetailedPipelinePage() {
       setCurrentStep('requirements');
       generateStage('generate_requirements');
     } else if (currentStep === 'requirements') {
-      // User commits to requirements, now generate design
+      // User commits to requirements, now generate design questions
+      setCurrentStep('design-questions');
+      generateStage('generate_design_questions');
+    } else if (currentStep === 'design-questions') {
+      // User answered design questions, now generate design
       setCurrentStep('design');
       generateStage('generate_design');
     } else if (currentStep === 'design') {
@@ -187,14 +211,22 @@ export default function DetailedPipelinePage() {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
+  const handleDesignAnswerSelect = (questionId: string, answer: string) => {
+    setDesignAnswers(prev => ({ ...prev, [questionId]: answer }));
+  };
+
   if (!idea) return null;
 
-  const allQuestionsAnswered = questions.length > 0 && questions.every(q => answers[q.id]);
+  const allQuestionsAnswered = 
+    currentStep === 'questions' ? (questions.length > 0 && questions.every(q => answers[q.id])) :
+    currentStep === 'design-questions' ? (designQuestions.length > 0 && designQuestions.every(q => designAnswers[q.id])) : true;
+
   const currentContent = currentStep === 'requirements' ? requirements : currentStep === 'design' ? design : tasks;
   
   const stepConfig = {
-    questions: { title: 'Answer Questions', icon: FileText, next: 'Generate Requirements' },
-    requirements: { title: 'Review Requirements', icon: FileText, next: 'Commit & Continue to Design' },
+    questions: { title: 'Discovery Questions', icon: FileText, next: 'Generate Requirements' },
+    requirements: { title: 'Review Requirements', icon: FileText, next: 'Commit & Continue to Tech Stack' },
+    "design-questions": { title: 'Tech Stack Decisions', icon: GitBranch, next: 'Generate Design' },
     design: { title: 'Review System Design', icon: GitBranch, next: 'Commit & Continue to Tasks' },
     tasks: { title: 'Review Tasks', icon: ListChecks, next: 'Finish & Save Project' }
   };
@@ -216,16 +248,15 @@ export default function DetailedPipelinePage() {
           
           {/* Progress stepper */}
           <div className="flex items-center gap-2 mt-2">
-            {(['questions', 'requirements', 'design', 'tasks'] as Step[]).map((step, idx) => {
+            {(['questions', 'requirements', 'design-questions', 'design', 'tasks'] as Step[]).map((step, idx) => {
+              const order = ['questions', 'requirements', 'design-questions', 'design', 'tasks'];
               const isActive = currentStep === step;
-              const isPast = 
-                (currentStep === 'requirements' && step === 'questions') ||
-                (currentStep === 'design' && (step === 'questions' || step === 'requirements')) || 
-                (currentStep === 'tasks' && step !== 'tasks');
+              const isPast = order.indexOf(currentStep) > order.indexOf(step);
               
               const stepLabels = {
                 questions: 'Questions',
                 requirements: 'Requirements',
+                "design-questions": 'Tech Stack',
                 design: 'Design',
                 tasks: 'Tasks'
               };
@@ -265,54 +296,61 @@ export default function DetailedPipelinePage() {
             </div>
           )}
           
-          {isGenerating && (currentStep === 'questions' ? questions.length === 0 : !currentContent) ? (
+          {isGenerating && ((currentStep === 'questions' || currentStep === 'design-questions') ? (currentStep === 'questions' ? questions.length === 0 : designQuestions.length === 0) : !currentContent) ? (
             <div className="flex flex-col items-center justify-center py-24 animate-fade-in">
               <div className="relative mb-6">
                 <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
               </div>
               <p className="text-[16px] font-bold text-text-primary mb-2">
-                {currentStep === 'questions' ? 'Generating Questions' : `Generating ${activeConfig.title}`}
+                {currentStep === 'questions' || currentStep === 'design-questions' ? `Generating ${activeConfig.title}` : `Generating ${activeConfig.title}`}
               </p>
               <p className="text-[13px] text-text-muted">Analyzing your idea and creating a detailed document...</p>
             </div>
-          ) : currentStep === 'questions' ? (
+          ) : (currentStep === 'questions' || currentStep === 'design-questions') ? (
             <div className="animate-fade-in-up space-y-5">
               {/* Questions Display */}
               <div className="bg-white border border-border rounded-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-border">
-                  <h2 className="text-[15px] font-bold text-text-primary">Discovery Questions</h2>
-                  <p className="text-[12px] text-text-muted mt-1">Help us understand your project better</p>
+                  <h2 className="text-[15px] font-bold text-text-primary">
+                    {currentStep === 'questions' ? 'Discovery Questions' : 'Tech Stack Decisions'}
+                  </h2>
+                  <p className="text-[12px] text-text-muted mt-1">
+                    {currentStep === 'questions' ? 'Help us understand your project better' : 'Decide on the right technologies for your product'}
+                  </p>
                 </div>
                 
                 <div className="p-6 space-y-6">
-                  {questions.map((q, idx) => (
+                  {(currentStep === 'questions' ? questions : designQuestions).map((q, idx) => (
                     <div key={q.id} className="space-y-3">
                       <p className="text-[14px] font-semibold text-text-primary">
                         {idx + 1}. {q.question}
                       </p>
                       <div className="space-y-2">
-                        {q.options.map((option: string) => (
-                          <button
-                            key={option}
-                            onClick={() => handleAnswerSelect(q.id, option)}
-                            className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
-                              answers[q.id] === option
-                                ? 'border-primary bg-primary/5 text-primary font-medium'
-                                : 'border-border hover:border-primary/40 hover:bg-surface/50 text-text-secondary'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                answers[q.id] === option ? 'border-primary' : 'border-border'
-                              }`}>
-                                {answers[q.id] === option && (
-                                  <div className="w-2 h-2 rounded-full bg-primary"></div>
-                                )}
+                        {q.options.map((option: string) => {
+                          const isSelected = (currentStep === 'questions' ? answers[q.id] : designAnswers[q.id]) === option;
+                          return (
+                            <button
+                              key={option}
+                              onClick={() => currentStep === 'questions' ? handleAnswerSelect(q.id, option) : handleDesignAnswerSelect(q.id, option)}
+                              className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                                isSelected
+                                  ? 'border-primary bg-primary/5 text-primary font-medium'
+                                  : 'border-border hover:border-primary/40 hover:bg-surface/50 text-text-secondary'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                  isSelected ? 'border-primary' : 'border-border'
+                                }`}>
+                                  {isSelected && (
+                                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                  )}
+                                </div>
+                                <span className="text-[13px]">{option}</span>
                               </div>
-                              <span className="text-[13px]">{option}</span>
-                            </div>
-                          </button>
-                        ))}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

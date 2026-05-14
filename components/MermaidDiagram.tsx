@@ -18,7 +18,11 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
       startOnLoad: false,
       theme: 'default',
       securityLevel: 'loose',
+      suppressErrorRendering: true,
       fontFamily: 'Inter, system-ui, sans-serif',
+      // Force natural size to prevent text from being shrunk to illegibility
+      // @ts-expect-error - useMaxWidth is valid at runtime but missing from type config
+      useMaxWidth: false,
       themeVariables: {
         primaryColor: '#6366f1',
         primaryTextColor: '#fff',
@@ -37,18 +41,25 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
       try {
         setError('');
         
-        // Sanitize the chart to handle special characters in labels
-        let sanitizedChart = chart
-          // Replace parentheses in edge labels with quotes
-          .replace(/\|([^|]*)\(/g, '|"$1(')
-          .replace(/\)([^|]*)\|/g, ')$1"|')
-          // Ensure all edge labels are properly quoted if they contain special chars
-          .replace(/\|([^"|][^|]*[/()\[\]{}].*?)\|/g, '|"$1"|');
+        // Try rendering raw chart first
+        let chartToRender = chart;
         
-        const { svg } = await mermaid.render(`mermaid-${Date.now()}`, sanitizedChart);
-        setSvg(svg);
+        try {
+          const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+          const { svg } = await mermaid.render(id, chartToRender);
+          setSvg(svg);
+        } catch (initialErr) {
+          // If it fails, try a basic sanitization for common issues
+          chartToRender = chart.replace(/\|([^"|]+)\|/g, '\|"$1"\|');
+          const fallbackId = `mermaid-fallback-${Math.random().toString(36).substr(2, 9)}`;
+          const { svg } = await mermaid.render(fallbackId, chartToRender);
+          setSvg(svg);
+        }
       } catch (err: any) {
         console.error('Mermaid rendering error:', err);
+        
+        // Remove any orphaned error SVGs injected by Mermaid into the DOM body
+        document.querySelectorAll('svg[id^="dmermaid-"]').forEach(el => el.remove());
         
         // Try to render as plain text fallback
         setError('Unable to render diagram. Showing source code instead.');

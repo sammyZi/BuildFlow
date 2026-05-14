@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 className="w-full min-h-[120px] max-h-[400px] p-4 pl-5 pr-32 pt-5 rounded-[26px] bg-transparent text-[15px] text-text-primary placeholder:text-text-muted resize-none focus:outline-none disabled:opacity-50"
                 rows={4}
               />
-              
+
               <div className="absolute bottom-3 right-3 flex items-center gap-2">
                 <div className="relative" ref={dropdownRef}>
                   <button
@@ -121,14 +121,14 @@ export default function DashboardPage() {
                         <span className="text-[13px] font-semibold text-text-primary">Detailed</span>
                       </>
                     )}
-                    <svg 
-                      width="10" 
-                      height="6" 
-                      viewBox="0 0 10 6" 
-                      fill="none" 
+                    <svg
+                      width="10"
+                      height="6"
+                      viewBox="0 0 10 6"
+                      fill="none"
                       className={`text-text-muted transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
                     >
-                      <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
 
@@ -137,22 +137,20 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => { setMode('fast'); setShowDropdown(false); }}
-                        className={`w-full px-4 py-2 text-[13px] font-medium transition-colors text-left ${
-                          mode === 'fast' 
-                            ? 'text-primary bg-primary/5' 
+                        className={`w-full px-4 py-2 text-[13px] font-medium transition-colors text-left ${mode === 'fast'
+                            ? 'text-primary bg-primary/5'
                             : 'text-text-primary hover:bg-surface/50'
-                        }`}
+                          }`}
                       >
                         Fast
                       </button>
                       <button
                         type="button"
                         onClick={() => { setMode('detailed'); setShowDropdown(false); }}
-                        className={`w-full px-4 py-2 text-[13px] font-medium transition-colors text-left ${
-                          mode === 'detailed' 
-                            ? 'text-primary bg-primary/5' 
+                        className={`w-full px-4 py-2 text-[13px] font-medium transition-colors text-left ${mode === 'detailed'
+                            ? 'text-primary bg-primary/5'
                             : 'text-text-primary hover:bg-surface/50'
-                        }`}
+                          }`}
                       >
                         Detailed
                       </button>

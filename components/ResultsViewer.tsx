@@ -74,20 +74,22 @@ export default function ResultsViewer({
       )}
 
       {/* Main file viewer */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* File sidebar */}
-        <div className="w-[220px] bg-surface-alt border-r border-border flex flex-col flex-shrink-0">
-          <div className="px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Folder size={14} className="text-text-muted" strokeWidth={1.5} />
-              <span className="text-[12px] font-bold text-text-primary tracking-wide uppercase">Output</span>
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        {/* Top tabs */}
+        <div className="bg-surface-alt border-b border-border flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-4 px-4 py-2 sm:py-0 border-b sm:border-b-0 sm:border-r border-border shrink-0">
+            <div>
+              <div className="flex items-center gap-2">
+                <Folder size={14} className="text-text-muted" strokeWidth={1.5} />
+                <span className="text-[12px] font-bold text-text-primary tracking-wide uppercase">Output</span>
+              </div>
+              {!isComplete && artifacts.length > 0 && (
+                <p className="text-[11px] text-text-muted mt-0.5">{readyCount}/3 generated</p>
+              )}
             </div>
-            {!isComplete && artifacts.length > 0 && (
-              <p className="text-[11px] text-text-muted mt-1">{readyCount}/3 generated</p>
-            )}
           </div>
 
-          <div className="flex-1 py-1.5 overflow-y-auto">
+          <div className="flex flex-1 overflow-x-auto hide-scrollbar">
             {TABS.map(tab => {
               const isReady = artifactTypes.has(tab.id);
               const isActive = activeTab === tab.id;
@@ -96,14 +98,14 @@ export default function ResultsViewer({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] transition-all border-l-2 ${
+                  className={`flex items-center gap-2.5 px-4 py-3 text-[13px] transition-all border-b-2 whitespace-nowrap ${
                     isActive
                       ? 'bg-surface border-primary text-primary font-semibold'
                       : 'border-transparent text-text-secondary hover:bg-surface hover:text-text-primary'
                   }`}
                 >
                   <TabIcon size={16} className={isActive ? 'text-primary' : 'text-text-muted'} strokeWidth={1.5} />
-                  <span className="truncate flex-1 text-left">{tab.filename}</span>
+                  <span>{tab.filename}</span>
                   {!isReady && isLoading && (
                     <Loader2 size={13} className="animate-spin text-primary shrink-0" />
                   )}
@@ -116,10 +118,10 @@ export default function ResultsViewer({
           </div>
 
           {isComplete && onDownloadBundle && (
-            <div className="p-3 border-t border-border">
+            <div className="p-2 sm:border-l border-border shrink-0">
               <button
                 onClick={onDownloadBundle}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-[12px] font-bold transition-colors active:scale-[0.98]"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-[12px] font-bold transition-colors active:scale-[0.98]"
               >
                 <Download size={15} strokeWidth={2} />
                 Download All
@@ -129,7 +131,7 @@ export default function ResultsViewer({
         </div>
 
         {/* Content pane */}
-        <div className="flex-1 flex flex-col min-w-0 bg-surface">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-surface">
           {/* Breadcrumb */}
           <div className="flex items-center justify-between px-6 py-2.5 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-1.5 text-[12px] text-text-muted">
@@ -174,7 +176,7 @@ export default function ResultsViewer({
                 >
                   <ReactMarkdown
                     components={{
-                      code({ node, inline, className, children, ...props }) {
+                      code({ node, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
                         const language = match ? match[1] : '';
                         const codeString = String(children).replace(/\n$/, '');
@@ -182,14 +184,16 @@ export default function ResultsViewer({
                         // Render Mermaid diagrams
                         if (language === 'mermaid') {
                           return (
-                            <div className="my-6 p-4 bg-white rounded-lg border border-border">
-                              <MermaidDiagram chart={codeString} />
+                            <div className="my-6 p-4 bg-white rounded-lg border border-border overflow-x-auto hide-scrollbar">
+                              <div className="min-w-fit flex justify-center">
+                                <MermaidDiagram chart={codeString} />
+                              </div>
                             </div>
                           );
                         }
 
                         // Regular code blocks
-                        if (!inline && match) {
+                        if (match) {
                           return (
                             <pre className={className}>
                               <code className={className} {...props}>
