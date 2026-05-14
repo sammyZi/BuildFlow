@@ -1,5 +1,7 @@
 # BuildFlow (AI Architect Hub)
 
+![BuildFlow Dashboard](./public/dash.png)
+
 Transform your app ideas into developer-ready documentation with AI-powered generation. BuildFlow is a conversational, highly interactive generative workspace designed to streamline the software architecture and requirements gathering phases.
 
 ## 🌟 Overview
