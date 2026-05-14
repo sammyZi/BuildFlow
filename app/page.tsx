@@ -80,8 +80,19 @@ export default function LandingPage() {
         {/* Hero Content */}
         <div className="relative z-10 max-w-4xl mx-auto mt-20 lg:mt-28 px-4 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-            Your <span className="text-[#4C1D95]">beautiful</span> generative workspace.<br />
-            From an idea to <span className="text-[#4C1D95]">developer-ready docs.</span>
+            Your <span className="relative inline-block">
+              <span className="text-[#4C1D95] relative z-10">beautiful</span>
+              <svg className="absolute w-full h-4 -bottom-1 left-0 text-[#4C1D95] z-0 opacity-80" viewBox="0 0 100 15" preserveAspectRatio="none">
+                <path d="M 2 12 C 20 5, 35 14, 60 7 C 75 2, 88 11, 98 8" stroke="currentColor" strokeWidth="2.5" fill="transparent" strokeLinecap="round" />
+              </svg>
+            </span> generative workspace.<br className="hidden sm:block" />
+            <div className="h-3 sm:h-5"></div>
+            From an idea to <span className="relative inline-block">
+              <span className="text-[#4C1D95] relative z-10">developer-ready docs.</span>
+              <svg className="absolute w-full h-4 -bottom-1 left-0 text-[#4C1D95] z-0 opacity-80" viewBox="0 0 100 15" preserveAspectRatio="none">
+                <path d="M 2 12 C 20 5, 35 14, 60 7 C 75 2, 88 11, 98 8" stroke="currentColor" strokeWidth="2.5" fill="transparent" strokeLinecap="round" />
+              </svg>
+            </span>
           </h1>
           <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
             Make your app ideas stand out by building them with finesse.<br className="hidden md:block" />
@@ -105,35 +116,6 @@ export default function LandingPage() {
       <div id="product" className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-40 mb-32">
         <div className="rounded-2xl p-2 bg-white/40 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50">
           <div className="rounded-xl overflow-hidden shadow-2xl relative bg-[#1E1E2E]">
-            {/* Fake Browser/App Header */}
-            <div className="h-10 bg-[#2b2d30] flex items-center px-4 gap-4 border-b border-white/5">
-              <div className="flex gap-1.5 mr-2">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-black/10" />
-                <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-black/10" />
-                <div className="w-3 h-3 rounded-full bg-[#28c840] border border-black/10" />
-              </div>
-
-              <div className="flex items-end h-full">
-                <div className="h-8 bg-[#1e1f22] px-3 rounded-t-lg flex items-center gap-2 border-t border-x border-white/10 text-[11px] text-[#bcbec4] min-w-[160px] relative translate-y-[1px]">
-                  <div className="w-4 h-4 rounded-sm flex items-center justify-center">
-                    <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                      <path d="M200 40C200 90 250 90 250 90C250 90 200 90 200 140C200 90 150 90 150 90C150 90 200 90 200 40Z" fill="#FDE68A" />
-                      <path d="M100 140L190 185V225L100 180V140Z" fill="white" />
-                      <path d="M210 185L300 140V180L210 225V185Z" fill="white" />
-                      <path d="M100 200L190 245V285L100 240V200Z" fill="rgba(255,255,255,0.8)" />
-                      <path d="M210 245L300 200V240L210 285V245Z" fill="rgba(255,255,255,0.8)" />
-                      <path d="M100 260L190 305V345L100 300V260Z" fill="rgba(255,255,255,0.6)" />
-                      <path d="M210 305L300 260V300L210 345V305Z" fill="rgba(255,255,255,0.6)" />
-                    </svg>
-                  </div>
-                  <span className="truncate">BuildFlow — Generative Workspace</span>
-                  <X size={12} className="ml-auto opacity-40 hover:opacity-100 cursor-pointer" />
-                </div>
-                <div className="p-1.5 hover:bg-white/10 rounded-md ml-1 mb-1 cursor-pointer">
-                  <Plus size={14} className="text-[#bcbec4]" />
-                </div>
-              </div>
-            </div>
             {/* The Screenshot */}
             <Image
               src="/dash.png"

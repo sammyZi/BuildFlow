@@ -61,10 +61,15 @@ Make the questions and options SPECIFIC to: ${idea}`,
     if (action === 'generate_requirements') {
       const { text } = await generateText({
         model,
-        system: 'You are an expert Product Manager. Generate a comprehensive requirements document for the following app idea, incorporating the user\'s answers to discovery questions. Use highly structured markdown formatting. Start with a clear H1 heading. Include ONLY the current Date directly below the heading; DO NOT include Version or Author metadata. Use distinct headings, bullet points, and clear spaced sections for Target Audience, Core Features, User Stories, and Non-functional Requirements. Ensure proper spacing between paragraphs.',
+        system: 'You are an expert Product Manager. Generate a comprehensive requirements document for the following app idea, incorporating the user\'s answers to discovery questions. Use highly structured markdown formatting. Start with a clear H1 heading. DO NOT include Date, Version or Author metadata. Use distinct headings, bullet points, and clear spaced sections for Target Audience, Core Features, User Stories, and Non-functional Requirements. Ensure proper spacing between paragraphs.',
         prompt: `App Idea: ${idea}\n\n${answers ? `User's Answers to Discovery Questions:\n${answers}\n\n` : ''}Generate a detailed requirements document.`,
       });
-      return NextResponse.json({ success: true, content: text });
+      
+      const dateString = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const [heading, ...rest] = text.split('\\n');
+      const textWithDate = `${heading}\\n*Date: ${dateString}*\\n${rest.join('\\n')}`;
+      
+      return NextResponse.json({ success: true, content: textWithDate });
     }
 
     if (action === 'refine_content') {
