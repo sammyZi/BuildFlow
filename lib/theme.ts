@@ -1,17 +1,17 @@
 /**
- * AI Architect Hub — Premium Design Tokens
+ * BuildFlow — Design Tokens
  * 
- * A refined, editorial palette with deep navy sidebar,
- * warm off-white surfaces, and a rich violet primary.
+ * A clean, modern blue palette with deep navy sidebar,
+ * neutral surfaces, and a vibrant blue primary.
  */
 
 export const theme = {
   colors: {
     // Primary brand
-    primary: '#7C5CFC',        // Rich violet
-    primaryHover: '#6A4CE0',   // Deeper violet
-    primaryMuted: '#EDE9FE',   // Violet wash (backgrounds)
-    primaryFaint: '#F5F3FF',   // Barely-there violet tint
+    primary: '#4A6BFF',        // Vibrant blue
+    primaryHover: '#3B5AE0',   // Deeper blue
+    primaryMuted: '#E8EEFF',   // Blue wash (backgrounds)
+    primaryFaint: '#F0F4FF',   // Barely-there blue tint
 
     // Surfaces
     background: '#FAFAFA',     // App background
@@ -20,15 +20,15 @@ export const theme = {
     surfaceRaised: '#FFFFFF',  // Elevated cards
 
     // Text
-    textPrimary: '#18181B',    // Headings, strong text
-    textSecondary: '#3F3F46',  // Body text
-    textMuted: '#71717A',      // Labels, captions
-    textFaint: '#A1A1AA',      // Placeholders
+    textPrimary: '#111827',    // Headings, strong text
+    textSecondary: '#374151',  // Body text
+    textMuted: '#6B7280',      // Labels, captions
+    textFaint: '#9CA3AF',      // Placeholders
 
     // Borders
-    border: '#E4E4E7',         // Default border
-    borderLight: '#F4F4F5',    // Subtle separator
-    borderFocus: '#7C5CFC',    // Focus ring
+    border: '#E5E7EB',         // Default border
+    borderLight: '#F3F4F6',    // Subtle separator
+    borderFocus: '#4A6BFF',    // Focus ring
 
     // Sidebar (deep navy)
     sidebarBg: '#0C1222',
@@ -37,7 +37,7 @@ export const theme = {
     sidebarTextMuted: '#4B5975',
     sidebarBorder: '#1A2438',
     sidebarActive: '#1A2438',
-    sidebarAccent: '#7C5CFC',
+    sidebarAccent: '#4A6BFF',
 
     // Status
     success: '#22C55E',
@@ -58,7 +58,7 @@ export const theme = {
     sm: '0 1px 2px rgba(0,0,0,0.04)',
     md: '0 2px 8px rgba(0,0,0,0.06)',
     lg: '0 4px 16px rgba(0,0,0,0.08)',
-    focus: '0 0 0 3px rgba(124,92,252,0.15)',
+    focus: '0 0 0 3px rgba(74,107,255,0.15)',
   },
 } as const;
 
