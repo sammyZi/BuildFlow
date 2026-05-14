@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { signOut } from '@/lib/supabase/auth';
 import { useRouter } from 'next/navigation';
 
+import { Logo } from '@/components/ui/Logo';
+
 interface DashboardLayoutProps {
   sidebar?: React.ReactNode;
   leftPanel: React.ReactNode;
@@ -57,8 +59,11 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
                 </svg>
               </button>
             )}
-            <div className="text-sm font-semibold text-chat-text">
-              AI Architect 
+            <div className="flex items-center gap-2">
+              <Logo className="w-6 h-6" />
+              <div className="text-[16px] font-bold text-chat-text tracking-tight">
+                BuildFlow
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-4">

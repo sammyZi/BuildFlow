@@ -10,6 +10,8 @@ import {
 import { ShiningText } from '@/components/ui/shining-text';
 import MermaidDiagram from '@/components/MermaidDiagram';
 
+import { motion, AnimatePresence } from 'framer-motion';
+
 type Step = 'questions' | 'requirements' | 'design-questions' | 'design' | 'tasks';
 
 export default function DetailedPipelinePage() {
@@ -405,7 +407,7 @@ export default function DetailedPipelinePage() {
       <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg">
         <div className="max-w-[900px] mx-auto">
           {error && (
-            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[15px] font-medium">
+            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[17px] font-medium">
               {error}
             </div>
           )}
@@ -428,7 +430,7 @@ export default function DetailedPipelinePage() {
                   <h2 className="text-[20px] font-bold text-text-primary">
                     {currentStep === 'questions' ? 'Discovery Questions' : 'Tech Stack Decisions'}
                   </h2>
-                  <p className="text-[15px] text-text-muted mt-1">
+                  <p className="text-[17px] text-text-muted mt-1">
                     {currentStep === 'questions' ? 'Help us understand your project better' : 'Decide on the right technologies for your product'}
                   </p>
                 </div>
@@ -436,7 +438,7 @@ export default function DetailedPipelinePage() {
                 <div className="space-y-6">
                   {(currentStep === 'questions' ? questions : designQuestions).map((q, idx) => (
                     <div key={q.id} className="space-y-3">
-                      <p className="text-[16px] font-semibold text-text-primary">
+                      <p className="text-[18px] font-semibold text-text-primary">
                         {idx + 1}. {q.question}
                       </p>
                       <div className="space-y-2">
@@ -460,7 +462,7 @@ export default function DetailedPipelinePage() {
                                     <div className="w-2 h-2 rounded-full bg-primary"></div>
                                   )}
                                 </div>
-                                <span className="text-[15px]">{option}</span>
+                                <span className="text-[17px]">{option}</span>
                               </div>
                             </button>
                           );
@@ -476,15 +478,15 @@ export default function DetailedPipelinePage() {
                 <button
                   onClick={advanceStep}
                   disabled={!allQuestionsAnswered || isGenerating}
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[16px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="group relative flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-[18px] font-bold hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:hover:shadow-none disabled:hover:translate-y-0 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   {isGenerating ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 size={18} className="animate-spin text-white" />
                   ) : (
-                    <CheckCircle2 size={16} />
+                    <CheckCircle2 size={18} className="text-white drop-shadow-sm group-hover:scale-110 transition-transform" />
                   )}
-                  {activeConfig.next}
-                  <ArrowRight size={16} strokeWidth={2.5} />
+                  <span className="text-white drop-shadow-sm tracking-wide">{activeConfig.next}</span>
+                  <ArrowRight size={18} strokeWidth={2.5} className="text-white drop-shadow-sm group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             </div>
@@ -499,22 +501,22 @@ export default function DetailedPipelinePage() {
                     </div>
                     <div>
                       <h2 className="text-[20px] font-bold text-text-primary">{activeConfig.title}</h2>
-                      <p className="text-[15px] text-text-muted">Review and refine before proceeding</p>
+                      <p className="text-[17px] text-text-muted">Review and refine before proceeding</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="py-2">
-                  <div className="prose prose-sm max-w-none
+                  <div className="prose prose-base max-w-none
                     prose-headings:text-text-primary prose-headings:font-bold
-                    prose-h1:text-[24px] prose-h1:border-b prose-h1:border-border prose-h1:pb-3 prose-h1:mb-4
-                    prose-h2:text-[19px] prose-h2:mt-6 prose-h2:mb-3
-                    prose-h3:text-[20px] prose-h3:mt-4 prose-h3:mb-2
-                    prose-p:text-text-secondary prose-p:leading-[1.75] prose-p:mb-4
-                    prose-li:text-text-secondary prose-li:leading-[1.7] prose-li:my-1
+                    prose-h1:text-[28px] prose-h1:border-b prose-h1:border-border prose-h1:pb-3 prose-h1:mb-4
+                    prose-h2:text-[22px] prose-h2:mt-6 prose-h2:mb-3
+                    prose-h3:text-[18px] prose-h3:mt-4 prose-h3:mb-2
+                    prose-p:text-[18px] prose-p:text-text-secondary prose-p:leading-[1.75] prose-p:mb-4
+                    prose-li:text-[18px] prose-li:text-text-secondary prose-li:leading-[1.7] prose-li:my-1
                     prose-ul:my-3 prose-ol:my-3
-                    prose-strong:text-text-primary prose-strong:font-semibold
-                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[15px] prose-code:font-mono">
+                    prose-strong:text-[18px] prose-strong:text-text-primary prose-strong:font-semibold
+                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[17px] prose-code:font-mono">
                     <ReactMarkdown
                       components={{
                         code({ node, className, children, ...props }) {
@@ -563,7 +565,7 @@ export default function DetailedPipelinePage() {
                     <Edit3 size={16} className="text-primary" />
                     <h3 className="text-[20px] font-bold text-text-primary">Request Changes</h3>
                   </div>
-                  <p className="text-[15px] text-text-muted mt-1">
+                  <p className="text-[17px] text-text-muted mt-1">
                     Describe any modifications you'd like, or commit to proceed to the next step.
                   </p>
                 </div>
@@ -577,12 +579,12 @@ export default function DetailedPipelinePage() {
                         onChange={(e) => setRefinePrompt(e.target.value)}
                         disabled={isGenerating}
                         placeholder="e.g., Add mobile app support, include API rate limiting, use PostgreSQL instead..."
-                        className="flex-1 px-4 py-3 rounded-lg border border-border bg-bg text-[15px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="flex-1 px-4 py-3 rounded-lg border border-border bg-bg text-[17px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       />
                       <button
                         type="submit"
                         disabled={!refinePrompt.trim() || isGenerating}
-                        className="flex items-center gap-2 px-5 py-3 rounded-lg bg-surface-alt text-text-primary font-semibold text-[15px] border border-border hover:bg-border hover:border-border disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="flex items-center gap-2 px-5 py-3 rounded-lg bg-surface-alt text-text-primary font-semibold text-[17px] border border-border hover:bg-border hover:border-border disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
                         {isGenerating ? (
                           <>
@@ -599,7 +601,7 @@ export default function DetailedPipelinePage() {
                     </div>
 
                     {error && (
-                      <div className="p-3 rounded-lg bg-red-50 text-error text-[14px] font-medium border border-red-200">
+                      <div className="p-3 rounded-lg bg-red-50 text-error text-[18px] font-medium border border-red-200">
                         {error}
                       </div>
                     )}
@@ -609,15 +611,15 @@ export default function DetailedPipelinePage() {
                     <button
                       onClick={advanceStep}
                       disabled={isGenerating}
-                      className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[16px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+                      className="group relative flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-[18px] font-bold hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:hover:shadow-none disabled:hover:translate-y-0 disabled:cursor-not-allowed transition-all duration-200"
                     >
                       {isGenerating && refinePrompt.trim() === '' ? (
-                        <Loader2 size={16} className="animate-spin" />
+                        <Loader2 size={18} className="animate-spin text-white" />
                       ) : (
-                        <CheckCircle2 size={16} />
+                        <CheckCircle2 size={18} className="text-white drop-shadow-sm group-hover:scale-110 transition-transform" />
                       )}
-                      {activeConfig.next}
-                      <ArrowRight size={16} strokeWidth={2.5} />
+                      <span className="text-white drop-shadow-sm tracking-wide">{activeConfig.next}</span>
+                      <ArrowRight size={18} strokeWidth={2.5} className="text-white drop-shadow-sm group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </div>

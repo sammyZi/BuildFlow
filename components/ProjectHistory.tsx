@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
 import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut } from 'lucide-react';
 
+import { Logo } from '@/components/ui/Logo';
+
 interface ProjectHistoryProps {
   onSelectProject: (projectId: string) => void;
   currentProjectId?: string;
@@ -60,10 +62,10 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
       {/* Logo + collapse */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-            <Layers size={13} className="text-white" strokeWidth={2.5} />
+          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+            <Logo className="w-6 h-6" />
           </div>
-          <span className="text-[16px] font-extrabold text-white tracking-tight">BuildFlow</span>
+          <span className="text-[17px] font-extrabold text-white tracking-tight">BuildFlow</span>
         </div>
         <div className="flex items-center gap-1">
           <button

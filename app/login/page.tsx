@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signIn, signUp } from '@/lib/supabase/auth';
 import { supabase } from '@/lib/supabase/client';
 import { Layers, Loader2, Mail, Lock } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,16 +47,16 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-surface font-sans px-4">
       <div className="w-full max-w-[400px]">
         {/* Header */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-5">
-            <Layers size={22} strokeWidth={2} />
+        <div className="flex flex-col items-center mb-8 gap-3">
+          <Logo className="w-14 h-14" />
+          <div className="text-center">
+            <h1 className="text-2xl font-extrabold text-text-primary tracking-tight mb-1">
+              {isSignUp ? 'Create account' : 'Welcome back'}
+            </h1>
+            <p className="text-[16px] text-text-muted">
+              {isSignUp ? 'Enter your details to get started' : 'Sign in to BuildFlow'}
+            </p>
           </div>
-          <h1 className="text-2xl font-extrabold text-text-primary tracking-tight mb-1">
-            {isSignUp ? 'Create account' : 'Welcome back'}
-          </h1>
-          <p className="text-[16px] text-text-muted text-center">
-            {isSignUp ? 'Enter your details to get started' : 'Sign in to BuildFlow'}
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

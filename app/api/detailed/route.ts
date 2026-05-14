@@ -86,7 +86,7 @@ ${requirements}
 
 Generate 3 short technical discovery questions covering:
 1. Frontend Tech
-2. Backend Infrastructure
+2. Backend Programming Language (Do NOT ask about deployment models like Serverless/K8s/PaaS, ONLY ask about programming languages/frameworks like Node.js/Python/Go)
 3. Database
 
 Return ONLY a JSON array:
@@ -100,7 +100,7 @@ Return ONLY a JSON array:
     if (action === 'generate_design') {
       const { text } = await generateText({
         model,
-        system: 'You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices. Include System Architecture (with a Mermaid diagram), Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting. IMPORTANT: In Mermaid diagrams, if a node label contains parenthesis `()`, slashes `/`, spaces, or special characters, you MUST wrap the label text in double quotes to prevent syntax errors. Example: `NodeId["My Node (Details)"]`. NEVER use `--(Label)-->` for edge labels; use standard `-->|Label|` syntax only.',
+        system: 'You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices. Include System Architecture (with a Mermaid diagram), Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting. IMPORTANT: In Mermaid diagrams, if a node label contains parenthesis `()`, slashes `/`, spaces, or special characters, you MUST wrap the label text in double quotes to prevent syntax errors. Example: `NodeId["My Node (Details)"]`. NEVER use `--(Label)-->` or `-- Label -->` for edge labels; use standard `-->|Label|` syntax only. For subgraphs, the ID must be a single word without special characters or spaces, e.g., `subgraph InfrastructureServices [Infrastructure & Services]`.',
         prompt: `App Idea: ${idea}\n\nApproved Requirements:\n${requirements}\n\n${answers ? `Selected Tech Stack Options:\n${answers}\n\n` : ''}`,
       });
       return NextResponse.json({ success: true, content: text });
