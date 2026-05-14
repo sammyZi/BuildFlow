@@ -5,7 +5,7 @@ import './globals.css'
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' })
 
 export const metadata: Metadata = {
-  title: 'AI Architect Hub',
+  title: 'BuildFlow',
   description: 'Transform app ideas into developer-ready documentation',
 }
 
