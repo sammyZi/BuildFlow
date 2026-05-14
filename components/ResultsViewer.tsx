@@ -77,17 +77,11 @@ export default function ResultsViewer({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         {/* Top tabs */}
         <div className="bg-surface-alt border-b border-border flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-4 px-4 py-2 sm:py-0 border-b sm:border-b-0 sm:border-r border-border shrink-0">
-            <div>
-              <div className="flex items-center gap-2">
-                <Folder size={14} className="text-text-muted" strokeWidth={1.5} />
-                <span className="text-[12px] font-bold text-text-primary tracking-wide uppercase">Output</span>
-              </div>
-              {!isComplete && artifacts.length > 0 && (
-                <p className="text-[11px] text-text-muted mt-0.5">{readyCount}/3 generated</p>
-              )}
+          {!isComplete && artifacts.length > 0 && (
+            <div className="flex items-center gap-4 px-4 py-2 sm:py-0 border-b sm:border-b-0 sm:border-r border-border shrink-0">
+              <p className="text-[11px] text-text-muted font-medium">{readyCount}/3 generated</p>
             </div>
-          </div>
+          )}
 
           <div className="flex flex-1 overflow-x-auto hide-scrollbar">
             {TABS.map(tab => {
@@ -135,9 +129,6 @@ export default function ResultsViewer({
           {/* Breadcrumb */}
           <div className="flex items-center justify-between px-6 py-2.5 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-1.5 text-[12px] text-text-muted">
-              <Folder size={13} strokeWidth={1.5} />
-              <span>output</span>
-              <span className="text-text-faint">/</span>
               <span className="text-text-primary font-semibold">{activeFile?.filename}</span>
               {artifactTypes.has(activeTab as ArtifactType) && (
                 <span className="ml-2 px-2 py-0.5 rounded-full bg-emerald-50 text-success text-[10px] font-bold">

@@ -43,22 +43,18 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-bg font-sans px-4">
-      <div className="w-full max-w-[400px] bg-surface rounded-2xl p-8 md:p-10 border border-border"
-        style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.04)' }}
-      >
+    <main className="min-h-screen flex items-center justify-center bg-surface font-sans px-4">
+      <div className="w-full max-w-[400px]">
         {/* Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-5"
-            style={{ boxShadow: '0 6px 20px rgba(124,92,252,0.2)' }}
-          >
+          <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-5">
             <Layers size={22} strokeWidth={2} />
           </div>
           <h1 className="text-2xl font-extrabold text-text-primary tracking-tight mb-1">
             {isSignUp ? 'Create account' : 'Welcome back'}
           </h1>
           <p className="text-[14px] text-text-muted text-center">
-            {isSignUp ? 'Enter your details to get started' : 'Sign in to AI Architect Hub'}
+            {isSignUp ? 'Enter your details to get started' : 'Sign in to BuildFlow'}
           </p>
         </div>
 
@@ -112,7 +108,6 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             className="w-full py-3 px-4 mt-2 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            style={{ boxShadow: '0 4px 12px rgba(124,92,252,0.15)' }}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

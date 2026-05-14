@@ -54,14 +54,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Main */}
         <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Page content */}
-          <main className="flex-1 overflow-hidden">
+          <main className="flex-1 overflow-hidden relative">
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="fixed top-4 left-4 z-20 p-2 text-text-muted hover:text-text-primary hover:bg-surface border border-border rounded-lg transition-colors"
+                className="absolute top-4 left-4 z-40 p-2.5 bg-surface text-text-primary hover:bg-surface-alt border-2 border-border/50 shadow-md rounded-xl transition-all"
                 title="Open sidebar"
               >
-                <PanelLeft size={18} strokeWidth={1.5} />
+                <PanelLeft size={20} strokeWidth={2} />
               </button>
             )}
             {children}

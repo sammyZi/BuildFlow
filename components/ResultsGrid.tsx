@@ -83,7 +83,7 @@ export default function ResultsGrid({
         <div className="w-14 h-14 rounded-2xl bg-chat-accent/10 text-chat-accent flex items-center justify-center">
           <span className="material-symbols-outlined text-[32px]">architecture</span>
         </div>
-        <h1 className="text-2xl font-bold text-chat-text tracking-tight">AI Architect Hub</h1>
+        <h1 className="text-2xl font-bold text-chat-text tracking-tight">BuildFlow</h1>
         <p className="text-chat-textMuted max-w-sm mx-auto text-sm leading-relaxed">
           Select a mode below, describe your app idea, and get comprehensive requirements, system design, and engineering tasks.
         </p>

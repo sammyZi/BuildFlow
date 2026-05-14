@@ -63,7 +63,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
           <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
             <Layers size={13} className="text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[14px] font-extrabold text-white tracking-tight">Architect</span>
+          <span className="text-[14px] font-extrabold text-white tracking-tight">BuildFlow</span>
         </div>
         <div className="flex items-center gap-1">
           <button

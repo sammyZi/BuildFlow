@@ -86,7 +86,7 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
           <div className="max-w-5xl mx-auto w-full pointer-events-auto border-t border-transparent">
             {leftPanel}
             <div className="text-center text-[11px] text-chat-textMuted mt-3 pb-1 font-medium">
-              AI Architect Hub can make mistakes. Check generated code and docs.
+              BuildFlow can make mistakes. Check generated code and docs.
             </div>
           </div>
         </div>
