@@ -26,20 +26,20 @@ export async function POST(req: Request) {
     if (action === 'generate_questions') {
       const { text } = await generateText({
         model,
-        system: 'You are an expert Product Manager conducting a discovery session. Generate exactly 5 focused questions SPECIFIC to the app idea provided. Each question should help gather essential information about the project. Return ONLY valid JSON array format - no markdown, no code blocks, no explanations.',
+        system: 'You are an expert Product Manager conducting a discovery session. Generate exactly 5 short, crisp, and concise questions SPECIFIC to the app idea provided. Each question should be a single brief sentence. Return ONLY valid JSON array format - no markdown, no code blocks, no explanations.',
         prompt: `App Idea: "${idea}"
 
-Based on this specific app idea, generate 5 discovery questions covering:
-1. Target audience/users (who will use this app?)
-2. Key features priority (what's most important?)
-3. Platform preference (mobile/web/desktop?)
-4. Design style preference (modern/minimal/colorful?)
-5. Technical requirements (performance/scalability/integrations?)
+Based on this specific app idea, generate 5 short and crisp discovery questions covering:
+1. Target audience
+2. Key features
+3. Platform
+4. Design style
+5. Technical constraints
 
-Each question must have exactly 4 relevant answer options.
+Each question must have exactly 4 short answer options. Keep the wording very concise.
 
 Return ONLY a JSON array in this format:
-[{"id":"q1","question":"Your question here?","options":["Option 1","Option 2","Option 3","Option 4"]}]
+[{"id":"q1","question":"Short question here?","options":["Short Opt 1","Short Opt 2","Short Opt 3","Short Opt 4"]}]
 
 Make the questions and options SPECIFIC to: ${idea}`,
       });
@@ -61,7 +61,7 @@ Make the questions and options SPECIFIC to: ${idea}`,
     if (action === 'generate_requirements') {
       const { text } = await generateText({
         model,
-        system: 'You are an expert Product Manager. Generate a comprehensive requirements document for the following app idea, incorporating the user\'s answers to discovery questions. Use markdown formatting with headings, bullet points, and clear sections for Target Audience, Core Features, User Stories, and Non-functional Requirements. Be concise and professional.',
+        system: 'You are an expert Product Manager. Generate a comprehensive requirements document for the following app idea, incorporating the user\'s answers to discovery questions. Use highly structured markdown formatting. Start with a clear H1 heading. Include ONLY the current Date directly below the heading; DO NOT include Version or Author metadata. Use distinct headings, bullet points, and clear spaced sections for Target Audience, Core Features, User Stories, and Non-functional Requirements. Ensure proper spacing between paragraphs.',
         prompt: `App Idea: ${idea}\n\n${answers ? `User's Answers to Discovery Questions:\n${answers}\n\n` : ''}Generate a detailed requirements document.`,
       });
       return NextResponse.json({ success: true, content: text });
@@ -79,18 +79,18 @@ Make the questions and options SPECIFIC to: ${idea}`,
     if (action === 'generate_design_questions') {
       const { text } = await generateText({
         model,
-        system: 'You are an expert Software Architect identifying technical trade-offs. Generate exactly 3 focused questions around tech stack options for this app system. Each question should have exactly 4 defined technical options. Return ONLY valid JSON array format.',
+        system: 'You are an expert Software Architect. Generate exactly 3 short, crisp questions around tech stack options. Each question and its 4 options must be extremely brief. Return ONLY valid JSON array format.',
         prompt: `App Idea: "${idea}"
 Requirements:
 ${requirements}
 
-Generate 3 technical discovery questions covering:
-1. Frontend Framework / UI Tech Stack
-2. Backend Infrastructure / Language
-3. Database / Storage approach
+Generate 3 short technical discovery questions covering:
+1. Frontend Tech
+2. Backend Infrastructure
+3. Database
 
-Return ONLY a JSON array in this format:
-[{"id":"tech1","question":"Your tech question?","options":["Tech Option 1","Tech Option 2","Tech Option 3","Tech Option 4"]}]`,
+Return ONLY a JSON array:
+[{"id":"tech1","question":"Short tech question?","options":["Short Opt 1","Short Opt 2","Short Opt 3","Short Opt 4"]}]`,
       });
       
       let cleanedText = text.trim().replace(/```json\n?/gi, '').replace(/```\n?$/g, '').replace(/^```\n?/g, '').trim();
@@ -100,7 +100,7 @@ Return ONLY a JSON array in this format:
     if (action === 'generate_design') {
       const { text } = await generateText({
         model,
-        system: 'You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices. Include System Architecture, Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting.',
+        system: 'You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices. Include System Architecture (with a Mermaid diagram), Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting. IMPORTANT: In Mermaid diagrams, if a node label contains parenthesis `()`, slashes `/`, spaces, or special characters, you MUST wrap the label text in double quotes to prevent syntax errors. Example: `NodeId["My Node (Details)"]`. NEVER use `--(Label)-->` for edge labels; use standard `-->|Label|` syntax only.',
         prompt: `App Idea: ${idea}\n\nApproved Requirements:\n${requirements}\n\n${answers ? `Selected Tech Stack Options:\n${answers}\n\n` : ''}`,
       });
       return NextResponse.json({ success: true, content: text });

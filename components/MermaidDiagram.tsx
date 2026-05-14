@@ -50,7 +50,10 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
           setSvg(svg);
         } catch (initialErr) {
           // If it fails, try a basic sanitization for common issues
-          chartToRender = chart.replace(/\|([^"|]+)\|/g, '\|"$1"\|');
+          chartToRender = chart
+            .replace(/--\((.*?)\)-->/g, '-->|"$1"|')
+            .replace(/\|([^"|]+)\|/g, '\|"$1"\|');
+          
           const fallbackId = `mermaid-fallback-${Math.random().toString(36).substr(2, 9)}`;
           const { svg } = await mermaid.render(fallbackId, chartToRender);
           setSvg(svg);
