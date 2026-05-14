@@ -7,6 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import {
   ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3
 } from 'lucide-react';
+import { ShiningText } from '@/components/ui/shining-text';
+import MermaidDiagram from '@/components/MermaidDiagram';
 
 type Step = 'questions' | 'requirements' | 'design-questions' | 'design' | 'tasks';
 
@@ -354,7 +356,7 @@ export default function DetailedPipelinePage() {
           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.12em] mb-1">
             Detailed Pipeline
           </p>
-          <h1 className="text-[16px] font-bold text-text-primary tracking-tight truncate">
+          <h1 className="text-[20px] font-bold text-text-primary tracking-tight truncate">
             {idea}
           </h1>
           
@@ -387,7 +389,7 @@ export default function DetailedPipelinePage() {
                     ) : (
                       <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-primary' : 'bg-text-muted'}`} />
                     )}
-                    <span className={`text-[11px] font-semibold ${isActive ? 'text-primary' : isPast ? 'text-success' : 'text-text-muted'}`}>
+                    <span className={`text-[13px] font-semibold ${isActive ? 'text-primary' : isPast ? 'text-success' : 'text-text-muted'}`}>
                       {stepLabels[step]}
                     </span>
                   </div>
@@ -403,7 +405,7 @@ export default function DetailedPipelinePage() {
       <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg">
         <div className="max-w-[900px] mx-auto">
           {error && (
-            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[13px] font-medium">
+            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[15px] font-medium">
               {error}
             </div>
           )}
@@ -413,20 +415,20 @@ export default function DetailedPipelinePage() {
               <div className="relative mb-6">
                 <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
               </div>
-              <p className="text-[16px] font-bold text-text-primary mb-2">
+              <p className="text-[20px] font-bold text-text-primary mb-2">
                 {currentStep === 'questions' || currentStep === 'design-questions' ? `Generating ${activeConfig.title}` : `Generating ${activeConfig.title}`}
               </p>
-              <p className="text-[13px] text-text-muted">Analyzing your idea and creating a detailed document...</p>
+              <ShiningText text="BuildFlow is thinking..." />
             </div>
           ) : (currentStep === 'questions' || currentStep === 'design-questions') ? (
             <div className="animate-fade-in-up space-y-8">
               {/* Questions Display */}
               <div>
                 <div className="pb-4 border-b border-border mb-6">
-                  <h2 className="text-[18px] font-bold text-text-primary">
+                  <h2 className="text-[20px] font-bold text-text-primary">
                     {currentStep === 'questions' ? 'Discovery Questions' : 'Tech Stack Decisions'}
                   </h2>
-                  <p className="text-[13px] text-text-muted mt-1">
+                  <p className="text-[15px] text-text-muted mt-1">
                     {currentStep === 'questions' ? 'Help us understand your project better' : 'Decide on the right technologies for your product'}
                   </p>
                 </div>
@@ -434,7 +436,7 @@ export default function DetailedPipelinePage() {
                 <div className="space-y-6">
                   {(currentStep === 'questions' ? questions : designQuestions).map((q, idx) => (
                     <div key={q.id} className="space-y-3">
-                      <p className="text-[14px] font-semibold text-text-primary">
+                      <p className="text-[16px] font-semibold text-text-primary">
                         {idx + 1}. {q.question}
                       </p>
                       <div className="space-y-2">
@@ -458,7 +460,7 @@ export default function DetailedPipelinePage() {
                                     <div className="w-2 h-2 rounded-full bg-primary"></div>
                                   )}
                                 </div>
-                                <span className="text-[13px]">{option}</span>
+                                <span className="text-[15px]">{option}</span>
                               </div>
                             </button>
                           );
@@ -474,7 +476,7 @@ export default function DetailedPipelinePage() {
                 <button
                   onClick={advanceStep}
                   disabled={!allQuestionsAnswered || isGenerating}
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[14px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[16px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {isGenerating ? (
                     <Loader2 size={16} className="animate-spin" />
@@ -496,8 +498,8 @@ export default function DetailedPipelinePage() {
                       <StepIcon size={20} className="text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-[18px] font-bold text-text-primary">{activeConfig.title}</h2>
-                      <p className="text-[13px] text-text-muted">Review and refine before proceeding</p>
+                      <h2 className="text-[20px] font-bold text-text-primary">{activeConfig.title}</h2>
+                      <p className="text-[15px] text-text-muted">Review and refine before proceeding</p>
                     </div>
                   </div>
                 </div>
@@ -507,13 +509,49 @@ export default function DetailedPipelinePage() {
                     prose-headings:text-text-primary prose-headings:font-bold
                     prose-h1:text-[24px] prose-h1:border-b prose-h1:border-border prose-h1:pb-3 prose-h1:mb-4
                     prose-h2:text-[19px] prose-h2:mt-6 prose-h2:mb-3
-                    prose-h3:text-[16px] prose-h3:mt-4 prose-h3:mb-2
+                    prose-h3:text-[20px] prose-h3:mt-4 prose-h3:mb-2
                     prose-p:text-text-secondary prose-p:leading-[1.75] prose-p:mb-4
                     prose-li:text-text-secondary prose-li:leading-[1.7] prose-li:my-1
                     prose-ul:my-3 prose-ol:my-3
                     prose-strong:text-text-primary prose-strong:font-semibold
-                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[13px] prose-code:font-mono">
-                    <ReactMarkdown>{currentContent}</ReactMarkdown>
+                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[15px] prose-code:font-mono">
+                    <ReactMarkdown
+                      components={{
+                        code({ node, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const language = match ? match[1] : '';
+                          const codeString = String(children).replace(/\n$/, '');
+
+                          if (language === 'mermaid') {
+                            return (
+                              <div className="my-6 p-4 bg-white rounded-lg border border-border overflow-x-auto hide-scrollbar">
+                                <div className="min-w-fit flex justify-center">
+                                  <MermaidDiagram chart={codeString} />
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          if (match) {
+                            return (
+                              <pre className={className}>
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              </pre>
+                            );
+                          }
+
+                          return (
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                      }}
+                    >
+                      {currentContent}
+                    </ReactMarkdown>
                   </div>
                 </div>
               </div>
@@ -523,9 +561,9 @@ export default function DetailedPipelinePage() {
                 <div className="mb-4">
                   <div className="flex items-center gap-2">
                     <Edit3 size={16} className="text-primary" />
-                    <h3 className="text-[16px] font-bold text-text-primary">Request Changes</h3>
+                    <h3 className="text-[20px] font-bold text-text-primary">Request Changes</h3>
                   </div>
-                  <p className="text-[13px] text-text-muted mt-1">
+                  <p className="text-[15px] text-text-muted mt-1">
                     Describe any modifications you'd like, or commit to proceed to the next step.
                   </p>
                 </div>
@@ -539,12 +577,12 @@ export default function DetailedPipelinePage() {
                         onChange={(e) => setRefinePrompt(e.target.value)}
                         disabled={isGenerating}
                         placeholder="e.g., Add mobile app support, include API rate limiting, use PostgreSQL instead..."
-                        className="flex-1 px-4 py-3 rounded-lg border border-border bg-bg text-[13px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="flex-1 px-4 py-3 rounded-lg border border-border bg-bg text-[15px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       />
                       <button
                         type="submit"
                         disabled={!refinePrompt.trim() || isGenerating}
-                        className="flex items-center gap-2 px-5 py-3 rounded-lg bg-surface-alt text-text-primary font-semibold text-[13px] border border-border hover:bg-border hover:border-border disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="flex items-center gap-2 px-5 py-3 rounded-lg bg-surface-alt text-text-primary font-semibold text-[15px] border border-border hover:bg-border hover:border-border disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
                         {isGenerating ? (
                           <>
@@ -561,7 +599,7 @@ export default function DetailedPipelinePage() {
                     </div>
 
                     {error && (
-                      <div className="p-3 rounded-lg bg-red-50 text-error text-[12px] font-medium border border-red-200">
+                      <div className="p-3 rounded-lg bg-red-50 text-error text-[14px] font-medium border border-red-200">
                         {error}
                       </div>
                     )}
@@ -571,7 +609,7 @@ export default function DetailedPipelinePage() {
                     <button
                       onClick={advanceStep}
                       disabled={isGenerating}
-                      className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[14px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+                      className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-[16px] font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
                     >
                       {isGenerating && refinePrompt.trim() === '' ? (
                         <Loader2 size={16} className="animate-spin" />

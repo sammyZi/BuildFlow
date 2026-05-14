@@ -8,6 +8,7 @@ import {
   FileText, GitBranch, ListChecks, Download,
   Folder, Copy, Check, Loader2, Clock, WifiOff, CheckCircle2
 } from 'lucide-react';
+import { ShiningText } from '@/components/ui/shining-text';
 
 interface ResultsViewerProps {
   artifacts: Artifact[];
@@ -54,7 +55,7 @@ export default function ResultsViewer({
     <div className="h-full flex flex-col animate-fade-in">
       {/* Connection warning */}
       {showRefreshPrompt && (
-        <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-200 text-amber-800 text-[13px] flex items-center gap-2 flex-shrink-0">
+        <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-200 text-amber-800 text-[15px] flex items-center gap-2 flex-shrink-0">
           <WifiOff size={14} />
           Connection lost.{' '}
           <button onClick={() => window.location.reload()} className="underline font-semibold">Refresh</button>
@@ -79,7 +80,7 @@ export default function ResultsViewer({
         <div className="bg-surface-alt border-b border-border flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0">
           {!isComplete && artifacts.length > 0 && (
             <div className="flex items-center gap-4 px-4 py-2 sm:py-0 border-b sm:border-b-0 sm:border-r border-border shrink-0">
-              <p className="text-[11px] text-text-muted font-medium">{readyCount}/3 generated</p>
+              <p className="text-[13px] text-text-muted font-medium">{readyCount}/3 generated</p>
             </div>
           )}
 
@@ -92,7 +93,7 @@ export default function ResultsViewer({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2.5 px-4 py-3 text-[13px] transition-all border-b-2 whitespace-nowrap ${
+                  className={`flex items-center gap-2.5 px-4 py-3 text-[15px] transition-all border-b-2 whitespace-nowrap ${
                     isActive
                       ? 'bg-surface border-primary text-primary font-semibold'
                       : 'border-transparent text-text-secondary hover:bg-surface hover:text-text-primary'
@@ -115,7 +116,7 @@ export default function ResultsViewer({
             <div className="p-2 sm:border-l border-border shrink-0">
               <button
                 onClick={onDownloadBundle}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-[12px] font-bold transition-colors active:scale-[0.98]"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-[14px] font-bold transition-colors active:scale-[0.98]"
               >
                 <Download size={15} strokeWidth={2} />
                 Download All
@@ -128,7 +129,7 @@ export default function ResultsViewer({
         <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-surface">
           {/* Breadcrumb */}
           <div className="flex items-center justify-between px-6 py-2.5 border-b border-border flex-shrink-0">
-            <div className="flex items-center gap-1.5 text-[12px] text-text-muted">
+            <div className="flex items-center gap-1.5 text-[14px] text-text-muted">
               <span className="text-text-primary font-semibold">{activeFile?.filename}</span>
               {artifactTypes.has(activeTab as ArtifactType) && (
                 <span className="ml-2 px-2 py-0.5 rounded-full bg-emerald-50 text-success text-[10px] font-bold">
@@ -139,7 +140,7 @@ export default function ResultsViewer({
             {activeContent && (
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] text-text-muted hover:text-text-primary hover:bg-surface-alt transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[13px] text-text-muted hover:text-text-primary hover:bg-surface-alt transition-colors"
               >
                 {copied ? <Check size={13} /> : <Copy size={13} />}
                 {copied ? 'Copied!' : 'Copy'}
@@ -163,7 +164,7 @@ export default function ResultsViewer({
                   prose-table:w-full prose-table:my-6 prose-table:text-left
                   prose-th:bg-surface-alt prose-th:px-4 prose-th:py-2 prose-th:border-b-2 prose-th:border-border
                   prose-td:px-4 prose-td:py-2 prose-td:border-b prose-td:border-border
-                  prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[13px]
+                  prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[15px]
                   prose-pre:bg-[#1a1a2e] prose-pre:text-gray-200 prose-pre:rounded-xl prose-pre:border-0
                   prose-hr:border-border
                   prose-strong:text-text-primary prose-strong:font-bold
@@ -219,16 +220,16 @@ export default function ResultsViewer({
                       <Loader2 size={22} className="animate-spin text-primary" />
                     </div>
                     <div className="text-center">
-                      <p className="text-[15px] font-semibold text-text-primary mb-1">
+                      <p className="text-[17px] font-semibold text-text-primary mb-1">
                         Generating {activeFile?.label}
                       </p>
-                      <p className="text-[13px] text-text-muted">This usually takes 15–30 seconds…</p>
+                      <ShiningText text="BuildFlow is thinking..." />
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3 animate-fade-in">
                     <Clock size={28} className="text-text-faint" strokeWidth={1.2} />
-                    <p className="text-[14px] text-text-muted">Waiting for generation…</p>
+                    <ShiningText text="BuildFlow is thinking..." />
                   </div>
                 )}
               </div>

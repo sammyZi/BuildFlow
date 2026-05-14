@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
+import { Maximize2, X } from 'lucide-react';
 
 interface MermaidDiagramProps {
   chart: string;
@@ -12,6 +13,7 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     mermaid.initialize({
@@ -86,10 +88,40 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
   }
 
   return (
-    <div 
-      ref={containerRef} 
-      className={className}
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    <>
+      <div className={`group relative inline-block w-full ${className}`}>
+        <div 
+          ref={containerRef} 
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+        <button
+          onClick={() => setIsFullscreen(true)}
+          className="absolute top-2 right-2 p-2 bg-white shadow-md text-text-muted hover:text-text-primary rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-border"
+          title="View full screen"
+        >
+          <Maximize2 size={16} />
+        </button>
+      </div>
+
+      {isFullscreen && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-black/80 backdrop-blur-sm p-4 sm:p-8 animate-fade-in">
+          <div className="flex justify-end mb-4">
+            <button 
+              onClick={() => setIsFullscreen(false)} 
+              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center justify-center"
+              title="Close fullscreen"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto bg-white rounded-xl shadow-2xl p-8">
+            <div 
+              className="min-w-full flex justify-center"
+              dangerouslySetInnerHTML={{ __html: svg }} 
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

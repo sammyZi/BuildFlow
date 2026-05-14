@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { Artifact, ArtifactType } from '@/types';
 import { SupabaseService } from '@/lib/supabase/service';
 import ReactMarkdown from 'react-markdown';
+import { ShiningText } from '@/components/ui/shining-text';
+import MermaidDiagram from '@/components/MermaidDiagram';
 
 interface ResultsGridProps {
   artifacts: Artifact[];
@@ -95,7 +97,7 @@ export default function ResultsGrid({
     <div className="flex flex-col h-full gap-4 pb-4">
       {showRefreshPrompt && (
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex-shrink-0 flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px]">wifi_off</span>
+          <span className="material-symbols-outlined text-[20px]">wifi_off</span>
           Connection lost. <button onClick={() => window.location.reload()} className="underline font-semibold">Refresh</button>
         </div>
       )}
@@ -106,7 +108,7 @@ export default function ResultsGrid({
         {/* Sidebar file tree */}
         <div className="w-[200px] bg-gray-50 border-r border-chat-border flex flex-col shrink-0">
           <div className="px-3 py-2.5 border-b border-chat-border">
-            <p className="text-[11px] font-semibold text-chat-textMuted uppercase tracking-wider">Files</p>
+            <p className="text-[13px] font-semibold text-chat-textMuted uppercase tracking-wider">Files</p>
           </div>
           <div className="flex-1 py-1">
             {TABS.map((tab) => {
@@ -116,13 +118,13 @@ export default function ResultsGrid({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-[13px] transition-colors ${
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[15px] transition-colors ${
                     isActive 
                       ? 'bg-chat-accent/10 text-chat-accent font-medium' 
                       : 'text-chat-text hover:bg-gray-100'
                   }`}
                 >
-                  <span className={`material-symbols-outlined text-[16px] ${isActive ? 'text-chat-accent' : 'text-chat-textMuted'}`}>{tab.icon}</span>
+                  <span className={`material-symbols-outlined text-[20px] ${isActive ? 'text-chat-accent' : 'text-chat-textMuted'}`}>{tab.icon}</span>
                   <span className="truncate">{tab.label}</span>
                   {!isReady && isLoading && (
                     <svg className="animate-spin h-3 w-3 text-chat-accent ml-auto shrink-0" viewBox="0 0 24 24">
@@ -131,7 +133,7 @@ export default function ResultsGrid({
                     </svg>
                   )}
                   {isReady && (
-                    <span className="material-symbols-outlined text-[14px] text-green-500 ml-auto shrink-0">check_circle</span>
+                    <span className="material-symbols-outlined text-[16px] text-green-500 ml-auto shrink-0">check_circle</span>
                   )}
                 </button>
               );
@@ -143,9 +145,9 @@ export default function ResultsGrid({
             <div className="p-2 border-t border-chat-border">
               <button
                 onClick={onDownloadBundle}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-chat-accent hover:bg-chat-accentHover rounded-lg text-white text-[12px] font-semibold transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-chat-accent hover:bg-chat-accentHover rounded-lg text-white text-[14px] font-semibold transition-colors"
               >
-                <span className="material-symbols-outlined text-[16px]">download</span>
+                <span className="material-symbols-outlined text-[20px]">download</span>
                 Download All
               </button>
             </div>
@@ -156,8 +158,8 @@ export default function ResultsGrid({
         <div className="flex-1 flex flex-col min-w-0">
           {/* Breadcrumb bar */}
           <div className="flex items-center justify-between px-4 py-2 border-b border-chat-border bg-white shrink-0">
-            <div className="flex items-center gap-1.5 text-[12px] text-chat-textMuted">
-              <span className="material-symbols-outlined text-[14px]">folder</span>
+            <div className="flex items-center gap-1.5 text-[14px] text-chat-textMuted">
+              <span className="material-symbols-outlined text-[16px]">folder</span>
               <span>output</span>
               <span>/</span>
               <span className="text-chat-text font-medium">{TABS.find(t => t.id === activeTab)?.label}</span>
@@ -165,9 +167,9 @@ export default function ResultsGrid({
             {activeContent && (
               <button
                 onClick={() => { navigator.clipboard.writeText(activeContent); }}
-                className="flex items-center gap-1 text-[11px] text-chat-textMuted hover:text-chat-text transition-colors"
+                className="flex items-center gap-1 text-[13px] text-chat-textMuted hover:text-chat-text transition-colors"
               >
-                <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                <span className="material-symbols-outlined text-[16px]">content_copy</span>
                 Copy
               </button>
             )}
@@ -179,12 +181,48 @@ export default function ResultsGrid({
               <div className="prose prose-sm md:prose-base max-w-none
                 prose-headings:text-chat-text prose-headings:font-bold 
                 prose-a:text-chat-accent prose-p:text-chat-text/80 prose-li:text-chat-text/80
-                prose-code:text-pink-600 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[13px]
+                prose-code:text-pink-600 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[15px]
                 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-chat-border prose-pre:rounded-lg
                 prose-hr:border-chat-border
                 prose-strong:text-chat-text"
               >
-                <ReactMarkdown>{activeContent}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    code({ node, className, children, ...props }) {
+                      const match = /language-(\w+)/.exec(className || '');
+                      const language = match ? match[1] : '';
+                      const codeString = String(children).replace(/\n$/, '');
+
+                      if (language === 'mermaid') {
+                        return (
+                          <div className="my-6 p-4 bg-white rounded-lg border border-chat-border overflow-x-auto hide-scrollbar">
+                            <div className="min-w-fit flex justify-center">
+                              <MermaidDiagram chart={codeString} />
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (match) {
+                        return (
+                          <pre className={className}>
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          </pre>
+                        );
+                      }
+
+                      return (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >
+                  {activeContent}
+                </ReactMarkdown>
               </div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-chat-textMuted space-y-3">
@@ -199,7 +237,7 @@ export default function ResultsGrid({
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-[28px] text-chat-textMuted/50">hourglass_empty</span>
-                    <p className="text-sm">Waiting for generation...</p>
+                    <ShiningText text="BuildFlow is thinking..." />
                   </>
                 )}
               </div>

@@ -63,7 +63,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
           <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
             <Layers size={13} className="text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-[14px] font-extrabold text-white tracking-tight">BuildFlow</span>
+          <span className="text-[16px] font-extrabold text-white tracking-tight">BuildFlow</span>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -105,7 +105,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
           ) : projects.length === 0 ? (
             <div className="px-3 py-10 text-center">
               <FolderOpen size={20} className="mx-auto text-sidebar-text-muted/40 mb-2" strokeWidth={1.5} />
-              <p className="text-[11px] text-sidebar-text-muted">No projects yet</p>
+              <p className="text-[13px] text-sidebar-text-muted">No projects yet</p>
             </div>
           ) : (
             projects.map(project => {
@@ -129,7 +129,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
                       strokeWidth={1.5}
                     />
                     <div className="min-w-0">
-                      <div className="text-[12px] leading-snug line-clamp-2 break-words">
+                      <div className="text-[14px] leading-snug line-clamp-2 break-words">
                         {getPreview(project.prompt)}
                       </div>
                       <div className={`text-[10px] mt-0.5 ${isActive ? 'text-sidebar-text' : 'text-sidebar-text-muted'}`}>
@@ -151,7 +151,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
           <div className="px-3 py-3">
             <button
               onClick={onSignOut}
-              className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-[14px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors"
             >
               <LogOut size={14} strokeWidth={1.5} />
               Sign out

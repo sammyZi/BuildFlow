@@ -84,7 +84,7 @@ export default function DashboardPage() {
               <br />
               <span className="text-primary">to build?</span>
             </h1>
-            <p className="text-[15px] text-text-muted max-w-md mx-auto leading-relaxed">
+            <p className="text-[17px] text-text-muted max-w-md mx-auto leading-relaxed">
               Describe your app idea and choose your generation mode
             </p>
           </div>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e); } }}
                 disabled={isLoading}
                 placeholder="Describe your app idea..."
-                className="w-full min-h-[120px] max-h-[400px] p-4 pl-5 pr-32 pt-5 rounded-[26px] bg-transparent text-[15px] text-text-primary placeholder:text-text-muted resize-none focus:outline-none disabled:opacity-50"
+                className="w-full min-h-[120px] max-h-[400px] p-4 pl-5 pr-32 pt-5 rounded-[26px] bg-transparent text-[17px] text-text-primary placeholder:text-text-muted resize-none focus:outline-none disabled:opacity-50"
                 rows={4}
               />
 
@@ -113,12 +113,12 @@ export default function DashboardPage() {
                     {mode === 'fast' ? (
                       <>
                         <Zap size={14} className="text-primary" strokeWidth={2.5} />
-                        <span className="text-[13px] font-semibold text-text-primary">Fast</span>
+                        <span className="text-[15px] font-semibold text-text-primary">Fast</span>
                       </>
                     ) : (
                       <>
                         <SlidersHorizontal size={14} className="text-primary" strokeWidth={2.5} />
-                        <span className="text-[13px] font-semibold text-text-primary">Detailed</span>
+                        <span className="text-[15px] font-semibold text-text-primary">Detailed</span>
                       </>
                     )}
                     <svg
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => { setMode('fast'); setShowDropdown(false); }}
-                        className={`w-full px-4 py-2 text-[13px] font-medium transition-colors text-left ${mode === 'fast'
+                        className={`w-full px-4 py-2 text-[15px] font-medium transition-colors text-left ${mode === 'fast'
                             ? 'text-primary bg-primary/5'
                             : 'text-text-primary hover:bg-surface/50'
                           }`}
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => { setMode('detailed'); setShowDropdown(false); }}
-                        className={`w-full px-4 py-2 text-[13px] font-medium transition-colors text-left ${mode === 'detailed'
+                        className={`w-full px-4 py-2 text-[15px] font-medium transition-colors text-left ${mode === 'detailed'
                             ? 'text-primary bg-primary/5'
                             : 'text-text-primary hover:bg-surface/50'
                           }`}
@@ -173,13 +173,13 @@ export default function DashboardPage() {
             </div>
 
             {error && (
-              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-error text-[13px] font-medium text-center animate-fade-in">
+              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-error text-[15px] font-medium text-center animate-fade-in">
                 {error}
               </div>
             )}
 
             {isLoading && (
-              <div className="mt-4 flex items-center justify-center gap-2 text-primary text-[13px] font-semibold animate-fade-in">
+              <div className="mt-4 flex items-center justify-center gap-2 text-primary text-[15px] font-semibold animate-fade-in">
                 <Loader2 size={16} className="animate-spin" />
                 Generating your architecture docs…
               </div>

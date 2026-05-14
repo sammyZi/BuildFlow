@@ -117,7 +117,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
   return (
     <div className="w-full flex flex-col gap-2">
       {error && (
-        <div className="mx-auto w-full max-w-lg p-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[13px] text-center shadow-sm">{error}</div>
+        <div className="mx-auto w-full max-w-lg p-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[15px] text-center shadow-sm">{error}</div>
       )}
 
       {/* Detailed mode chat panel */}
@@ -128,7 +128,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
             <div className="flex items-center gap-3">
               {/* Stage pills */}
               {(['requirements', 'design'] as const).map((s) => (
-                <div key={s} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                <div key={s} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[13px] font-semibold ${
                   detailedStage === s ? 'bg-chat-accent text-white' : 'bg-gray-200 text-chat-textMuted'
                 }`}>
                   <span className="capitalize">{s}</span>
@@ -138,7 +138,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
             {chatMessages.length > 2 && !isChatLoading && (
               <button
                 onClick={advanceStage}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-chat-accent text-white hover:bg-chat-accentHover transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[13px] font-semibold bg-chat-accent text-white hover:bg-chat-accentHover transition-colors"
               >
                 {detailedStage === 'requirements' ? 'Next: Design' : 'Generate Files'}
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
@@ -150,7 +150,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
           <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 p-4">
             {chatMessages.map(m => (
               <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
+                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap ${
                   m.role === 'user'
                     ? 'bg-chat-accent text-white rounded-br-md'
                     : 'bg-gray-100 text-chat-text rounded-bl-md'
@@ -175,7 +175,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e); } }}
             disabled={isLoading || isChatLoading || detailedStage === 'generating'}
             placeholder={mode === 'fast' ? 'Describe your app idea...' : stageInfo.placeholder}
-            className="flex-1 max-h-[200px] bg-transparent border-0 focus:ring-0 resize-none py-1.5 text-[15px] leading-relaxed text-chat-text placeholder:text-chat-textMuted overflow-y-auto outline-none custom-scrollbar"
+            className="flex-1 max-h-[200px] bg-transparent border-0 focus:ring-0 resize-none py-1.5 text-[17px] leading-relaxed text-chat-text placeholder:text-chat-textMuted overflow-y-auto outline-none custom-scrollbar"
             rows={1}
             style={{ minHeight: '24px' }}
           />
@@ -201,7 +201,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
             <button
               type="button"
               onClick={() => { setMode('fast'); setChatMessages([]); setDetailedStage('idea'); }}
-              className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
+              className={`px-3 py-1 rounded-md text-[13px] font-semibold transition-all ${
                 mode === 'fast' ? 'bg-white text-chat-text shadow-sm' : 'text-chat-textMuted hover:text-chat-text'
               }`}
             >
@@ -210,7 +210,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
             <button
               type="button"
               onClick={() => { setMode('detailed'); setDetailedStage('idea'); }}
-              className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
+              className={`px-3 py-1 rounded-md text-[13px] font-semibold transition-all ${
                 mode === 'detailed' ? 'bg-white text-chat-text shadow-sm' : 'text-chat-textMuted hover:text-chat-text'
               }`}
             >

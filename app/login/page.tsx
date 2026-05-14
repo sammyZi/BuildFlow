@@ -53,14 +53,14 @@ export default function LoginPage() {
           <h1 className="text-2xl font-extrabold text-text-primary tracking-tight mb-1">
             {isSignUp ? 'Create account' : 'Welcome back'}
           </h1>
-          <p className="text-[14px] text-text-muted text-center">
+          <p className="text-[16px] text-text-muted text-center">
             {isSignUp ? 'Enter your details to get started' : 'Sign in to BuildFlow'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-[12px] font-bold text-text-primary tracking-wide uppercase">
+            <label htmlFor="email" className="block text-[14px] font-bold text-text-primary tracking-wide uppercase">
               Email
             </label>
             <div className="relative">
@@ -71,7 +71,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[14px] text-text-secondary placeholder:text-text-faint transition-colors"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors"
                 placeholder="you@example.com"
                 disabled={loading}
               />
@@ -79,7 +79,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="password" className="block text-[12px] font-bold text-text-primary tracking-wide uppercase">
+            <label htmlFor="password" className="block text-[14px] font-bold text-text-primary tracking-wide uppercase">
               Password
             </label>
             <div className="relative">
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[14px] text-text-secondary placeholder:text-text-faint transition-colors"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors"
                 placeholder="••••••••"
                 disabled={loading}
               />
@@ -99,7 +99,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-error text-[13px] font-medium text-center">
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-error text-[15px] font-medium text-center">
               {error}
             </div>
           )}
@@ -122,7 +122,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
-            className="text-[13px] font-semibold text-text-muted hover:text-primary transition-colors"
+            className="text-[15px] font-semibold text-text-muted hover:text-primary transition-colors"
             disabled={loading}
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}

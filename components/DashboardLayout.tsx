@@ -64,7 +64,7 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
           <div className="flex items-center gap-4">
             <button
               onClick={handleSignOut}
-              className="text-[13px] font-semibold text-chat-textMuted hover:text-chat-text transition-colors"
+              className="text-[15px] font-semibold text-chat-textMuted hover:text-chat-text transition-colors"
             >
               Sign out
             </button>
@@ -85,7 +85,7 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
         <div className="absolute bottom-0 left-0 right-0 pt-6 pb-4 px-4 bg-chat-main pointer-events-none">
           <div className="max-w-5xl mx-auto w-full pointer-events-auto border-t border-transparent">
             {leftPanel}
-            <div className="text-center text-[11px] text-chat-textMuted mt-3 pb-1 font-medium">
+            <div className="text-center text-[13px] text-chat-textMuted mt-3 pb-1 font-medium">
               BuildFlow can make mistakes. Check generated code and docs.
             </div>
           </div>
