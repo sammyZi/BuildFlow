@@ -14,7 +14,9 @@ export default function DetailedPipelinePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idea = searchParams.get('idea') || '';
+  const initialProjectId = searchParams.get('projectId');
 
+  const [projectId, setProjectId] = useState<string | null>(initialProjectId);
   const [currentStep, setCurrentStep] = useState<Step>('questions');
   
   // Questionnaire state
@@ -36,18 +38,100 @@ export default function DetailedPipelinePage() {
 
   const initRef = useRef(false);
 
-  // Auto-start generating questions on load
+  const performAutoSave = async (stateOverride: any = {}) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const res = await fetch('/api/projects/autosave', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          projectId: stateOverride.projectId ?? projectId,
+          idea,
+          status: 'draft',
+          current_step: stateOverride.currentStep ?? currentStep,
+          state_data: {
+            questions: stateOverride.questions ?? questions,
+            answers: stateOverride.answers ?? answers,
+            designQuestions: stateOverride.designQuestions ?? designQuestions,
+            designAnswers: stateOverride.designAnswers ?? designAnswers,
+            requirements: stateOverride.requirements ?? requirements,
+            design: stateOverride.design ?? design,
+            tasks: stateOverride.tasks ?? tasks
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.projectId && !projectId) {
+        setProjectId(data.projectId);
+        // Replace URL to include projectId without reloading
+        const url = new URL(window.location.href);
+        url.searchParams.set('projectId', data.projectId);
+        window.history.replaceState({}, '', url.toString());
+        return data.projectId;
+      }
+    } catch (err) {
+      console.error('AutoSave failed', err);
+    }
+  };
+
   useEffect(() => {
-    if (!idea) {
+    // If user typed some answer, let's debounce autosave it
+    const timer = setTimeout(() => {
+      if (projectId && (Object.keys(answers).length > 0 || Object.keys(designAnswers).length > 0)) {
+        performAutoSave();
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [answers, designAnswers]);
+
+  // Load existing project or Auto-start generating questions on load
+  useEffect(() => {
+    const loadProject = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const res = await fetch(`/api/projects/${initialProjectId}`, {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.project) {
+          const state = data.project.state_data || {};
+          if (state.questions) setQuestions(state.questions);
+          if (state.answers) setAnswers(state.answers);
+          if (state.designQuestions) setDesignQuestions(state.designQuestions);
+          if (state.designAnswers) setDesignAnswers(state.designAnswers);
+          if (state.requirements) setRequirements(state.requirements);
+          if (state.design) setDesign(state.design);
+          if (state.tasks) setTasks(state.tasks);
+          if (data.project.current_step) setCurrentStep(data.project.current_step as Step);
+        }
+      } catch (err) {
+        console.error('Failed to load project state', err);
+      }
+    };
+
+    if (!idea && !initialProjectId) {
       router.push('/dashboard');
       return;
     }
     
     if (!initRef.current) {
       initRef.current = true;
-      generateStage('generate_questions');
+      if (initialProjectId) {
+        loadProject();
+      } else {
+        generateStage('generate_questions').then(qRes => {
+          // Trigger first autosave creation once questions are created
+          performAutoSave({ questions: qRes ?? [] });
+        });
+      }
     }
-  }, [idea, router]);
+  }, [idea, router, initialProjectId]);
 
   const fetchApi = async (payload: any) => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -74,6 +158,7 @@ export default function DetailedPipelinePage() {
   const generateStage = async (action: string) => {
     setIsGenerating(true);
     setError(null);
+    let parsedResult = null;
     try {
       const payload: any = {
         action,
@@ -103,6 +188,7 @@ export default function DetailedPipelinePage() {
           console.log('Parsed questions:', parsed);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setQuestions(parsed);
+            parsedResult = parsed;
             console.log('Questions set successfully:', parsed);
           } else {
             throw new Error('Invalid questions format - not an array or empty');
@@ -118,6 +204,7 @@ export default function DetailedPipelinePage() {
           const parsed = JSON.parse(data.content);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setDesignQuestions(parsed);
+            parsedResult = parsed;
           } else {
             throw new Error('Invalid design questions format');
           }
@@ -126,9 +213,18 @@ export default function DetailedPipelinePage() {
           setError('Failed to generate design questions. Please try again.');
         }
       }
-      if (action === 'generate_requirements') setRequirements(data.content);
-      if (action === 'generate_design') setDesign(data.content);
-      if (action === 'generate_tasks') setTasks(data.content);
+      if (action === 'generate_requirements') {
+        setRequirements(data.content);
+        parsedResult = data.content;
+      }
+      if (action === 'generate_design') {
+        setDesign(data.content);
+        parsedResult = data.content;
+      }
+      if (action === 'generate_tasks') {
+        setTasks(data.content);
+        parsedResult = data.content;
+      }
 
     } catch (err: any) {
       console.error('Error in generateStage:', err);
@@ -136,6 +232,7 @@ export default function DetailedPipelinePage() {
     } finally {
       setIsGenerating(false);
     }
+    return parsedResult;
   };
 
   const handleRefine = async (e: React.FormEvent) => {
@@ -155,9 +252,18 @@ export default function DetailedPipelinePage() {
       
       if (!data.success) throw new Error('Refinement failed');
 
-      if (currentStep === 'requirements') setRequirements(data.content);
-      if (currentStep === 'design') setDesign(data.content);
-      if (currentStep === 'tasks') setTasks(data.content);
+      if (currentStep === 'requirements') {
+        setRequirements(data.content);
+        performAutoSave({ requirements: data.content });
+      }
+      if (currentStep === 'design') {
+        setDesign(data.content);
+        performAutoSave({ design: data.content });
+      }
+      if (currentStep === 'tasks') {
+        setTasks(data.content);
+        performAutoSave({ tasks: data.content });
+      }
       
       setRefinePrompt('');
     } catch (err: any) {
@@ -171,19 +277,23 @@ export default function DetailedPipelinePage() {
     if (currentStep === 'questions') {
       // User answered questions, now generate requirements
       setCurrentStep('requirements');
-      generateStage('generate_requirements');
+      const req = await generateStage('generate_requirements');
+      performAutoSave({ currentStep: 'requirements', requirements: req });
     } else if (currentStep === 'requirements') {
       // User commits to requirements, now generate design questions
       setCurrentStep('design-questions');
-      generateStage('generate_design_questions');
+      const dq = await generateStage('generate_design_questions');
+      performAutoSave({ currentStep: 'design-questions', designQuestions: dq });
     } else if (currentStep === 'design-questions') {
       // User answered design questions, now generate design
       setCurrentStep('design');
-      generateStage('generate_design');
+      const des = await generateStage('generate_design');
+      performAutoSave({ currentStep: 'design', design: des });
     } else if (currentStep === 'design') {
       // User commits to design, now generate tasks
       setCurrentStep('tasks');
-      generateStage('generate_tasks');
+      const tsk = await generateStage('generate_tasks');
+      performAutoSave({ currentStep: 'tasks', tasks: tsk });
     } else {
       // Finalize and save
       setIsGenerating(true);
@@ -192,6 +302,7 @@ export default function DetailedPipelinePage() {
         const data = await fetchApi({
           action: 'save_project',
           idea,
+          projectId, // Pass projectId to map to existing project
           requirements,
           design,
           tasks
@@ -199,6 +310,7 @@ export default function DetailedPipelinePage() {
         
         if (!data.success) throw new Error('Failed to save project');
         
+        await performAutoSave({ status: 'completed' });
         router.push(`/dashboard/results/${data.projectId}`);
       } catch (err: any) {
         setError(err.message || 'Failed to save project.');
@@ -307,19 +419,19 @@ export default function DetailedPipelinePage() {
               <p className="text-[13px] text-text-muted">Analyzing your idea and creating a detailed document...</p>
             </div>
           ) : (currentStep === 'questions' || currentStep === 'design-questions') ? (
-            <div className="animate-fade-in-up space-y-5">
+            <div className="animate-fade-in-up space-y-8">
               {/* Questions Display */}
-              <div className="bg-white border border-border rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-border">
-                  <h2 className="text-[15px] font-bold text-text-primary">
+              <div>
+                <div className="pb-4 border-b border-border mb-6">
+                  <h2 className="text-[18px] font-bold text-text-primary">
                     {currentStep === 'questions' ? 'Discovery Questions' : 'Tech Stack Decisions'}
                   </h2>
-                  <p className="text-[12px] text-text-muted mt-1">
+                  <p className="text-[13px] text-text-muted mt-1">
                     {currentStep === 'questions' ? 'Help us understand your project better' : 'Decide on the right technologies for your product'}
                   </p>
                 </div>
                 
-                <div className="p-6 space-y-6">
+                <div className="space-y-6">
                   {(currentStep === 'questions' ? questions : designQuestions).map((q, idx) => (
                     <div key={q.id} className="space-y-3">
                       <p className="text-[14px] font-semibold text-text-primary">
@@ -375,22 +487,22 @@ export default function DetailedPipelinePage() {
               </div>
             </div>
           ) : (
-            <div className="animate-fade-in-up space-y-5">
+            <div className="animate-fade-in-up space-y-8">
               {/* Document Display */}
-              <div className="bg-white border border-border rounded-lg shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 border-b border-border">
+              <div>
+                <div className="pb-4 border-b border-border mb-6">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                       <StepIcon size={20} className="text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-[15px] font-bold text-text-primary">{activeConfig.title}</h2>
-                      <p className="text-[12px] text-text-muted">Review and refine before proceeding</p>
+                      <h2 className="text-[18px] font-bold text-text-primary">{activeConfig.title}</h2>
+                      <p className="text-[13px] text-text-muted">Review and refine before proceeding</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-8">
+                <div className="py-2">
                   <div className="prose prose-sm max-w-none
                     prose-headings:text-text-primary prose-headings:font-bold
                     prose-h1:text-[24px] prose-h1:border-b prose-h1:border-border prose-h1:pb-3 prose-h1:mb-4
@@ -407,18 +519,18 @@ export default function DetailedPipelinePage() {
               </div>
 
               {/* Action Panel */}
-              <div className="bg-white border border-border rounded-lg shadow-sm overflow-hidden">
-                <div className="bg-surface px-6 py-4 border-b border-border">
+              <div className="border-t border-border pt-6 mt-8">
+                <div className="mb-4">
                   <div className="flex items-center gap-2">
                     <Edit3 size={16} className="text-primary" />
-                    <h3 className="text-[14px] font-bold text-text-primary">Request Changes</h3>
+                    <h3 className="text-[16px] font-bold text-text-primary">Request Changes</h3>
                   </div>
-                  <p className="text-[12px] text-text-muted mt-1">
+                  <p className="text-[13px] text-text-muted mt-1">
                     Describe any modifications you'd like, or commit to proceed to the next step.
                   </p>
                 </div>
                 
-                <div className="p-6">
+                <div>
                   <form onSubmit={handleRefine} className="space-y-4">
                     <div className="flex gap-3">
                       <input

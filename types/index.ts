@@ -14,6 +14,9 @@ export interface Project {
   id: string;
   user_id: string;
   prompt: string;
+  status?: string;
+  current_step?: string;
+  state_data?: any;
   created_at: string;
   updated_at: string;
 }

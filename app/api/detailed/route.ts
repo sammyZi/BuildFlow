@@ -116,22 +116,35 @@ Return ONLY a JSON array:
     }
 
     if (action === 'save_project') {
-      const { requirements: reqDoc, design: desDoc, tasks: taskDoc } = body;
+      const { requirements: reqDoc, design: desDoc, tasks: taskDoc, projectId } = body;
       
-      // 1. Create project
-      const { data: project, error: insertError } = await supabaseAdmin
-        .from('projects')
-        .insert({ user_id: user.id, prompt: idea })
-        .select()
-        .single();
+      let finalProjectId = projectId;
+      // 1. Create or update project
+      if (projectId) {
+        const { error: updateError } = await supabaseAdmin
+          .from('projects')
+          .update({ status: 'completed' })
+          .eq('id', projectId);
+        if (updateError) throw updateError;
+      } else {
+        const { data: project, error: insertError } = await supabaseAdmin
+          .from('projects')
+          .insert({ user_id: user.id, prompt: idea, status: 'completed' })
+          .select()
+          .single();
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
+        finalProjectId = project.id;
+      }
+
+      // First, delete existing artifacts to avoid duplicates if re-saving
+      await supabaseAdmin.from('artifacts').delete().eq('project_id', finalProjectId);
 
       // 2. Insert artifacts
       const artifacts = [
-        { project_id: project.id, artifact_type: 'requirements', content: reqDoc },
-        { project_id: project.id, artifact_type: 'design', content: desDoc },
-        { project_id: project.id, artifact_type: 'tasks', content: taskDoc },
+        { project_id: finalProjectId, artifact_type: 'requirements', content: reqDoc },
+        { project_id: finalProjectId, artifact_type: 'design', content: desDoc },
+        { project_id: finalProjectId, artifact_type: 'tasks', content: taskDoc },
       ];
 
       const { error: artifactsError } = await supabaseAdmin
@@ -140,7 +153,7 @@ Return ONLY a JSON array:
 
       if (artifactsError) throw artifactsError;
 
-      return NextResponse.json({ success: true, projectId: project.id });
+      return NextResponse.json({ success: true, projectId: finalProjectId });
     }
 
     return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
