@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, LayoutTemplate, SplitSquareHorizontal, FileText, Blocks, ListTodo, ChevronRight } from 'lucide-react';
+import { Sparkles, LayoutTemplate, SplitSquareHorizontal, FileText, Blocks, ListTodo, ChevronRight, Plus, X } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -45,15 +45,15 @@ export default function LandingPage() {
         {/* Navigation */}
         <nav className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2.5 text-white font-bold text-xl tracking-tight">
-              <svg className="w-7 h-7" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M200 40C200 90 250 90 250 90C250 90 200 90 200 140C200 90 150 90 150 90C150 90 200 90 200 40Z" fill="#FDE68A" />
-                <path d="M100 140L190 185V225L100 180V140Z" fill="white" />
-                <path d="M210 185L300 140V180L210 225V185Z" fill="white" />
-                <path d="M100 200L190 245V285L100 240V200Z" fill="rgba(255,255,255,0.85)" />
-                <path d="M210 245L300 200V240L210 285V245Z" fill="rgba(255,255,255,0.85)" />
-                <path d="M100 260L190 305V345L100 300V260Z" fill="rgba(255,255,255,0.7)" />
-                <path d="M210 305L300 260V300L210 345V305Z" fill="rgba(255,255,255,0.7)" />
-              </svg>
+            <svg className="w-9 h-9" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M200 40C200 90 250 90 250 90C250 90 200 90 200 140C200 90 150 90 150 90C150 90 200 90 200 40Z" fill="#FDE68A" />
+              <path d="M100 140L190 185V225L100 180V140Z" fill="white" />
+              <path d="M210 185L300 140V180L210 225V185Z" fill="white" />
+              <path d="M100 200L190 245V285L100 240V200Z" fill="rgba(255,255,255,0.85)" />
+              <path d="M210 245L300 200V240L210 285V245Z" fill="rgba(255,255,255,0.85)" />
+              <path d="M100 260L190 305V345L100 300V260Z" fill="rgba(255,255,255,0.7)" />
+              <path d="M210 305L300 260V300L210 345V305Z" fill="rgba(255,255,255,0.7)" />
+            </svg>
             BuildFlow
           </div>
           <div className="flex items-center gap-6 text-sm font-medium text-white/90">
@@ -106,10 +106,33 @@ export default function LandingPage() {
         <div className="rounded-2xl p-2 bg-white/40 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50">
           <div className="rounded-xl overflow-hidden shadow-2xl relative bg-[#1E1E2E]">
             {/* Fake Browser/App Header */}
-            <div className="h-10 bg-[#2A2A3C] flex items-center px-4 gap-2 border-b border-[#3A3A4C]">
-              <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-              <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-              <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
+            <div className="h-10 bg-[#2b2d30] flex items-center px-4 gap-4 border-b border-white/5">
+              <div className="flex gap-1.5 mr-2">
+                <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-black/10" />
+                <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-black/10" />
+                <div className="w-3 h-3 rounded-full bg-[#28c840] border border-black/10" />
+              </div>
+
+              <div className="flex items-end h-full">
+                <div className="h-8 bg-[#1e1f22] px-3 rounded-t-lg flex items-center gap-2 border-t border-x border-white/10 text-[11px] text-[#bcbec4] min-w-[160px] relative translate-y-[1px]">
+                  <div className="w-4 h-4 rounded-sm flex items-center justify-center">
+                    <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                      <path d="M200 40C200 90 250 90 250 90C250 90 200 90 200 140C200 90 150 90 150 90C150 90 200 90 200 40Z" fill="#FDE68A" />
+                      <path d="M100 140L190 185V225L100 180V140Z" fill="white" />
+                      <path d="M210 185L300 140V180L210 225V185Z" fill="white" />
+                      <path d="M100 200L190 245V285L100 240V200Z" fill="rgba(255,255,255,0.8)" />
+                      <path d="M210 245L300 200V240L210 285V245Z" fill="rgba(255,255,255,0.8)" />
+                      <path d="M100 260L190 305V345L100 300V260Z" fill="rgba(255,255,255,0.6)" />
+                      <path d="M210 305L300 260V300L210 345V305Z" fill="rgba(255,255,255,0.6)" />
+                    </svg>
+                  </div>
+                  <span className="truncate">BuildFlow — Generative Workspace</span>
+                  <X size={12} className="ml-auto opacity-40 hover:opacity-100 cursor-pointer" />
+                </div>
+                <div className="p-1.5 hover:bg-white/10 rounded-md ml-1 mb-1 cursor-pointer">
+                  <Plus size={14} className="text-[#bcbec4]" />
+                </div>
+              </div>
             </div>
             {/* The Screenshot */}
             <Image

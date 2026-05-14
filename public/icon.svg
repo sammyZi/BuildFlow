@@ -1,0 +1,9 @@
+<svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M200 40C200 90 250 90 250 90C250 90 200 90 200 140C200 90 150 90 150 90C150 90 200 90 200 40Z" fill="#4A6BFF" />
+  <path d="M100 140L190 185V225L100 180V140Z" fill="white" />
+  <path d="M210 185L300 140V180L210 225V185Z" fill="white" />
+  <path d="M100 200L190 245V285L100 240V200Z" fill="rgba(255,255,255,0.8)" />
+  <path d="M210 245L300 200V240L210 285V245Z" fill="rgba(255,255,255,0.8)" />
+  <path d="M100 260L190 305V345L100 300V260Z" fill="rgba(255,255,255,0.6)" />
+  <path d="M210 305L300 260V300L210 345V305Z" fill="rgba(255,255,255,0.6)" />
+</svg>
