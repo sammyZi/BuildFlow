@@ -35,7 +35,7 @@ export class MiniMaxClient {
    * @returns Markdown-formatted requirements document
    */
   async generateRequirements(appIdea: string): Promise<string> {
-    const systemPrompt = "You are an expert Product Manager. Given the following app idea, generate a requirements.md file detailing the target audience, core user stories, and strict feature scope.";
+    const systemPrompt = "You are an expert Product Manager. Given the following app idea, generate a requirements.md file detailing the target audience, core user stories, and strict feature scope. IMPORTANT: Do not wrap your response in a markdown code block (like ```markdown). Respond with raw markdown text only.";
 
     return this.generateWithRetry(systemPrompt, appIdea);
   }
@@ -73,7 +73,7 @@ IMPORTANT: When including Mermaid diagrams in your markdown:
    * @returns Markdown-formatted tasks document
    */
   async generateTasks(appIdea: string, requirements: string, design: string): Promise<string> {
-    const systemPrompt = "You are a Lead Developer. Break down the attached requirements and design into a tasks.md file. Format this as a highly granular checklist where each item is small enough to be independently executed by an AI IDE without additional context.";
+    const systemPrompt = "You are a Lead Developer. Break down the attached requirements and design into a tasks.md file. Format this as a highly granular checklist where each item is small enough to be independently executed by an AI IDE without additional context. IMPORTANT: Do not wrap your response in a markdown code block (like ```markdown). Respond with raw markdown text only.";
 
     const userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}\n\nDesign:\n${design}`;
 
