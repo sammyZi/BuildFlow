@@ -47,7 +47,7 @@ export class MiniMaxClient {
    * @returns Markdown-formatted design document
    */
   async generateDesign(appIdea: string, requirements: string): Promise<string> {
-    const systemPrompt = `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure.
+    const systemPrompt = `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure. Ensure all Data Models are presented in standard Markdown tables with proper line breaks for each row. Do not output tables on a single line.
 
 IMPORTANT: When including Mermaid diagrams in your markdown:
 1. Wrap diagrams in code blocks with the 'mermaid' language identifier
