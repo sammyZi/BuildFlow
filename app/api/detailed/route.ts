@@ -126,6 +126,18 @@ Return ONLY a JSON array:
       let finalProjectId = projectId;
       // 1. Create or update project
       if (projectId) {
+        // SECURITY FIX: Verify the user owns this project before modifying
+        const { data: existingProject, error: verifyError } = await supabaseAdmin
+          .from('projects')
+          .select('id')
+          .eq('id', projectId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (verifyError || !existingProject) {
+          return NextResponse.json({ success: false, error: 'Unauthorized to modify this project' }, { status: 403 });
+        }
+
         const { error: updateError } = await supabaseAdmin
           .from('projects')
           .update({ status: 'completed' })

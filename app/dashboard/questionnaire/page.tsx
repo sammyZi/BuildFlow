@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import ReactMarkdown from 'react-markdown';
@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 type Step = 'questions' | 'requirements' | 'design-questions' | 'design' | 'tasks';
 
-export default function DetailedPipelinePage() {
+function DetailedPipelineContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idea = searchParams.get('idea') || '';
@@ -629,5 +629,20 @@ export default function DetailedPipelinePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DetailedPipelinePage() {
+  return (
+    <Suspense fallback={
+      <div className="h-full flex items-center justify-center bg-bg">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 size={24} className="animate-spin text-primary" />
+          <p className="text-text-muted font-medium">Loading pipeline...</p>
+        </div>
+      </div>
+    }>
+      <DetailedPipelineContent />
+    </Suspense>
   );
 }
