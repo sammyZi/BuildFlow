@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Project } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
-import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut } from 'lucide-react';
+import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2 } from 'lucide-react';
 
 import { Logo } from '@/components/ui/Logo';
 
@@ -36,6 +36,8 @@ function getPreview(prompt: string): string {
 export default function ProjectHistory({ onSelectProject, currentProjectId, onCollapse, onSignOut }: ProjectHistoryProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProjects() {
@@ -56,6 +58,29 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
     }
     loadProjects();
   }, [currentProjectId]);
+
+  const handleDeleteClick = (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation(); // Prevent triggering onSelectProject
+    setProjectToDelete(projectId);
+  };
+
+  const confirmDelete = async () => {
+    if (!projectToDelete) return;
+    setDeletingId(projectToDelete);
+    try {
+      await SupabaseService.deleteProject(projectToDelete);
+      setProjects(prev => prev.filter(p => p.id !== projectToDelete));
+      if (currentProjectId === projectToDelete) {
+        onSelectProject('');
+      }
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      alert('Failed to delete project');
+    } finally {
+      setDeletingId(null);
+      setProjectToDelete(null);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-sidebar-bg font-sans">
@@ -112,17 +137,20 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
           ) : (
             projects.map(project => {
               const isActive = currentProjectId === project.id;
+              const isDeleting = deletingId === project.id;
+              
               return (
                 <button
                   key={project.id}
                   onClick={() => onSelectProject(project.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg transition-all group ${
+                  className={`w-full text-left px-3 py-2 rounded-lg transition-all group relative ${
                     isActive
                       ? 'bg-sidebar-active text-white'
                       : 'text-sidebar-text hover:bg-sidebar-active/60 hover:text-white'
                   }`}
+                  disabled={isDeleting}
                 >
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2 pr-6">
                     <FileText
                       size={13}
                       className={`mt-0.5 shrink-0 ${
@@ -138,6 +166,20 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
                         {formatDate(project.created_at)}
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Delete Button */}
+                  <div 
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-sidebar-text-muted hover:text-error hover:bg-error/10 transition-colors ${
+                      isDeleting ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                    }`}
+                    onClick={(e) => handleDeleteClick(e, project.id)}
+                  >
+                    {isDeleting ? (
+                      <Loader2 size={13} className="animate-spin text-error" />
+                    ) : (
+                      <Trash2 size={13} strokeWidth={2} />
+                    )}
                   </div>
                 </button>
               );
@@ -160,6 +202,41 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
             </button>
           </div>
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {projectToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-bg border border-border w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 mx-4 animate-fade-in-up">
+            <h3 className="text-lg font-bold text-text-primary mb-2">Delete Project</h3>
+            <p className="text-[15px] text-text-secondary mb-6">
+              Are you sure you want to delete this project? All generated artifacts and history will be permanently lost. This action cannot be undone.
+            </p>
+            <div className="flex items-center gap-3 w-full">
+              <button
+                onClick={() => setProjectToDelete(null)}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface text-text-primary font-bold hover:bg-surface-alt transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-error text-white font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {deletingId !== null ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
