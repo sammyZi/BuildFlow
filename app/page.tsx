@@ -12,6 +12,38 @@ export default function LandingPage() {
         {/* Sky / Sunset Gradient Background */}
         <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]" />
 
+        {/* Random White Dots Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+          {[
+            { top: '12%', left: '18%' }, { top: '34%', left: '76%' }, { top: '61%', left: '12%' },
+            { top: '82%', left: '83%' }, { top: '15%', left: '52%' }, { top: '46%', left: '38%' },
+            { top: '72%', left: '63%' }, { top: '28%', left: '88%' }, { top: '58%', left: '22%' },
+            { top: '91%', left: '42%' }, { top: '8%', left: '9%' }, { top: '48%', left: '92%' },
+            { top: '78%', left: '28%' }, { top: '22%', left: '67%' }, { top: '42%', left: '14%' },
+            { top: '68%', left: '82%' }, { top: '88%', left: '16%' }, { top: '31%', left: '33%' },
+            { top: '55%', left: '55%' }, { top: '18%', left: '93%' }, { top: '85%', left: '58%' },
+            { top: '26%', left: '44%' }, { top: '52%', left: '78%' }, { top: '5%', left: '68%' },
+            { top: '96%', left: '81%' }, { top: '44%', left: '6%' }, { top: '76%', left: '94%' },
+            { top: '37%', left: '24%' }, { top: '65%', left: '42%' }, { top: '11%', left: '32%' },
+            { top: '84%', left: '72%' }, { top: '51%', left: '61%' }, { top: '21%', left: '14%' },
+            { top: '19%', left: '28%' }, { top: '64%', left: '89%' }, { top: '33%', left: '51%' },
+            { top: '87%', left: '92%' }, { top: '41%', left: '86%' }, { top: '13%', left: '79%' },
+            { top: '92%', left: '24%' }, { top: '59%', left: '34%' }, { top: '74%', left: '49%' },
+            { top: '29%', left: '11%' }, { top: '6%', left: '41%' }, { top: '97%', left: '66%' },
+          ].map((pos, i) => (
+            <div 
+              key={i} 
+              className="absolute w-[8px] h-[8px] bg-white" 
+              style={{ 
+                top: pos.top, 
+                left: pos.left, 
+                clipPath: 'polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%)',
+                animation: `twinkle ${2.5 + (i % 4)}s ease-in-out infinite ${(i * 0.43)}s`
+              }}
+            />
+          ))}
+        </div>
+
         {/* Animated Floating Orbs */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <div className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-3xl -top-20 -left-40 animate-[float1_12s_ease-in-out_infinite]" />
@@ -36,6 +68,10 @@ export default function LandingPage() {
           @keyframes float3 {
             0%, 100% { transform: translate(0, 0) scale(1); }
             50% { transform: translate(70px, -60px) scale(1.1); }
+          }
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: scale(0.8); }
+            50% { opacity: 0.8; transform: scale(1.2); }
           }
         `}</style>
 
