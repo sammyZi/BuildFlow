@@ -5,7 +5,7 @@ import './globals.css'
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' })
 
 export const metadata: Metadata = {
-  title: 'BuildFlow - The Future of Project Planning Today',
+  title: 'BuildFlow',
   description: 'Experience smarter, generative planning with seamless documentation — empowering you to take control of your app architecture every day.',
   icons: {
     icon: '/icon.svg',

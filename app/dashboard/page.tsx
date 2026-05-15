@@ -75,8 +75,56 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-bg via-bg to-surface">
-      <div className="min-h-full flex flex-col items-center justify-center px-6 py-16">
+    <div className="h-full overflow-y-auto relative" style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 25%, #f0fdfa 50%, #eff6ff 75%, #fdf4ff 100%)' }}>
+      {/* Animated floating gradient orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute rounded-full blur-3xl opacity-30"
+          style={{
+            width: '500px', height: '500px',
+            background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)',
+            top: '-10%', left: '-5%',
+            animation: 'floatOrb1 18s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute rounded-full blur-3xl opacity-25"
+          style={{
+            width: '450px', height: '450px',
+            background: 'radial-gradient(circle, #60a5fa 0%, transparent 70%)',
+            top: '50%', right: '-8%',
+            animation: 'floatOrb2 22s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute rounded-full blur-3xl opacity-20"
+          style={{
+            width: '400px', height: '400px',
+            background: 'radial-gradient(circle, #a78bfa 0%, transparent 70%)',
+            bottom: '-5%', left: '30%',
+            animation: 'floatOrb3 20s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute rounded-full blur-3xl opacity-15"
+          style={{
+            width: '350px', height: '350px',
+            background: 'radial-gradient(circle, #67e8f9 0%, transparent 70%)',
+            top: '20%', left: '50%',
+            animation: 'floatOrb4 25s ease-in-out infinite',
+          }}
+        />
+        {/* Subtle dot grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #4A6BFF 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+          }}
+        />
+      </div>
+
+      <div className="min-h-full flex flex-col items-center justify-center px-6 py-16 relative z-10">
         <div className="w-full max-w-[720px] mx-auto">
           <div className="text-center mb-10 animate-fade-in-up">
             <h1 className="text-[38px] md:text-[48px] font-extrabold text-text-primary tracking-tight leading-[1.1] mb-3">
@@ -90,7 +138,7 @@ export default function DashboardPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="w-full animate-fade-in-up anim-delay-1">
-            <div className="relative bg-white rounded-[26px] border border-border/60 transition-all focus-within:border-border">
+            <div className="relative rounded-[26px] border border-white/60 transition-all focus-within:border-primary/30 shadow-lg shadow-primary/5 focus-within:shadow-xl focus-within:shadow-primary/10" style={{ background: 'rgba(255, 255, 255, 0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
               <textarea
                 ref={textareaRef}
                 value={appIdea}
@@ -133,7 +181,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showDropdown && (
-                    <div className="absolute top-full right-0 mt-2 py-1 bg-white/95 backdrop-blur-md rounded-lg border border-border/40 overflow-hidden animate-fade-in-up z-10">
+                    <div className="absolute top-full right-0 mt-2 py-1 rounded-xl border border-white/60 overflow-hidden animate-fade-in-up z-10 shadow-lg shadow-primary/5" style={{ background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
                       <button
                         type="button"
                         onClick={() => { setMode('fast'); setShowDropdown(false); }}
