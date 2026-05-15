@@ -13,7 +13,13 @@ export default function LandingPage() {
         <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]" />
 
         {/* Random White Dots Overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none opacity-40"
+          style={{
+            maskImage: 'radial-gradient(ellipse at center, transparent 25%, black 55%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 25%, black 55%)'
+          }}
+        >
           {[
             { top: '12%', left: '18%' }, { top: '34%', left: '76%' }, { top: '61%', left: '12%' },
             { top: '82%', left: '83%' }, { top: '15%', left: '52%' }, { top: '46%', left: '38%' },
@@ -31,12 +37,12 @@ export default function LandingPage() {
             { top: '92%', left: '24%' }, { top: '59%', left: '34%' }, { top: '74%', left: '49%' },
             { top: '29%', left: '11%' }, { top: '6%', left: '41%' }, { top: '97%', left: '66%' },
           ].map((pos, i) => (
-            <div 
-              key={i} 
-              className="absolute w-[8px] h-[8px] bg-white" 
-              style={{ 
-                top: pos.top, 
-                left: pos.left, 
+            <div
+              key={i}
+              className="absolute w-[8px] h-[8px] bg-white"
+              style={{
+                top: pos.top,
+                left: pos.left,
                 clipPath: 'polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%)',
                 animation: `twinkle ${2.5 + (i % 4)}s ease-in-out infinite ${(i * 0.43)}s`
               }}
@@ -114,7 +120,7 @@ export default function LandingPage() {
         </nav>
 
         {/* Hero Content */}
-        <div className="relative z-10 max-w-4xl mx-auto mt-20 lg:mt-28 px-4 text-center">
+        <div className="relative z-10 max-w-4xl mx-auto mt-20 lg:mt-28 px-4 text-center sm:translate-x-8">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
             Your <span className="relative inline-block">
               <span className="text-[#4C1D95] relative z-10">beautiful</span>
@@ -146,7 +152,7 @@ export default function LandingPage() {
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
               </span>
             </Link>
-            
+
             <a
               href="https://github.com/sammyZi/BuildFlow"
               target="_blank"
@@ -292,7 +298,7 @@ export default function LandingPage() {
             </ul>
           </div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-500 text-sm">
             © {new Date().getFullYear()} BuildFlow. All rights reserved.
