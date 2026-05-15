@@ -51,20 +51,26 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-surface font-sans px-4">
-      <div className="w-full max-w-[400px]">
+    <main className="min-h-screen flex items-center justify-center bg-bg font-sans px-4 relative overflow-hidden">
+      {/* Premium Background Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none animate-pulse duration-1000" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none animate-pulse duration-1000" style={{ animationDelay: '1s' }} />
+
+      <div className="w-full max-w-[420px] relative z-10 px-6">
         {/* Header */}
-        <div className="flex flex-col items-center mb-8 gap-3">
-          <Logo className="w-14 h-14" />
-          <div className="text-center">
-            <h1 className="text-2xl font-extrabold text-text-primary tracking-tight mb-1">
-              {isSignUp ? 'Create account' : 'Welcome back'}
-            </h1>
-            <p className="text-[16px] text-text-muted">
-              {isSignUp ? 'Enter your details to get started' : 'Sign in to BuildFlow'}
-            </p>
+        <div className="flex flex-col items-center mb-10 gap-4">
+            <div className="p-3 bg-white/5 rounded-2xl shadow-inner border border-white/10">
+              <Logo className="w-12 h-12" />
+            </div>
+            <div className="text-center">
+              <h1 className="text-2xl font-extrabold text-text-primary tracking-tight mb-2">
+                {isSignUp ? 'Create account' : 'Welcome back'}
+              </h1>
+              <p className="text-[15px] text-text-secondary">
+                {isSignUp ? 'Enter your details to get started' : 'Sign in to BuildFlow'}
+              </p>
+            </div>
           </div>
-        </div>
 
         {successMessage ? (
           <div className="bg-emerald-50 border border-success/30 rounded-2xl p-6 text-center animate-fade-in-up">
@@ -149,11 +155,11 @@ export default function LoginPage() {
         )}
 
         {!successMessage && (
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center relative z-10">
             <button
               type="button"
               onClick={() => { setIsSignUp(!isSignUp); setError(''); setPassword(''); }}
-              className="text-[15px] font-semibold text-text-muted hover:text-primary transition-colors"
+              className="text-[14px] font-medium text-text-secondary hover:text-primary transition-colors"
               disabled={loading}
             >
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
