@@ -13,7 +13,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]" />
 
         {/* Random White Dots Overlay */}
-        <div 
+        <div
           className="absolute inset-0 z-0 pointer-events-none opacity-40"
           style={{
             maskImage: 'radial-gradient(ellipse at center, transparent 25%, black 55%)',
@@ -294,7 +294,7 @@ export default function LandingPage() {
               <li><a href="https://github.com/sammyZi" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a></li>
               <li><a href="https://www.linkedin.com/in/samarth-bhinge/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn</a></li>
               <li><a href="https://www.instagram.com/sammyi_57/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a></li>
-              <li><a href="mailto:bhingesmaerth@gmail.com" className="hover:text-white transition-colors">Email Me</a></li>
+              <li><a href="mailto:bhingesamarth@gmail.com" className="hover:text-white transition-colors">Email - bhingesamarth@gmail.com</a></li>
             </ul>
           </div>
         </div>
