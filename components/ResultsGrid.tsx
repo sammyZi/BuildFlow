@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Artifact, ArtifactType } from '@/types';
 import { SupabaseService } from '@/lib/supabase/service';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ShiningText } from '@/components/ui/shining-text';
 import MermaidDiagram from '@/components/MermaidDiagram';
 
@@ -184,9 +185,13 @@ export default function ResultsGrid({
                 prose-code:text-pink-600 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[15px]
                 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-chat-border prose-pre:rounded-lg
                 prose-hr:border-chat-border
-                prose-strong:text-chat-text"
+                prose-strong:text-chat-text
+                prose-table:w-full prose-table:my-6 prose-table:text-left
+                prose-th:bg-gray-100 prose-th:px-4 prose-th:py-2 prose-th:border-b-2 prose-th:border-chat-border
+                prose-td:px-4 prose-td:py-2 prose-td:border-b prose-td:border-chat-border"
               >
                 <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     code({ node, className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || '');

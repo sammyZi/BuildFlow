@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3
 } from 'lucide-react';
@@ -516,8 +517,12 @@ function DetailedPipelineContent() {
                     prose-li:text-[18px] prose-li:text-text-secondary prose-li:leading-[1.7] prose-li:my-1
                     prose-ul:my-3 prose-ol:my-3
                     prose-strong:text-[18px] prose-strong:text-text-primary prose-strong:font-semibold
-                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[17px] prose-code:font-mono">
+                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[17px] prose-code:font-mono
+                    prose-table:w-full prose-table:my-6 prose-table:text-left
+                    prose-th:bg-surface-alt prose-th:px-4 prose-th:py-2 prose-th:border-b-2 prose-th:border-border
+                    prose-td:px-4 prose-td:py-2 prose-td:border-b prose-td:border-border">
                     <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
                       components={{
                         code({ node, className, children, ...props }) {
                           const match = /language-(\w+)/.exec(className || '');

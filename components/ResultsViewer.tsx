@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Artifact, ArtifactType } from '@/types';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import MermaidDiagram from './MermaidDiagram';
 import {
   FileText, GitBranch, ListChecks, Download,
@@ -171,6 +172,7 @@ export default function ResultsViewer({
                   prose-blockquote:border-primary/30 prose-blockquote:bg-primary-faint prose-blockquote:rounded-r-lg prose-blockquote:py-1"
                 >
                   <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
                     components={{
                       code({ node, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');

@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import GlassmorphismCard from './GlassmorphismCard';
 import { Artifact, ArtifactType } from '@/types';
 
@@ -24,6 +25,7 @@ export default function ArtifactCard({ artifact }: ArtifactCardProps) {
       </h2>
       <div className="prose prose-sm max-w-none text-gray-700">
         <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
           components={{
             // Style headings with light theme colors
             h1: ({ node, ...props }) => (
@@ -65,6 +67,16 @@ export default function ArtifactCard({ artifact }: ArtifactCardProps) {
             // Style links
             a: ({ node, ...props }) => (
               <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
+            ),
+            // Style tables
+            table: ({ node, ...props }) => (
+              <div className="overflow-x-auto my-4"><table className="w-full text-left border-collapse" {...props} /></div>
+            ),
+            th: ({ node, ...props }) => (
+              <th className="bg-gray-100 px-4 py-2 border-b-2 border-gray-200 font-semibold text-gray-700" {...props} />
+            ),
+            td: ({ node, ...props }) => (
+              <td className="px-4 py-2 border-b border-gray-200 text-gray-700" {...props} />
             ),
           }}
         >
