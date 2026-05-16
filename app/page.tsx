@@ -44,7 +44,7 @@ export default function LandingPage() {
                 top: pos.top,
                 left: pos.left,
                 clipPath: 'polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%)',
-                animation: `twinkle ${2.5 + (i % 4)}s ease-in-out infinite ${(i * 0.43)}s`
+                animation: `twinkle ${3 + (i % 7)}s ease-in-out infinite ${((i * 1.7) % 5)}s`
               }}
             />
           ))}
@@ -76,13 +76,15 @@ export default function LandingPage() {
             50% { transform: translate(70px, -60px) scale(1.1); }
           }
           @keyframes twinkle {
-            0%, 100% { opacity: 0.1; transform: scale(0.8); }
-            50% { opacity: 0.8; transform: scale(1.2); }
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.3); }
           }
         `}</style>
 
-        {/* White gradient fade out at the bottom of the hero section */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white to-transparent z-0 pointer-events-none" />
+
+
+        {/* Smooth Sunset Color Mixture */}
+        <div className="absolute bottom-0 left-0 right-0 h-[400px] bg-gradient-to-t from-white via-[#FF7E67]/40 15% via-[#FF7E67]/20 45% via-[#FF7E67]/5 75% to-transparent z-0 pointer-events-none" />
 
         {/* Navigation */}
         <nav className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -175,8 +177,8 @@ export default function LandingPage() {
 
       {/* Main App Screenshot */}
       <div id="product" className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-40 mb-32">
-        <div className="rounded-2xl p-2 bg-white/40 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50">
-          <div className="rounded-xl overflow-hidden shadow-2xl relative bg-[#1E1E2E]">
+        <div className="rounded-2xl p-2 bg-white/40 backdrop-blur-xl border border-white/40 border-x-[#FF7E67]/20 border-b-[#FF7E67]/20">
+          <div className="rounded-xl overflow-hidden relative bg-[#1E1E2E]">
             {/* The Screenshot */}
             <Image
               src="/dash.png"
