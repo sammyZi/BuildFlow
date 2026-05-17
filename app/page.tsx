@@ -1,10 +1,42 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sparkles, LayoutTemplate, SplitSquareHorizontal, FileText, Blocks, ListTodo, ChevronRight, ChevronLeft, Plus, X } from 'lucide-react';
 
 export default function LandingPage() {
+  const [stars, setStars] = useState<{ top: string; left: string; size: number; delay: number; duration: number; opacity: number }[]>([]);
+
+  useEffect(() => {
+    // Generate 45 truly random star positions with pre-calculated radial opacity on mount
+    const generatedStars = Array.from({ length: 45 }).map(() => {
+      const topVal = Math.random() * 100;
+      const leftVal = Math.random() * 100;
+
+      // Calculate distance from center (50%, 50%) to fade stars in the center
+      const dx = (leftVal - 50) / 100;
+      const dy = (topVal - 50) / 100;
+      const dist = Math.sqrt(dx * dx + dy * dy); // range: 0 to ~0.707
+
+      // Radial fade: transparent/faded near the center, brighter towards the edges
+      let opacity = 0;
+      if (dist > 0.20) {
+        opacity = Math.min((dist - 0.20) / 0.35, 1) * 0.8;
+      }
+
+      return {
+        top: `${topVal.toFixed(2)}%`,
+        left: `${leftVal.toFixed(2)}%`,
+        size: Math.random() * 5 + 6, // Increased size: 6px to 11px
+        delay: Math.random() * 5,
+        duration: 3 + Math.random() * 4,
+        opacity
+      };
+    });
+    setStars(generatedStars);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Hero Section with Beautiful Gradient */}
@@ -12,72 +44,100 @@ export default function LandingPage() {
         {/* Sky / Sunset Gradient Background */}
         <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]" />
 
-        {/* Random White Dots Overlay */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-40"
-          style={{
-            maskImage: 'radial-gradient(ellipse at center, transparent 25%, black 55%)',
-            WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 25%, black 55%)'
-          }}
-        >
-          {[
-            { top: '12%', left: '18%' }, { top: '34%', left: '76%' }, { top: '61%', left: '12%' },
-            { top: '82%', left: '83%' }, { top: '15%', left: '52%' }, { top: '46%', left: '38%' },
-            { top: '72%', left: '63%' }, { top: '28%', left: '88%' }, { top: '58%', left: '22%' },
-            { top: '91%', left: '42%' }, { top: '8%', left: '9%' }, { top: '48%', left: '92%' },
-            { top: '78%', left: '28%' }, { top: '22%', left: '67%' }, { top: '42%', left: '14%' },
-            { top: '68%', left: '82%' }, { top: '88%', left: '16%' }, { top: '31%', left: '33%' },
-            { top: '55%', left: '55%' }, { top: '18%', left: '93%' }, { top: '85%', left: '58%' },
-            { top: '26%', left: '44%' }, { top: '52%', left: '78%' }, { top: '5%', left: '68%' },
-            { top: '96%', left: '81%' }, { top: '44%', left: '6%' }, { top: '76%', left: '94%' },
-            { top: '37%', left: '24%' }, { top: '65%', left: '42%' }, { top: '11%', left: '32%' },
-            { top: '84%', left: '72%' }, { top: '51%', left: '61%' }, { top: '21%', left: '14%' },
-            { top: '19%', left: '28%' }, { top: '64%', left: '89%' }, { top: '33%', left: '51%' },
-            { top: '87%', left: '92%' }, { top: '41%', left: '86%' }, { top: '13%', left: '79%' },
-            { top: '92%', left: '24%' }, { top: '59%', left: '34%' }, { top: '74%', left: '49%' },
-            { top: '29%', left: '11%' }, { top: '6%', left: '41%' }, { top: '97%', left: '66%' },
-          ].map((pos, i) => (
+        {/* GPU-Accelerated Random White Dots Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          {stars.map((pos, i) => (
             <div
               key={i}
-              className="absolute w-[8px] h-[8px] bg-white"
+              className="absolute pointer-events-none"
               style={{
                 top: pos.top,
                 left: pos.left,
-                clipPath: 'polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%)',
-                animation: `twinkle ${3 + (i % 7)}s ease-in-out infinite ${((i * 1.7) % 5)}s`
+                width: `${pos.size}px`,
+                height: `${pos.size}px`,
+                opacity: pos.opacity,
+                willChange: 'transform, opacity',
+                transform: 'translate3d(0, 0, 0)'
               }}
-            />
+            >
+              <div
+                className="w-full h-full bg-white"
+                style={{
+                  clipPath: 'polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%)',
+                  animation: `twinkle ${pos.duration}s ease-in-out infinite ${pos.delay}s`,
+                  willChange: 'transform, opacity',
+                  transform: 'translate3d(0, 0, 0)'
+                }}
+                onAnimationIteration={() => {
+                  // Relocate star dynamically only when it is completely faded out (end of twinkle)
+                  setStars(prevStars => {
+                    const newStars = [...prevStars];
+                    const topVal = Math.random() * 100;
+                    const leftVal = Math.random() * 100;
+                    const dx = (leftVal - 50) / 100;
+                    const dy = (topVal - 50) / 100;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    let opacity = 0;
+                    if (dist > 0.20) {
+                      opacity = Math.min((dist - 0.20) / 0.35, 1) * 0.8;
+                    }
+                    newStars[i] = {
+                      ...newStars[i],
+                      top: `${topVal.toFixed(2)}%`,
+                      left: `${leftVal.toFixed(2)}%`,
+                      opacity
+                    };
+                    return newStars;
+                  });
+                }}
+              />
+            </div>
           ))}
         </div>
 
         {/* Animated Floating Orbs */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          <div className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-3xl -top-20 -left-40 animate-[float1_12s_ease-in-out_infinite]" />
-          <div className="absolute w-[400px] h-[400px] rounded-full bg-indigo-300/15 blur-3xl top-[20%] right-[-10%] animate-[float2_15s_ease-in-out_infinite]" />
-          <div className="absolute w-[300px] h-[300px] rounded-full bg-pink-200/10 blur-3xl bottom-[10%] left-[30%] animate-[float3_18s_ease-in-out_infinite]" />
-          <div className="absolute w-[200px] h-[200px] rounded-full bg-white/15 blur-2xl top-[50%] left-[10%] animate-[float2_10s_ease-in-out_infinite_reverse]" />
-          <div className="absolute w-[350px] h-[350px] rounded-full bg-sky-200/10 blur-3xl top-[10%] left-[50%] animate-[float1_20s_ease-in-out_infinite_reverse]" />
+          <div
+            className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-3xl -top-20 -left-40 animate-[float1_12s_ease-in-out_infinite]"
+            style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
+          />
+          <div
+            className="absolute w-[400px] h-[400px] rounded-full bg-indigo-300/15 blur-3xl top-[20%] right-[-10%] animate-[float2_15s_ease-in-out_infinite]"
+            style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
+          />
+          <div
+            className="absolute w-[300px] h-[300px] rounded-full bg-pink-200/10 blur-3xl bottom-[10%] left-[30%] animate-[float3_18s_ease-in-out_infinite]"
+            style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
+          />
+          <div
+            className="absolute w-[200px] h-[200px] rounded-full bg-white/15 blur-2xl top-[50%] left-[10%] animate-[float2_10s_ease-in-out_infinite_reverse]"
+            style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
+          />
+          <div
+            className="absolute w-[350px] h-[350px] rounded-full bg-sky-200/10 blur-3xl top-[10%] left-[50%] animate-[float1_20s_ease-in-out_infinite_reverse]"
+            style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
+          />
         </div>
 
         {/* Animated CSS Keyframes */}
         <style jsx>{`
           @keyframes float1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(60px, -40px) scale(1.05); }
-            66% { transform: translate(-30px, 30px) scale(0.95); }
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+            33% { transform: translate3d(60px, -40px, 0) scale(1.05); }
+            66% { transform: translate3d(-30px, 30px, 0) scale(0.95); }
           }
           @keyframes float2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(-50px, 50px) scale(1.08); }
-            66% { transform: translate(40px, -20px) scale(0.92); }
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+            33% { transform: translate3d(-50px, 50px, 0) scale(1.08); }
+            66% { transform: translate3d(40px, -20px, 0) scale(0.92); }
           }
           @keyframes float3 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(70px, -60px) scale(1.1); }
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(70px, -60px, 0) scale(1.1); }
           }
           @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.3); }
+            0%, 100% { opacity: 0; transform: scale(0) translate3d(0, 0, 0); }
+            50% { opacity: 1; transform: scale(1.4) translate3d(0, 0, 0); }
           }
         `}</style>
 
@@ -177,7 +237,10 @@ export default function LandingPage() {
 
       {/* Main App Screenshot */}
       <div id="product" className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-40 mb-32">
-        <div className="rounded-2xl p-2 bg-white/40 backdrop-blur-xl border border-white/40 border-x-[#FF7E67]/20 border-b-[#FF7E67]/20">
+        <div
+          className="rounded-2xl p-2 bg-white/40 backdrop-blur-xl border border-white/40 border-x-[#FF7E67]/20 border-b-[#FF7E67]/20"
+          style={{ willChange: 'transform, backdrop-filter', transform: 'translate3d(0, 0, 0)' }}
+        >
           <div className="rounded-xl overflow-hidden relative bg-[#1E1E2E]">
             {/* The Screenshot */}
             <Image
