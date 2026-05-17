@@ -1,125 +1,112 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, LayoutTemplate, SplitSquareHorizontal, FileText, Blocks, ListTodo, ChevronRight, ChevronLeft, Plus, X } from 'lucide-react';
+import { Sparkles, LayoutTemplate, SplitSquareHorizontal, FileText, Blocks, ListTodo, ChevronRight, ChevronLeft } from 'lucide-react';
 
 export default function LandingPage() {
-  const [stars, setStars] = useState<{ top: string; left: string; size: number; delay: number; duration: number; opacity: number }[]>([]);
+  const starsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Generate 45 truly random star positions with pre-calculated radial opacity on mount
-    const generatedStars = Array.from({ length: 45 }).map(() => {
+    const container = starsContainerRef.current;
+    if (!container) return;
+
+    // Build stars imperatively — zero React state, zero re-renders ever.
+    // Previously: 45 items in useState + onAnimationIteration firing setStars
+    // on every cycle = constant full component re-renders. Now: create DOM nodes
+    // once, animate entirely in CSS, never touch React state again.
+    const fragment = document.createDocumentFragment();
+    const COUNT = 45;
+
+    for (let i = 0; i < COUNT; i++) {
       const topVal = Math.random() * 100;
       const leftVal = Math.random() * 100;
-
-      // Calculate distance from center (50%, 50%) to fade stars in the center
       const dx = (leftVal - 50) / 100;
       const dy = (topVal - 50) / 100;
-      const dist = Math.sqrt(dx * dx + dy * dy); // range: 0 to ~0.707
-
-      // Radial fade: transparent/faded near the center, brighter towards the edges
+      const dist = Math.sqrt(dx * dx + dy * dy);
       let opacity = 0;
-      if (dist > 0.20) {
-        opacity = Math.min((dist - 0.20) / 0.35, 1) * 0.8;
+      if (dist > 0.2) {
+        opacity = Math.min((dist - 0.2) / 0.35, 1) * 0.8;
       }
 
-      return {
-        top: `${topVal.toFixed(2)}%`,
-        left: `${leftVal.toFixed(2)}%`,
-        size: Math.random() * 5 + 6, // Increased size: 6px to 11px
-        delay: Math.random() * 5,
-        duration: 3 + Math.random() * 4,
-        opacity
-      };
-    });
-    setStars(generatedStars);
+      const size = Math.random() * 5 + 6;
+      const delay = Math.random() * 5;
+      const duration = 3 + Math.random() * 4;
+
+      const outer = document.createElement('div');
+      outer.style.cssText = `
+        position:absolute;
+        top:${topVal.toFixed(2)}%;
+        left:${leftVal.toFixed(2)}%;
+        width:${size}px;
+        height:${size}px;
+        opacity:${opacity};
+        pointer-events:none;
+        will-change:transform,opacity;
+        transform:translate3d(0,0,0);
+      `;
+
+      const inner = document.createElement('div');
+      inner.style.cssText = `
+        width:100%;
+        height:100%;
+        background:white;
+        clip-path:polygon(50% 0%,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0% 50%,40% 40%);
+        animation:twinkle ${duration}s ease-in-out infinite ${delay}s;
+        will-change:transform,opacity;
+        transform:translate3d(0,0,0);
+      `;
+
+      outer.appendChild(inner);
+      fragment.appendChild(outer);
+    }
+
+    container.appendChild(fragment);
+
+    return () => {
+      while (container.firstChild) container.removeChild(container.firstChild);
+    };
   }, []);
 
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900">
-      {/* Hero Section with Beautiful Gradient */}
+      {/* Hero Section */}
       <div className="relative pt-6 pb-32 lg:pt-10 lg:pb-48 overflow-hidden">
         {/* Sky / Sunset Gradient Background */}
         <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]" />
 
-        {/* GPU-Accelerated Random White Dots Overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          {stars.map((pos, i) => (
-            <div
-              key={i}
-              className="absolute pointer-events-none"
-              style={{
-                top: pos.top,
-                left: pos.left,
-                width: `${pos.size}px`,
-                height: `${pos.size}px`,
-                opacity: pos.opacity,
-                willChange: 'transform, opacity',
-                transform: 'translate3d(0, 0, 0)'
-              }}
-            >
-              <div
-                className="w-full h-full bg-white"
-                style={{
-                  clipPath: 'polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%)',
-                  animation: `twinkle ${pos.duration}s ease-in-out infinite ${pos.delay}s`,
-                  willChange: 'transform, opacity',
-                  transform: 'translate3d(0, 0, 0)'
-                }}
-                onAnimationIteration={() => {
-                  // Relocate star dynamically only when it is completely faded out (end of twinkle)
-                  setStars(prevStars => {
-                    const newStars = [...prevStars];
-                    const topVal = Math.random() * 100;
-                    const leftVal = Math.random() * 100;
-                    const dx = (leftVal - 50) / 100;
-                    const dy = (topVal - 50) / 100;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    let opacity = 0;
-                    if (dist > 0.20) {
-                      opacity = Math.min((dist - 0.20) / 0.35, 1) * 0.8;
-                    }
-                    newStars[i] = {
-                      ...newStars[i],
-                      top: `${topVal.toFixed(2)}%`,
-                      left: `${leftVal.toFixed(2)}%`,
-                      opacity
-                    };
-                    return newStars;
-                  });
-                }}
-              />
-            </div>
-          ))}
-        </div>
+        {/* Stars — rendered once via imperative DOM, animated purely in CSS */}
+        <div
+          ref={starsContainerRef}
+          className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+        />
 
-        {/* Animated Floating Orbs */}
+        {/* Animated Floating Orbs — downgraded blur-3xl → blur-2xl for perf */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <div
-            className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-3xl -top-20 -left-40 animate-[float1_12s_ease-in-out_infinite]"
+            className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-2xl -top-20 -left-40 animate-[float1_12s_ease-in-out_infinite]"
             style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
           />
           <div
-            className="absolute w-[400px] h-[400px] rounded-full bg-indigo-300/15 blur-3xl top-[20%] right-[-10%] animate-[float2_15s_ease-in-out_infinite]"
+            className="absolute w-[400px] h-[400px] rounded-full bg-indigo-300/15 blur-2xl top-[20%] right-[-10%] animate-[float2_15s_ease-in-out_infinite]"
             style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
           />
           <div
-            className="absolute w-[300px] h-[300px] rounded-full bg-pink-200/10 blur-3xl bottom-[10%] left-[30%] animate-[float3_18s_ease-in-out_infinite]"
+            className="absolute w-[300px] h-[300px] rounded-full bg-pink-200/10 blur-2xl bottom-[10%] left-[30%] animate-[float3_18s_ease-in-out_infinite]"
             style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
           />
           <div
-            className="absolute w-[200px] h-[200px] rounded-full bg-white/15 blur-2xl top-[50%] left-[10%] animate-[float2_10s_ease-in-out_infinite_reverse]"
+            className="absolute w-[200px] h-[200px] rounded-full bg-white/15 blur-xl top-[50%] left-[10%] animate-[float2_10s_ease-in-out_infinite_reverse]"
             style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
           />
           <div
-            className="absolute w-[350px] h-[350px] rounded-full bg-sky-200/10 blur-3xl top-[10%] left-[50%] animate-[float1_20s_ease-in-out_infinite_reverse]"
+            className="absolute w-[350px] h-[350px] rounded-full bg-sky-200/10 blur-2xl top-[10%] left-[50%] animate-[float1_20s_ease-in-out_infinite_reverse]"
             style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
           />
         </div>
 
-        {/* Animated CSS Keyframes */}
+        {/* CSS Keyframes */}
         <style jsx>{`
           @keyframes float1 {
             0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
@@ -141,9 +128,7 @@ export default function LandingPage() {
           }
         `}</style>
 
-
-
-        {/* Smooth Sunset Color Mixture */}
+        {/* Smooth Sunset Color Blend */}
         <div className="absolute bottom-0 left-0 right-0 h-[400px] bg-gradient-to-t from-white via-[#FF7E67]/40 15% via-[#FF7E67]/20 45% via-[#FF7E67]/5 75% to-transparent z-0 pointer-events-none" />
 
         {/* Navigation */}
@@ -207,7 +192,6 @@ export default function LandingPage() {
               href="/login"
               className="group relative inline-flex items-center gap-2.5 bg-[#111827] text-white font-semibold text-base px-9 py-4 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.25)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] hover:-translate-y-1 hover:scale-[1.03] transition-all duration-300 overflow-hidden"
             >
-              {/* Ripple fill left-to-right on hover */}
               <span className="absolute inset-0 bg-gradient-to-r from-[#1E3A8A] to-[#60A5FA] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out rounded-full" />
               <span className="relative z-10 flex items-center gap-2.5">
                 Start Building
@@ -221,7 +205,6 @@ export default function LandingPage() {
               rel="noopener noreferrer"
               className="group relative inline-flex items-center gap-2.5 bg-[#111827] text-white font-semibold text-base px-9 py-4 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.25)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] hover:-translate-y-1 hover:scale-[1.03] transition-all duration-300 overflow-hidden"
             >
-              {/* Ripple fill right-to-left on hover */}
               <span className="absolute inset-0 bg-gradient-to-l from-[#1E3A8A] to-[#60A5FA] origin-right scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out rounded-full" />
               <span className="relative z-10 flex items-center gap-2.5">
                 <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
@@ -235,14 +218,13 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Main App Screenshot */}
+      {/* Main App Screenshot — removed backdrop-blur-xl, kept static bg */}
       <div id="product" className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-40 mb-32">
         <div
-          className="rounded-2xl p-2 bg-white/40 backdrop-blur-xl border border-white/40 border-x-[#FF7E67]/20 border-b-[#FF7E67]/20"
-          style={{ willChange: 'transform, backdrop-filter', transform: 'translate3d(0, 0, 0)' }}
+          className="rounded-2xl p-2 bg-white/30 border border-white/40 border-x-[#FF7E67]/20 border-b-[#FF7E67]/20"
+          style={{ transform: 'translate3d(0, 0, 0)' }}
         >
           <div className="rounded-xl overflow-hidden relative bg-[#1E1E2E]">
-            {/* The Screenshot */}
             <Image
               src="/dash.png"
               alt="BuildFlow Dashboard"
@@ -347,10 +329,8 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Links */}
-          <div>
-            {/* Empty column or add other links here if needed */}
-          </div>
+          {/* Empty middle column */}
+          <div />
 
           {/* Connect */}
           <div>
