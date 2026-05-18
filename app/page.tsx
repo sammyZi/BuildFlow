@@ -30,7 +30,7 @@ export default function LandingPage() {
         opacity = Math.min((dist - 0.2) / 0.35, 1) * 0.8;
       }
 
-      const size = Math.random() * 5 + 6;
+      const size = Math.random() * 2.5 + 5.6;
       const delay = Math.random() * 5;
       const duration = 3 + Math.random() * 4;
 
@@ -124,7 +124,7 @@ export default function LandingPage() {
           }
           @keyframes twinkle {
             0%, 100% { opacity: 0; transform: scale(0) translate3d(0, 0, 0); }
-            50% { opacity: 1; transform: scale(1.4) translate3d(0, 0, 0); }
+            50% { opacity: 1; transform: scale(1.35) translate3d(0, 0, 0); }
           }
         `}</style>
 
