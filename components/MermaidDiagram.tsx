@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-import { Maximize2, X } from 'lucide-react';
+import { Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 interface MermaidDiagramProps {
   chart: string;
@@ -14,6 +14,45 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (isFullscreen) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+    }
+  }, [isFullscreen]);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!isFullscreen) return;
+    const zoomSensitivity = 0.001;
+    setZoom((prevZoom) => {
+      const newZoom = prevZoom - e.deltaY * zoomSensitivity;
+      return Math.min(Math.max(0.1, newZoom), 10);
+    });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isFullscreen) return;
+    setIsDragging(true);
+    dragStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isFullscreen || !isDragging) return;
+    setPan({
+      x: e.clientX - dragStart.current.x,
+      y: e.clientY - dragStart.current.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
   useEffect(() => {
     mermaid.initialize({
@@ -105,7 +144,30 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
 
       {isFullscreen && (
         <div className="fixed inset-0 z-[100] flex flex-col bg-black/80 backdrop-blur-sm p-4 sm:p-8 animate-fade-in">
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setZoom(z => Math.min(z + 0.2, 10))}
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center"
+                title="Zoom In"
+              >
+                <ZoomIn size={20} />
+              </button>
+              <button 
+                onClick={() => setZoom(z => Math.max(z - 0.2, 0.1))}
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center"
+                title="Zoom Out"
+              >
+                <ZoomOut size={20} />
+              </button>
+              <button 
+                onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center"
+                title="Reset Zoom"
+              >
+                <RotateCcw size={20} />
+              </button>
+            </div>
             <button 
               onClick={() => setIsFullscreen(false)} 
               className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center justify-center"
@@ -114,9 +176,21 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
               <X size={24} />
             </button>
           </div>
-          <div className="flex-1 overflow-auto bg-white rounded-xl shadow-2xl p-8">
+          <div 
+            className="flex-1 overflow-hidden bg-white rounded-xl shadow-2xl relative cursor-grab active:cursor-grabbing"
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
             <div 
-              className="min-w-full flex justify-center"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: 'center center',
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+              }}
               dangerouslySetInnerHTML={{ __html: svg }} 
             />
           </div>

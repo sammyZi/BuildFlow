@@ -23,19 +23,19 @@ function DetailedPipelineContent() {
 
   const [projectId, setProjectId] = useState<string | null>(initialProjectId);
   const [currentStep, setCurrentStep] = useState<Step>('questions');
-  
+
   // Questionnaire state
   const [questions, setQuestions] = useState<any[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string[]>>({});
 
   const [designQuestions, setDesignQuestions] = useState<any[]>([]);
-  const [designAnswers, setDesignAnswers] = useState<Record<string, string>>({});
-  
+  const [designAnswers, setDesignAnswers] = useState<Record<string, string[]>>({});
+
   // Document states
   const [requirements, setRequirements] = useState<string>('');
   const [design, setDesign] = useState<string>('');
   const [tasks, setTasks] = useState<string>('');
-  
+
   // UI states
   const [isGenerating, setIsGenerating] = useState(false);
   const [refinePrompt, setRefinePrompt] = useState('');
@@ -47,7 +47,7 @@ function DetailedPipelineContent() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      
+
       const res = await fetch('/api/projects/autosave', {
         method: 'POST',
         headers: {
@@ -124,7 +124,7 @@ function DetailedPipelineContent() {
       router.push('/dashboard');
       return;
     }
-    
+
     if (!initRef.current) {
       initRef.current = true;
       if (initialProjectId) {
@@ -153,10 +153,10 @@ function DetailedPipelineContent() {
 
     if (!response.ok) {
       let msg = 'API error';
-      try { const d = await response.json(); msg = d.error || msg; } catch {}
+      try { const d = await response.json(); msg = d.error || msg; } catch { }
       throw new Error(msg);
     }
-    
+
     return response.json();
   };
 
@@ -175,7 +175,7 @@ function DetailedPipelineContent() {
       if (action === 'generate_requirements' && Object.keys(answers).length > 0) {
         payload.answers = JSON.stringify(answers);
       }
-      
+
       if (action === 'generate_design' && Object.keys(designAnswers).length > 0) {
         payload.answers = JSON.stringify(designAnswers);
       }
@@ -183,7 +183,7 @@ function DetailedPipelineContent() {
       console.log('Calling API with action:', action);
       const data = await fetchApi(payload);
       console.log('API response:', data);
-      
+
       if (!data.success) throw new Error('Generation failed');
 
       if (action === 'generate_questions') {
@@ -248,13 +248,13 @@ function DetailedPipelineContent() {
     setError(null);
     try {
       const currentContent = currentStep === 'requirements' ? requirements : currentStep === 'design' ? design : tasks;
-      
+
       const data = await fetchApi({
         action: 'refine_content',
         currentContent,
         prompt: refinePrompt
       });
-      
+
       if (!data.success) throw new Error('Refinement failed');
 
       if (currentStep === 'requirements') {
@@ -269,7 +269,7 @@ function DetailedPipelineContent() {
         setTasks(data.content);
         performAutoSave({ tasks: data.content });
       }
-      
+
       setRefinePrompt('');
     } catch (err: any) {
       setError(err.message || 'Something went wrong during refinement.');
@@ -312,9 +312,9 @@ function DetailedPipelineContent() {
           design,
           tasks
         });
-        
+
         if (!data.success) throw new Error('Failed to save project');
-        
+
         await performAutoSave({ status: 'completed' });
         router.push(`/dashboard/results/${data.projectId}`);
       } catch (err: any) {
@@ -325,21 +325,34 @@ function DetailedPipelineContent() {
   };
 
   const handleAnswerSelect = (questionId: string, answer: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    setAnswers(prev => {
+      const current = prev[questionId] || [];
+      if (current.includes(answer)) {
+        return { ...prev, [questionId]: current.filter(a => a !== answer) };
+      } else {
+        return { ...prev, [questionId]: [...current, answer] };
+      }
+    });
   };
 
   const handleDesignAnswerSelect = (questionId: string, answer: string) => {
-    setDesignAnswers(prev => ({ ...prev, [questionId]: answer }));
+    setDesignAnswers(prev => {
+      const current = prev[questionId] || [];
+      if (current.includes(answer)) {
+        return { ...prev, [questionId]: current.filter(a => a !== answer) };
+      } else {
+        return { ...prev, [questionId]: [...current, answer] };
+      }
+    });
   };
 
   if (!idea) return null;
 
-  const allQuestionsAnswered = 
-    currentStep === 'questions' ? (questions.length > 0 && questions.every(q => answers[q.id])) :
-    currentStep === 'design-questions' ? (designQuestions.length > 0 && designQuestions.every(q => designAnswers[q.id])) : true;
+  // Questions can now be skipped or partially answered per user request
+  const allQuestionsAnswered = true;
 
   const currentContent = currentStep === 'requirements' ? requirements : currentStep === 'design' ? design : tasks;
-  
+
   const stepConfig = {
     questions: { title: 'Discovery Questions', icon: FileText, next: 'Generate Requirements' },
     requirements: { title: 'Review Requirements', icon: FileText, next: 'Commit & Continue to Tech Stack' },
@@ -362,14 +375,14 @@ function DetailedPipelineContent() {
           <h1 className="text-[20px] font-bold text-text-primary tracking-tight truncate">
             {idea}
           </h1>
-          
+
           {/* Progress stepper */}
           <div className="flex items-center gap-2 mt-2">
             {(['questions', 'requirements', 'design-questions', 'design', 'tasks'] as Step[]).map((step, idx) => {
               const order = ['questions', 'requirements', 'design-questions', 'design', 'tasks'];
               const isActive = currentStep === step;
               const isPast = order.indexOf(currentStep) > order.indexOf(step);
-              
+
               const stepLabels = {
                 questions: 'Questions',
                 requirements: 'Requirements',
@@ -380,13 +393,12 @@ function DetailedPipelineContent() {
 
               return (
                 <div key={step} className="flex items-center gap-2">
-                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-primary/10 border border-primary' 
-                      : isPast 
-                      ? 'bg-success/10 border border-success/30' 
-                      : 'bg-surface-alt border border-border/50 opacity-60'
-                  }`}>
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all duration-300 ${isActive
+                      ? 'bg-primary/10 border border-primary'
+                      : isPast
+                        ? 'bg-success/10 border border-success/30'
+                        : 'bg-surface-alt border border-border/50 opacity-60'
+                    }`}>
                     {isPast ? (
                       <CheckCircle2 size={12} className="text-success" />
                     ) : (
@@ -412,7 +424,7 @@ function DetailedPipelineContent() {
               {error}
             </div>
           )}
-          
+
           {isGenerating && ((currentStep === 'questions' || currentStep === 'design-questions') ? (currentStep === 'questions' ? questions.length === 0 : designQuestions.length === 0) : !currentContent) ? (
             <div className="flex flex-col items-center justify-center py-24 animate-fade-in">
               <div className="relative mb-6">
@@ -435,7 +447,7 @@ function DetailedPipelineContent() {
                     {currentStep === 'questions' ? 'Help us understand your project better' : 'Decide on the right technologies for your product'}
                   </p>
                 </div>
-                
+
                 <div className="space-y-6">
                   {(currentStep === 'questions' ? questions : designQuestions).map((q, idx) => (
                     <div key={q.id} className="space-y-3">
@@ -444,23 +456,21 @@ function DetailedPipelineContent() {
                       </p>
                       <div className="space-y-2">
                         {q.options.map((option: string) => {
-                          const isSelected = (currentStep === 'questions' ? answers[q.id] : designAnswers[q.id]) === option;
+                          const isSelected = (currentStep === 'questions' ? (answers[q.id] || []) : (designAnswers[q.id] || [])).includes(option);
                           return (
                             <button
                               key={option}
                               onClick={() => currentStep === 'questions' ? handleAnswerSelect(q.id, option) : handleDesignAnswerSelect(q.id, option)}
-                              className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
-                                isSelected
+                              className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${isSelected
                                   ? 'border-primary bg-primary/5 text-primary font-medium'
                                   : 'border-border hover:border-primary/40 hover:bg-surface/50 text-text-secondary'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-3">
-                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                  isSelected ? 'border-primary' : 'border-border'
-                                }`}>
+                                <div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center ${isSelected ? 'border-primary bg-primary' : 'border-border'
+                                  }`}>
                                   {isSelected && (
-                                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                    <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 text-white" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                   )}
                                 </div>
                                 <span className="text-[17px]">{option}</span>
@@ -506,7 +516,7 @@ function DetailedPipelineContent() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="py-2">
                   <div className="prose prose-base max-w-none
                     prose-headings:text-text-primary prose-headings:font-bold
@@ -574,7 +584,7 @@ function DetailedPipelineContent() {
                     Describe any modifications you'd like, or commit to proceed to the next step.
                   </p>
                 </div>
-                
+
                 <div>
                   <form onSubmit={handleRefine} className="space-y-4">
                     <div className="flex gap-3">

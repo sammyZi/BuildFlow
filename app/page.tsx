@@ -7,6 +7,7 @@ import { Sparkles, LayoutTemplate, SplitSquareHorizontal, FileText, Blocks, List
 
 export default function LandingPage() {
   const starsContainerRef = useRef<HTMLDivElement>(null);
+  const shootingStarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = starsContainerRef.current;
@@ -69,6 +70,95 @@ export default function LandingPage() {
     };
   }, []);
 
+  // Shooting stars — imperative DOM, random color, 2-3 per minute
+  useEffect(() => {
+    const container = shootingStarRef.current;
+    if (!container) return;
+
+    const COLORS = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFEAA7',
+      '#DDA0DD', '#F7DC6F', '#BB8FCE', '#85C1E9',
+      '#F8C471', '#82E0AA', '#AED6F1', '#D2B4DE',
+    ];
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let active = true;
+
+    const spawnStar = () => {
+      if (!active || !container) return;
+
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      const startLeft = Math.random() * 50 + 5;   // 5-55%
+      const startTop = Math.random() * 20 + 2;    // 2-22% — upper sky
+      const angle = 25 + Math.random() * 20;       // 25-45 deg
+      const duration = 1.6 + Math.random() * 0.8;  // 1.6-2.4s
+
+      // Wrapper — moves diagonally across the sky
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `
+        position:absolute;
+        top:${startTop}%;
+        left:${startLeft}%;
+        width:0;height:0;
+        transform:rotate(${angle}deg);
+        pointer-events:none;
+        z-index:2;
+      `;
+
+      // Trail — long gradient tail fading behind the head
+      const trail = document.createElement('div');
+      trail.style.cssText = `
+        position:absolute;
+        top:0;
+        right:4px;
+        width:120px;
+        height:2px;
+        border-radius:1px;
+        background:linear-gradient(90deg, transparent 0%, ${color}44 20%, ${color}aa 60%, ${color} 100%);
+        opacity:0;
+        animation:shootingTrail ${duration}s ease-out forwards;
+        will-change:transform,opacity;
+      `;
+
+      // Head — bright glowing dot at the front
+      const head = document.createElement('div');
+      head.style.cssText = `
+        position:absolute;
+        top:-2px;
+        left:0;
+        width:5px;
+        height:5px;
+        border-radius:50%;
+        background:${color};
+        box-shadow:0 0 8px 3px ${color}, 0 0 20px 6px ${color}88;
+        opacity:0;
+        animation:shootingHead ${duration}s ease-out forwards;
+        will-change:transform,opacity;
+      `;
+
+      wrapper.appendChild(trail);
+      wrapper.appendChild(head);
+      container.appendChild(wrapper);
+
+      // Self-cleanup
+      setTimeout(() => {
+        if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+      }, (duration + 0.3) * 1000);
+
+      // Next star in 3-7s → ~2 per 10 seconds
+      const nextDelay = 3000 + Math.random() * 4000;
+      timeoutId = setTimeout(spawnStar, nextDelay);
+    };
+
+    // First star within 1-2s
+    timeoutId = setTimeout(spawnStar, 1000 + Math.random() * 1000);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Hero Section */}
@@ -80,6 +170,12 @@ export default function LandingPage() {
         <div
           ref={starsContainerRef}
           className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+        />
+
+        {/* Shooting stars — random color streaks, 2-3 per minute */}
+        <div
+          ref={shootingStarRef}
+          className="absolute inset-0 z-[1] pointer-events-none overflow-hidden"
         />
 
         {/* Animated Floating Orbs — downgraded blur-3xl → blur-2xl for perf */}
@@ -125,6 +221,18 @@ export default function LandingPage() {
           @keyframes twinkle {
             0%, 100% { opacity: 0; transform: scale(0) translate3d(0, 0, 0); }
             50% { opacity: 1; transform: scale(1.35) translate3d(0, 0, 0); }
+          }
+          @keyframes shootingHead {
+            0% { opacity: 0; transform: translate3d(0,0,0); }
+            5% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translate3d(420px,0,0); }
+          }
+          @keyframes shootingTrail {
+            0% { opacity: 0; transform: translate3d(0,0,0); }
+            5% { opacity: 0.9; }
+            60% { opacity: 0.7; }
+            100% { opacity: 0; transform: translate3d(420px,0,0); }
           }
         `}</style>
 
