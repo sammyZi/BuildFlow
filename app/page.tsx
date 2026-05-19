@@ -76,21 +76,30 @@ export default function LandingPage() {
     if (!container) return;
 
     const COLORS = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFEAA7',
-      '#DDA0DD', '#F7DC6F', '#BB8FCE', '#85C1E9',
-      '#F8C471', '#82E0AA', '#AED6F1', '#D2B4DE',
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFEAA7', '#FF8A5C',
+      '#DDA0DD', '#F7DC6F', '#BB8FCE', '#85C1E9', '#E056A0',
+      '#82E0AA', '#AED6F1', '#76D7C4', '#F1C40F', '#3498DB',
+      '#1ABC9C', '#9B59B6', '#7BED9F', '#70A1FF', '#FFA502',
     ];
 
     let timeoutId: ReturnType<typeof setTimeout>;
     let active = true;
+    let lastColor = '';
 
     const spawnStar = () => {
       if (!active || !container) return;
 
-      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-      const startLeft = Math.random() * 50 + 5;   // 5-55%
-      const startTop = Math.random() * 20 + 2;    // 2-22% — upper sky
-      const angle = 25 + Math.random() * 20;       // 25-45 deg
+      // Pick a color different from the last one
+      let color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      while (color === lastColor) {
+        color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      }
+      lastColor = color;
+      const startLeft = Math.random() * 88 + 2;    // 2-90% — full width
+      const startTop = Math.random() * 28 + 2;     // 2-30% — upper sky area
+      // Angle varies by side: left side streaks right-down, right side streaks left-down
+      const baseAngle = 20 + Math.random() * 25;   // 20-45 deg
+      const angle = startLeft > 50 ? 180 - baseAngle : baseAngle; // mirror for right side
       const duration = 1.6 + Math.random() * 0.8;  // 1.6-2.4s
 
       // Wrapper — moves diagonally across the sky
@@ -105,22 +114,39 @@ export default function LandingPage() {
         z-index:2;
       `;
 
-      // Trail — long gradient tail fading behind the head
+      // Trail — tapered: wide near head, narrows to a sharp point
       const trail = document.createElement('div');
       trail.style.cssText = `
         position:absolute;
-        top:0;
-        right:4px;
-        width:120px;
-        height:2px;
-        border-radius:1px;
-        background:linear-gradient(90deg, transparent 0%, ${color}44 20%, ${color}aa 60%, ${color} 100%);
+        top:-2px;
+        right:3px;
+        width:160px;
+        height:5px;
+        clip-path:polygon(0% 50%, 100% 20%, 100% 80%);
+        background:linear-gradient(90deg, transparent 0%, ${color}22 12%, ${color}55 35%, ${color}bb 70%, ${color} 100%);
+        filter:blur(0.3px);
         opacity:0;
         animation:shootingTrail ${duration}s ease-out forwards;
         will-change:transform,opacity;
       `;
 
-      // Head — bright glowing dot at the front
+      // Glow — soft blurred halo behind the trail for atmosphere
+      const glow = document.createElement('div');
+      glow.style.cssText = `
+        position:absolute;
+        top:-4px;
+        right:0;
+        width:90px;
+        height:9px;
+        border-radius:50%;
+        background:linear-gradient(90deg, transparent 0%, ${color}15 30%, ${color}30 70%, ${color}44 100%);
+        filter:blur(3px);
+        opacity:0;
+        animation:shootingTrail ${duration}s ease-out forwards;
+        will-change:transform,opacity;
+      `;
+
+      // Head — slightly brighter glow, kept subtle
       const head = document.createElement('div');
       head.style.cssText = `
         position:absolute;
@@ -129,13 +155,14 @@ export default function LandingPage() {
         width:5px;
         height:5px;
         border-radius:50%;
-        background:${color};
-        box-shadow:0 0 8px 3px ${color}, 0 0 20px 6px ${color}88;
+        background:radial-gradient(circle, rgba(255,255,255,0.35) 20%, ${color} 70%);
+        box-shadow:0 0 6px 2px ${color}, 0 0 14px 4px ${color}77;
         opacity:0;
         animation:shootingHead ${duration}s ease-out forwards;
         will-change:transform,opacity;
       `;
 
+      wrapper.appendChild(glow);
       wrapper.appendChild(trail);
       wrapper.appendChild(head);
       container.appendChild(wrapper);
