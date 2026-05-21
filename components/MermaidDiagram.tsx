@@ -9,6 +9,50 @@ interface MermaidDiagramProps {
   className?: string;
 }
 
+function sanitizeMermaidChart(chart: string): string {
+  let cleaned = chart;
+
+  // 1. Replace edge labels syntax if they are not in quotes:
+  // e.g. -->|some text| or -->|some "text"| -> -->|"some text"|
+  cleaned = cleaned.replace(/-->\s*\|([^"|]+)\|/g, '-->|"$1"|');
+  
+  // Also handle old syntax like --(label)--> or -- label -->
+  cleaned = cleaned.replace(/--\((.*?)\)-->/g, '-->|"$1"|');
+  cleaned = cleaned.replace(/--\s*([^-\s>][^-]*?)\s*-->/g, '-->|"$1"|');
+
+  // 2. Fix node definitions: NodeId[Label] where Label might contain special characters.
+  // We match node ID, open brackets, label content, and close brackets.
+  // Brackets can be: [, (, ([, [[, [((, ((, {, {{, >, [/, [\
+  const shapes = [
+    { open: '\\[\\[', close: '\\]\\]' },
+    { open: '\\(\\[', close: '\\]\\)' },
+    { open: '\\[\\(', close: '\\)\\]' },
+    { open: '\\(\\(', close: '\\)\\)' },
+    { open: '\\{\\{', close: '\\}\\}' },
+    { open: '\\[\\/', close: '\\/\\]' },
+    { open: '\\[\\\\', close: '\\\\\\]' },
+    { open: '\\[\\\\', close: '\\/\\]' },
+    { open: '\\[\\/', close: '\\\\\\]' },
+    { open: '\\[', close: '\\]' }
+  ];
+
+  for (const shape of shapes) {
+    const regex = new RegExp(`\\b([a-zA-Z0-9_-]+)\\s*(${shape.open})\\s*(.*?)\\s*(${shape.close})`, 'g');
+    cleaned = cleaned.replace(regex, (match, nodeId, openBr, labelText, closeBr) => {
+      const trimmed = labelText.trim();
+      // If it's already wrapped in quotes, do nothing
+      if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+        return match;
+      }
+      // Replace internal double quotes with single quotes and wrap the whole label in double quotes
+      const safeLabel = trimmed.replace(/"/g, "'");
+      return `${nodeId}${openBr}"${safeLabel}"${closeBr}`;
+    });
+  }
+
+  return cleaned;
+}
+
 export default function MermaidDiagram({ chart, className = '' }: MermaidDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>('');
@@ -90,10 +134,9 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
           const { svg } = await mermaid.render(id, chartToRender);
           setSvg(svg);
         } catch (initialErr) {
-          // If it fails, try a basic sanitization for common issues
-          chartToRender = chart
-            .replace(/--\((.*?)\)-->/g, '-->|"$1"|')
-            .replace(/\|([^"|]+)\|/g, '\|"$1"\|');
+          console.warn('Initial Mermaid render failed, attempting sanitization...', initialErr);
+          // Try our advanced sanitization helper
+          chartToRender = sanitizeMermaidChart(chart);
           
           const fallbackId = `mermaid-fallback-${Math.random().toString(36).substr(2, 9)}`;
           const { svg } = await mermaid.render(fallbackId, chartToRender);

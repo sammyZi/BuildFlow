@@ -49,16 +49,12 @@ export class MiniMaxClient {
   async generateDesign(appIdea: string, requirements: string): Promise<string> {
     const systemPrompt = `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure. Ensure all Data Models are presented in standard Markdown tables with proper line breaks for each row. Do not output tables on a single line.
 
-IMPORTANT: When including Mermaid diagrams in your markdown:
-1. Wrap diagrams in code blocks with the 'mermaid' language identifier
-2. Always quote edge labels that contain special characters (parentheses, slashes, brackets, etc.)
-3. Example of correct syntax:
-   \`\`\`mermaid
-   graph TD
-       A[Start] -->|"Step 1 (with details)"| B[Process]
-       B -->|"Data (JSON/XML)"| C[End]
-   \`\`\`
-4. Use quotes around ANY label text that contains: ( ) / [ ] { } or other special characters`;
+IMPORTANT FOR MERMAID DIAGRAMS:
+1. Wrap diagrams in code blocks with the 'mermaid' language identifier.
+2. For ALL nodes, if the node label contains spaces, slashes \`/\`, parentheses \`()\`, brackets \`[]\`, braces \`{}\`, quotes, or other special characters, you MUST wrap the ENTIRE label text in double quotes to prevent syntax errors. Example: \`NodeId["My Node (Details)"]\` or \`A["Buyer/Seller Web Browser/PWA"]\`. Do NOT mix quotes inside brackets without wrapping the entire label, such as \`A[Buyer/Seller "Web Browser/PWA"]\`.
+3. For ALL edge labels containing spaces, parentheses, slashes, or special characters, you MUST wrap the edge label in double quotes using the \`-->|"Edge Label"|\` syntax.
+4. NEVER use \`--(Label)-->\` or \`-- Label -->\` for edge labels; use standard \`-->|Label|\` or \`-->|"Label"|\` syntax only.
+5. For subgraphs, the ID must be a single alphanumeric word without special characters or spaces, and the visual title must be in brackets, e.g., \`subgraph InfrastructureServices ["Infrastructure & Services"]\`.`;
 
     const userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}`;
 
