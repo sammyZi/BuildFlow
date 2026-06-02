@@ -53,10 +53,8 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
             // Render Mermaid diagrams
             if (language === 'mermaid') {
               return (
-                <div className="my-6 p-4 bg-white rounded-lg border border-border overflow-x-auto hide-scrollbar">
-                  <div className="min-w-fit flex justify-center">
-                    <MermaidDiagram chart={codeString} />
-                  </div>
+                <div className="my-6">
+                  <MermaidDiagram chart={codeString} />
                 </div>
               );
             }
