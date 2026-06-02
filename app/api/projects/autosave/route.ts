@@ -1,19 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/api/withAuth';
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await withAuth(req);
+    if (!auth.success) return auth.response;
+    const { user } = auth;
 
     const body = await req.json();
     const { projectId, idea, status, current_step, state_data } = body;
@@ -29,11 +22,11 @@ export async function POST(req: Request) {
           prompt: idea,
           status: status || 'draft',
           current_step: current_step || 'questions',
-          state_data: state_data || {}
+          state_data: state_data || {},
         })
         .select()
         .single();
-        
+
       if (insertError) throw insertError;
       targetProjectId = project.id;
     } else {
@@ -44,10 +37,10 @@ export async function POST(req: Request) {
           status: status || 'draft',
           current_step: current_step,
           state_data: state_data,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', targetProjectId)
-        .eq('user_id', user.id); // Ensure user owns it
+        .eq('user_id', user.id);
 
       if (updateError) throw updateError;
     }

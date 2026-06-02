@@ -1,17 +1,19 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
+import { FAST_PROMPTS, DETAILED_PROMPTS } from './prompts';
 
 /**
- * MiniMaxClient wraps the Google Gemini API for generating
- * requirements, design, and tasks artifacts.
- * 
+ * GeminiClient wraps the Google Gemini API for all artifact generation.
+ *
+ * Used by both the Fast pipeline (sequential generation) and the
+ * Detailed pipeline (step-by-step with user refinement).
+ *
  * Features:
- * - Sequential generation with context accumulation
  * - Retry logic with exponential backoff (3 attempts)
- * - Rate limit handling
- * - Specialized system prompts for each artifact type
+ * - Rate limit handling (429 detection)
+ * - Centralized prompts from prompts.ts
  */
-export class MiniMaxClient {
+export class GeminiClient {
   private google: ReturnType<typeof createGoogleGenerativeAI>;
   private maxRetries: number = 3;
   private baseDelay: number = 1000; // 1 second
@@ -23,64 +25,115 @@ export class MiniMaxClient {
       throw new Error('GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY is required. Please set it in your environment variables.');
     }
 
-    // Create Google AI provider with API key
-    this.google = createGoogleGenerativeAI({
-      apiKey: key,
-    });
+    this.google = createGoogleGenerativeAI({ apiKey: key });
   }
 
+  // ─── Fast pipeline methods ──────────────────────────────────────────────
+
   /**
-   * Generate requirements.md from an app idea
-   * @param appIdea - The user's app concept
-   * @returns Markdown-formatted requirements document
+   * Generate requirements.md from an app idea (fast pipeline).
    */
   async generateRequirements(appIdea: string): Promise<string> {
-    const systemPrompt = "You are an expert Product Manager. Given the following app idea, generate a requirements.md file detailing the target audience, core user stories, and strict feature scope. IMPORTANT: Do not wrap your response in a markdown code block (like ```markdown). Respond with raw markdown text only.";
-
-    return this.generateWithRetry(systemPrompt, appIdea);
+    return this.generateWithRetry(FAST_PROMPTS.requirements, appIdea);
   }
 
   /**
-   * Generate design.md from app idea and requirements
-   * @param appIdea - The user's app concept
-   * @param requirements - Previously generated requirements.md content
-   * @returns Markdown-formatted design document
+   * Generate design.md from app idea + requirements (fast pipeline).
    */
   async generateDesign(appIdea: string, requirements: string): Promise<string> {
-    const systemPrompt = `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure. Ensure all Data Models are presented in standard Markdown tables with proper line breaks for each row. Do not output tables on a single line.
-
-IMPORTANT FOR MERMAID DIAGRAMS:
-1. Wrap diagrams in code blocks with the 'mermaid' language identifier.
-2. For ALL nodes, if the node label contains spaces, slashes \`/\`, parentheses \`()\`, brackets \`[]\`, braces \`{}\`, quotes, or other special characters, you MUST wrap the ENTIRE label text in double quotes to prevent syntax errors. Example: \`NodeId["My Node (Details)"]\` or \`A["Buyer/Seller Web Browser/PWA"]\`. Do NOT mix quotes inside brackets without wrapping the entire label, such as \`A[Buyer/Seller "Web Browser/PWA"]\`.
-3. For ALL edge labels containing spaces, parentheses, slashes, or special characters, you MUST wrap the edge label in double quotes using the \`-->|"Edge Label"|\` syntax.
-4. NEVER use \`--(Label)-->\` or \`-- Label -->\` for edge labels; use standard \`-->|Label|\` or \`-->|"Label"|\` syntax only.
-5. For subgraphs, the ID must be a single alphanumeric word without special characters or spaces, and the visual title must be in brackets, e.g., \`subgraph InfrastructureServices ["Infrastructure & Services"]\`.`;
-
     const userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}`;
-
-    return this.generateWithRetry(systemPrompt, userMessage);
+    return this.generateWithRetry(FAST_PROMPTS.design, userMessage);
   }
 
   /**
-   * Generate tasks.md from app idea, requirements, and design
-   * @param appIdea - The user's app concept
-   * @param requirements - Previously generated requirements.md content
-   * @param design - Previously generated design.md content
-   * @returns Markdown-formatted tasks document
+   * Generate tasks.md from app idea + requirements + design (fast pipeline).
    */
   async generateTasks(appIdea: string, requirements: string, design: string): Promise<string> {
-    const systemPrompt = "You are a Lead Developer. Break down the attached requirements and design into a tasks.md file. Format this as a highly granular checklist where each item is small enough to be independently executed by an AI IDE without additional context. IMPORTANT: Do not wrap your response in a markdown code block (like ```markdown). Respond with raw markdown text only.";
-
     const userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}\n\nDesign:\n${design}`;
+    return this.generateWithRetry(FAST_PROMPTS.tasks, userMessage);
+  }
 
-    return this.generateWithRetry(systemPrompt, userMessage);
+  // ─── Detailed pipeline methods ──────────────────────────────────────────
+
+  /**
+   * Generate discovery questions for an app idea.
+   * Returns raw JSON string (caller must parse).
+   */
+  async generateQuestions(idea: string): Promise<string> {
+    const prompt = `App Idea: "${idea}"
+
+Based on this specific app idea, generate 5 short and crisp discovery questions covering:
+1. Target audience
+2. Key features
+3. Platform
+4. Design style
+5. Technical constraints
+
+Each question must have exactly 4 short answer options. Keep the wording very concise.
+
+Return ONLY a JSON array in this format:
+[{"id":"q1","question":"Short question here?","options":["Short Opt 1","Short Opt 2","Short Opt 3","Short Opt 4"]}]
+
+Make the questions and options SPECIFIC to: ${idea}`;
+
+    return this.generateWithRetry(DETAILED_PROMPTS.questions, prompt);
   }
 
   /**
-   * Internal method to generate text with retry logic and exponential backoff
-   * @param systemPrompt - The system prompt for the generation
-   * @param userMessage - The user message/prompt
-   * @returns Generated markdown content
+   * Generate requirements document from idea + user answers (detailed pipeline).
+   */
+  async generateDetailedRequirements(idea: string, answers?: string): Promise<string> {
+    const prompt = `App Idea: ${idea}\n\n${answers ? `User's Answers to Discovery Questions:\n${answers}\n\n` : ''}Generate a detailed requirements document.`;
+    return this.generateWithRetry(DETAILED_PROMPTS.requirements, prompt);
+  }
+
+  /**
+   * Generate tech stack decision questions (detailed pipeline).
+   */
+  async generateDesignQuestions(idea: string, requirements: string): Promise<string> {
+    const prompt = `App Idea: "${idea}"
+Requirements:
+${requirements}
+
+Generate 3 short technical discovery questions covering:
+1. Frontend Tech
+2. Backend Programming Language (Do NOT ask about deployment models like Serverless/K8s/PaaS, ONLY ask about programming languages/frameworks like Node.js/Python/Go)
+3. Database
+
+Return ONLY a JSON array:
+[{"id":"tech1","question":"Short tech question?","options":["Short Opt 1","Short Opt 2","Short Opt 3","Short Opt 4"]}]`;
+
+    return this.generateWithRetry(DETAILED_PROMPTS.designQuestions, prompt);
+  }
+
+  /**
+   * Generate system design document (detailed pipeline).
+   */
+  async generateDetailedDesign(idea: string, requirements: string, answers?: string): Promise<string> {
+    const prompt = `App Idea: ${idea}\n\nApproved Requirements:\n${requirements}\n\n${answers ? `Selected Tech Stack Options:\n${answers}\n\n` : ''}`;
+    return this.generateWithRetry(DETAILED_PROMPTS.design, prompt);
+  }
+
+  /**
+   * Generate task breakdown (detailed pipeline).
+   */
+  async generateDetailedTasks(idea: string, requirements: string, design: string): Promise<string> {
+    const prompt = `App Idea: ${idea}\n\nRequirements:\n${requirements}\n\nSystem Design:\n${design}`;
+    return this.generateWithRetry(DETAILED_PROMPTS.tasks, prompt);
+  }
+
+  /**
+   * Refine an existing document with user feedback.
+   */
+  async refineContent(currentContent: string, userPrompt: string): Promise<string> {
+    const prompt = `Current Document:\n${currentContent}\n\nUser's requested changes:\n${userPrompt}\n\nPlease output the completely updated document.`;
+    return this.generateWithRetry(DETAILED_PROMPTS.refine, prompt);
+  }
+
+  // ─── Core generation with retry ─────────────────────────────────────────
+
+  /**
+   * Generate text with retry logic and exponential backoff.
    */
   private async generateWithRetry(systemPrompt: string, userMessage: string): Promise<string> {
     let lastError: Error | null = null;
@@ -97,18 +150,15 @@ IMPORTANT FOR MERMAID DIAGRAMS:
       } catch (error: any) {
         lastError = error;
 
-        // Check if it's a rate limit error
         const isRateLimitError =
           error?.message?.includes('rate limit') ||
           error?.message?.includes('429') ||
           error?.status === 429;
 
-        // If this is the last attempt, don't wait
         if (attempt === this.maxRetries - 1) {
           break;
         }
 
-        // Calculate exponential backoff delay: 1s, 2s, 4s
         const delay = this.baseDelay * Math.pow(2, attempt);
 
         console.warn(
@@ -117,12 +167,10 @@ IMPORTANT FOR MERMAID DIAGRAMS:
           `Retrying in ${delay}ms...`
         );
 
-        // Wait before retrying
         await this.sleep(delay);
       }
     }
 
-    // All retries failed
     throw new Error(
       `Gemini API call failed after ${this.maxRetries} attempts. ` +
       `Last error: ${lastError?.message || 'Unknown error'}`
@@ -130,8 +178,7 @@ IMPORTANT FOR MERMAID DIAGRAMS:
   }
 
   /**
-   * Sleep utility for exponential backoff
-   * @param ms - Milliseconds to sleep
+   * Sleep utility for exponential backoff.
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));

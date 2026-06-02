@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Project } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
-import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2 } from 'lucide-react';
+import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2, Edit3 } from 'lucide-react';
 
 import { Logo } from '@/components/ui/Logo';
 
@@ -151,19 +152,32 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
                   disabled={isDeleting}
                 >
                   <div className="flex items-start gap-2 pr-6">
-                    <FileText
-                      size={13}
-                      className={`mt-0.5 shrink-0 ${
-                        isActive ? 'text-primary' : 'text-sidebar-text-muted group-hover:text-sidebar-text'
-                      }`}
-                      strokeWidth={1.5}
-                    />
+                    {project.status === 'draft' ? (
+                      <Edit3
+                        size={13}
+                        className={`mt-0.5 shrink-0 ${
+                          isActive ? 'text-primary' : 'text-sidebar-text-muted group-hover:text-sidebar-text'
+                        }`}
+                        strokeWidth={1.5}
+                      />
+                    ) : (
+                      <FileText
+                        size={13}
+                        className={`mt-0.5 shrink-0 ${
+                          isActive ? 'text-primary' : 'text-sidebar-text-muted group-hover:text-sidebar-text'
+                        }`}
+                        strokeWidth={1.5}
+                      />
+                    )}
                     <div className="min-w-0">
                       <div className="text-[14px] leading-snug line-clamp-2 break-words">
                         {getPreview(project.prompt)}
                       </div>
-                      <div className={`text-[10px] mt-0.5 ${isActive ? 'text-sidebar-text' : 'text-sidebar-text-muted'}`}>
-                        {formatDate(project.created_at)}
+                      <div className={`flex items-center gap-1.5 text-[10px] mt-0.5 ${isActive ? 'text-sidebar-text' : 'text-sidebar-text-muted'}`}>
+                        {project.status === 'draft' && (
+                          <span className="px-1 py-0.5 rounded-[4px] bg-primary/20 text-primary uppercase font-bold tracking-wider text-[8px] leading-none">Draft</span>
+                        )}
+                        <span>{formatDate(project.created_at)}</span>
                       </div>
                     </div>
                   </div>
@@ -205,7 +219,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
       )}
 
       {/* Delete Confirmation Modal */}
-      {projectToDelete && (
+      {projectToDelete && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-bg border border-border w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 mx-4 animate-fade-in-up">
             <h3 className="text-lg font-bold text-text-primary mb-2">Delete Project</h3>
@@ -236,7 +250,8 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,17 +1,17 @@
 /**
- * Manual test script for MiniMaxClient
- * Run with: npx tsx lib/minimax/test-client.ts
+ * Manual test script for GeminiClient
+ * Run with: npx tsx lib/gemini/test-client.ts
  */
 
 import 'dotenv/config';
-import { MiniMaxClient } from './client';
+import { GeminiClient } from './client';
 
-async function testMiniMaxClient() {
-  console.log('🧪 Testing MiniMaxClient...\n');
+async function testGeminiClient() {
+  console.log('🧪 Testing GeminiClient...\n');
 
   try {
     // Initialize client
-    const client = new MiniMaxClient();
+    const client = new GeminiClient();
     console.log('✅ Client initialized successfully\n');
 
     // Test 1: Generate Requirements
@@ -44,4 +44,4 @@ async function testMiniMaxClient() {
 }
 
 // Run tests
-testMiniMaxClient();
+testGeminiClient();

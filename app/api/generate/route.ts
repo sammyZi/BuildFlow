@@ -1,22 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
-import { SupabaseService } from '@/lib/supabase/service';
+import { withAuth } from '@/lib/api/withAuth';
 import { GenerationOrchestrator } from '@/lib/gemini';
 import type { GenerateRequest, GenerateResponse } from '@/types';
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ success: false, error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized: Invalid token' }, { status: 401 });
-    }
+    const auth = await withAuth(req);
+    if (!auth.success) return auth.response;
+    const { user } = auth;
 
     const { appIdea, userId } = await req.json() as GenerateRequest;
 
@@ -28,12 +20,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Forbidden: userId does not match authenticated user' }, { status: 403 });
     }
 
-    // Call supabaseAdmin directly to bypass RLS since we've already validated the user and token
+    // Create project in database
     const { data: project, error: insertError } = await supabaseAdmin
       .from('projects')
       .insert({
         user_id: userId,
         prompt: appIdea,
+        status: 'completed',
       })
       .select()
       .single();

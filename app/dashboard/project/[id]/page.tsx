@@ -1,40 +1,75 @@
 'use client';
 
-import { Suspense, useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { SupabaseService } from '@/lib/supabase/service';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
+import ResultsViewer from '@/components/ResultsViewer';
+import { Artifact, ArtifactType, Project } from '@/types';
 import {
   ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3
 } from 'lucide-react';
 import { ShiningText } from '@/components/ui/shining-text';
-import MermaidDiagram from '@/components/MermaidDiagram';
-
-import { motion, AnimatePresence } from 'framer-motion';
 
 type Step = 'questions' | 'requirements' | 'design-questions' | 'design' | 'tasks';
 
-function DetailedPipelineContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const idea = searchParams.get('idea') || '';
-  const initialProjectId = searchParams.get('projectId');
+// ─── API Endpoint Map ────────────────────────────────────────────────────────
 
-  const [projectId, setProjectId] = useState<string | null>(initialProjectId);
-  const [currentStep, setCurrentStep] = useState<Step>('questions');
+const API_ENDPOINTS: Record<string, string> = {
+  generate_questions: '/api/detailed/questions',
+  generate_requirements: '/api/detailed/requirements',
+  generate_design_questions: '/api/detailed/design-questions',
+  generate_design: '/api/detailed/design',
+  generate_tasks: '/api/detailed/tasks',
+  refine_content: '/api/detailed/refine',
+  save_project: '/api/detailed/save',
+};
+
+// ─── Shared API fetcher ──────────────────────────────────────────────────────
+
+async function fetchDetailedApi(endpoint: string, payload: Record<string, any>) {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session) throw new Error('Authentication error. Please sign in again.');
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    let msg = 'API error';
+    try { const d = await response.json(); msg = d.error || msg; } catch { }
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
+// ─── Detailed Pipeline Draft View ────────────────────────────────────────────
+
+function DetailedPipelineDraftView({ project, projectId, onComplete }: { project: any, projectId: string, onComplete: () => void }) {
+  const router = useRouter();
+  const idea = project.prompt;
+
+  const [currentStep, setCurrentStep] = useState<Step>((project.current_step as Step) || 'questions');
 
   // Questionnaire state
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string[]>>({});
+  const stateData = project.state_data || {};
+  const [questions, setQuestions] = useState<any[]>(stateData.questions || []);
+  const [answers, setAnswers] = useState<Record<string, string[]>>(stateData.answers || {});
 
-  const [designQuestions, setDesignQuestions] = useState<any[]>([]);
-  const [designAnswers, setDesignAnswers] = useState<Record<string, string[]>>({});
+  const [designQuestions, setDesignQuestions] = useState<any[]>(stateData.designQuestions || []);
+  const [designAnswers, setDesignAnswers] = useState<Record<string, string[]>>(stateData.designAnswers || {});
 
   // Document states
-  const [requirements, setRequirements] = useState<string>('');
-  const [design, setDesign] = useState<string>('');
-  const [tasks, setTasks] = useState<string>('');
+  const [requirements, setRequirements] = useState<string>(stateData.requirements || '');
+  const [design, setDesign] = useState<string>(stateData.design || '');
+  const [tasks, setTasks] = useState<string>(stateData.tasks || '');
 
   // UI states
   const [isGenerating, setIsGenerating] = useState(false);
@@ -43,21 +78,23 @@ function DetailedPipelineContent() {
 
   const initRef = useRef(false);
 
+  // ─── Autosave ────────────────────────────────────────────────────────────
+
   const performAutoSave = async (stateOverride: any = {}) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const res = await fetch('/api/projects/autosave', {
+      await fetch('/api/projects/autosave', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          projectId: stateOverride.projectId ?? projectId,
+          projectId,
           idea,
-          status: 'draft',
+          status: stateOverride.status || 'draft',
           current_step: stateOverride.currentStep ?? currentStep,
           state_data: {
             questions: stateOverride.questions ?? questions,
@@ -66,156 +103,85 @@ function DetailedPipelineContent() {
             designAnswers: stateOverride.designAnswers ?? designAnswers,
             requirements: stateOverride.requirements ?? requirements,
             design: stateOverride.design ?? design,
-            tasks: stateOverride.tasks ?? tasks
-          }
-        })
+            tasks: stateOverride.tasks ?? tasks,
+          },
+        }),
       });
-      const data = await res.json();
-      if (data.success && data.projectId && !projectId) {
-        setProjectId(data.projectId);
-        // Replace URL to include projectId without reloading
-        const url = new URL(window.location.href);
-        url.searchParams.set('projectId', data.projectId);
-        window.history.replaceState({}, '', url.toString());
-        return data.projectId;
-      }
     } catch (err) {
       console.error('AutoSave failed', err);
     }
   };
 
+  // Debounced autosave when user selects answers
   useEffect(() => {
-    // If user typed some answer, let's debounce autosave it
     const timer = setTimeout(() => {
-      if (projectId && (Object.keys(answers).length > 0 || Object.keys(designAnswers).length > 0)) {
+      if (Object.keys(answers).length > 0 || Object.keys(designAnswers).length > 0) {
         performAutoSave();
       }
     }, 1500);
     return () => clearTimeout(timer);
   }, [answers, designAnswers]);
 
-  // Load existing project or Auto-start generating questions on load
+  // ─── Initialization ──────────────────────────────────────────────────────
+
   useEffect(() => {
-    const loadProject = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        const res = await fetch(`/api/projects/${initialProjectId}`, {
-          headers: { 'Authorization': `Bearer ${session.access_token}` }
-        });
-        const data = await res.json();
-        if (data.success && data.project) {
-          const state = data.project.state_data || {};
-          if (state.questions) setQuestions(state.questions);
-          if (state.answers) setAnswers(state.answers);
-          if (state.designQuestions) setDesignQuestions(state.designQuestions);
-          if (state.designAnswers) setDesignAnswers(state.designAnswers);
-          if (state.requirements) setRequirements(state.requirements);
-          if (state.design) setDesign(state.design);
-          if (state.tasks) setTasks(state.tasks);
-          if (data.project.current_step) setCurrentStep(data.project.current_step as Step);
-        }
-      } catch (err) {
-        console.error('Failed to load project state', err);
-      }
-    };
-
-    if (!idea && !initialProjectId) {
-      router.push('/dashboard');
-      return;
-    }
-
-    if (!initRef.current) {
+    if (!initRef.current && (!stateData.questions || stateData.questions.length === 0) && currentStep === 'questions') {
       initRef.current = true;
-      if (initialProjectId) {
-        loadProject();
-      } else {
-        generateStage('generate_questions').then(qRes => {
-          // Trigger first autosave creation once questions are created
-          performAutoSave({ questions: qRes ?? [] });
-        });
-      }
+      generateStage('generate_questions').then(qRes => {
+        performAutoSave({ questions: qRes ?? [] });
+      });
     }
-  }, [idea, router, initialProjectId]);
+  }, []);
 
-  const fetchApi = async (payload: any) => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) throw new Error('Authentication error. Please sign in again.');
-
-    const response = await fetch('/api/detailed', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      let msg = 'API error';
-      try { const d = await response.json(); msg = d.error || msg; } catch { }
-      throw new Error(msg);
-    }
-
-    return response.json();
-  };
+  // ─── Generation ──────────────────────────────────────────────────────────
 
   const generateStage = async (action: string) => {
     setIsGenerating(true);
     setError(null);
     let parsedResult = null;
+
     try {
-      const payload: any = {
-        action,
-        idea,
-        requirements,
-        design
-      };
+      const endpoint = API_ENDPOINTS[action];
+      if (!endpoint) throw new Error(`Unknown action: ${action}`);
+
+      const payload: Record<string, any> = { idea };
 
       if (action === 'generate_requirements' && Object.keys(answers).length > 0) {
         payload.answers = JSON.stringify(answers);
       }
-
-      if (action === 'generate_design' && Object.keys(designAnswers).length > 0) {
-        payload.answers = JSON.stringify(designAnswers);
+      if (action === 'generate_design_questions') {
+        payload.requirements = requirements;
+      }
+      if (action === 'generate_design') {
+        payload.requirements = requirements;
+        if (Object.keys(designAnswers).length > 0) {
+          payload.answers = JSON.stringify(designAnswers);
+        }
+      }
+      if (action === 'generate_tasks') {
+        payload.requirements = requirements;
+        payload.design = design;
       }
 
-      console.log('Calling API with action:', action);
-      const data = await fetchApi(payload);
-      console.log('API response:', data);
-
+      const data = await fetchDetailedApi(endpoint, payload);
       if (!data.success) throw new Error('Generation failed');
 
       if (action === 'generate_questions') {
-        try {
-          console.log('Raw questions content:', data.content);
-          const parsed = JSON.parse(data.content);
-          console.log('Parsed questions:', parsed);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setQuestions(parsed);
-            parsedResult = parsed;
-            console.log('Questions set successfully:', parsed);
-          } else {
-            throw new Error('Invalid questions format - not an array or empty');
-          }
-        } catch (parseError) {
-          console.error('Failed to parse questions:', parseError);
-          console.error('Content was:', data.content);
-          setError('Failed to generate questions. Please try again.');
+        const parsed = JSON.parse(data.content);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setQuestions(parsed);
+          parsedResult = parsed;
+        } else {
+          throw new Error('Invalid questions format');
         }
       }
       if (action === 'generate_design_questions') {
-        try {
-          const parsed = JSON.parse(data.content);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setDesignQuestions(parsed);
-            parsedResult = parsed;
-          } else {
-            throw new Error('Invalid design questions format');
-          }
-        } catch (parseError) {
-          console.error('Failed to parse design questions:', parseError);
-          setError('Failed to generate design questions. Please try again.');
+        const parsed = JSON.parse(data.content);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDesignQuestions(parsed);
+          parsedResult = parsed;
+        } else {
+          throw new Error('Invalid design questions format');
         }
       }
       if (action === 'generate_requirements') {
@@ -230,7 +196,6 @@ function DetailedPipelineContent() {
         setTasks(data.content);
         parsedResult = data.content;
       }
-
     } catch (err: any) {
       console.error('Error in generateStage:', err);
       setError(err.message || 'Something went wrong.');
@@ -239,6 +204,8 @@ function DetailedPipelineContent() {
     }
     return parsedResult;
   };
+
+  // ─── Refine via chat ─────────────────────────────────────────────────────
 
   const handleRefine = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,10 +216,9 @@ function DetailedPipelineContent() {
     try {
       const currentContent = currentStep === 'requirements' ? requirements : currentStep === 'design' ? design : tasks;
 
-      const data = await fetchApi({
-        action: 'refine_content',
+      const data = await fetchDetailedApi(API_ENDPOINTS.refine_content, {
         currentContent,
-        prompt: refinePrompt
+        prompt: refinePrompt,
       });
 
       if (!data.success) throw new Error('Refinement failed');
@@ -278,24 +244,22 @@ function DetailedPipelineContent() {
     }
   };
 
+  // ─── Step progression ────────────────────────────────────────────────────
+
   const advanceStep = async () => {
     if (currentStep === 'questions') {
-      // User answered questions, now generate requirements
       setCurrentStep('requirements');
       const req = await generateStage('generate_requirements');
       performAutoSave({ currentStep: 'requirements', requirements: req });
     } else if (currentStep === 'requirements') {
-      // User commits to requirements, now generate design questions
       setCurrentStep('design-questions');
       const dq = await generateStage('generate_design_questions');
       performAutoSave({ currentStep: 'design-questions', designQuestions: dq });
     } else if (currentStep === 'design-questions') {
-      // User answered design questions, now generate design
       setCurrentStep('design');
       const des = await generateStage('generate_design');
       performAutoSave({ currentStep: 'design', design: des });
     } else if (currentStep === 'design') {
-      // User commits to design, now generate tasks
       setCurrentStep('tasks');
       const tsk = await generateStage('generate_tasks');
       performAutoSave({ currentStep: 'tasks', tasks: tsk });
@@ -304,25 +268,26 @@ function DetailedPipelineContent() {
       setIsGenerating(true);
       setError(null);
       try {
-        const data = await fetchApi({
-          action: 'save_project',
+        const data = await fetchDetailedApi(API_ENDPOINTS.save_project, {
+          projectId,
           idea,
-          projectId, // Pass projectId to map to existing project
           requirements,
           design,
-          tasks
+          tasks,
         });
 
         if (!data.success) throw new Error('Failed to save project');
 
         await performAutoSave({ status: 'completed' });
-        router.push(`/dashboard/results/${data.projectId}`);
+        onComplete();
       } catch (err: any) {
         setError(err.message || 'Failed to save project.');
         setIsGenerating(false);
       }
     }
   };
+
+  // ─── Answer selection handlers ───────────────────────────────────────────
 
   const handleAnswerSelect = (questionId: string, answer: string) => {
     setAnswers(prev => {
@@ -346,11 +311,7 @@ function DetailedPipelineContent() {
     });
   };
 
-  if (!idea) return null;
-
-  // Questions can now be skipped or partially answered per user request
-  const allQuestionsAnswered = true;
-
+  const allQuestionsAnswered = true; // Questions can be skipped
   const currentContent = currentStep === 'requirements' ? requirements : currentStep === 'design' ? design : tasks;
 
   const stepConfig = {
@@ -358,7 +319,7 @@ function DetailedPipelineContent() {
     requirements: { title: 'Review Requirements', icon: FileText, next: 'Commit & Continue to Tech Stack' },
     "design-questions": { title: 'Tech Stack Decisions', icon: GitBranch, next: 'Generate Design' },
     design: { title: 'Review System Design', icon: GitBranch, next: 'Commit & Continue to Tasks' },
-    tasks: { title: 'Review Tasks', icon: ListChecks, next: 'Finish & Save Project' }
+    tasks: { title: 'Review Tasks', icon: ListChecks, next: 'Finish & Save Project' },
   };
 
   const activeConfig = stepConfig[currentStep];
@@ -368,7 +329,7 @@ function DetailedPipelineContent() {
     <div className="h-full flex flex-col bg-gradient-to-br from-bg via-bg to-surface">
       {/* Header */}
       <div className="flex-shrink-0 px-6 py-3 border-b border-border/50 bg-surface/80 backdrop-blur-sm">
-        <div className="max-w-[900px] mx-auto">
+        <div className="max-w-5xl mx-auto">
           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.12em] mb-1">
             Detailed Pipeline
           </p>
@@ -388,7 +349,7 @@ function DetailedPipelineContent() {
                 requirements: 'Requirements',
                 "design-questions": 'Tech Stack',
                 design: 'Design',
-                tasks: 'Tasks'
+                tasks: 'Tasks',
               };
 
               return (
@@ -418,7 +379,7 @@ function DetailedPipelineContent() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg">
-        <div className="max-w-[900px] mx-auto">
+        <div className="max-w-5xl mx-auto">
           {error && (
             <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[17px] font-medium">
               {error}
@@ -431,7 +392,7 @@ function DetailedPipelineContent() {
                 <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
               </div>
               <p className="text-[20px] font-bold text-text-primary mb-2">
-                {currentStep === 'questions' || currentStep === 'design-questions' ? `Generating ${activeConfig.title}` : `Generating ${activeConfig.title}`}
+                Generating {activeConfig.title}
               </p>
               <ShiningText text="BuildFlow is thinking..." />
             </div>
@@ -518,62 +479,14 @@ function DetailedPipelineContent() {
                 </div>
 
                 <div className="py-2">
-                  <div className="prose prose-base max-w-none
-                    prose-headings:text-text-primary prose-headings:font-bold
-                    prose-h1:text-[28px] prose-h1:border-b prose-h1:border-border prose-h1:pb-3 prose-h1:mb-4
-                    prose-h2:text-[22px] prose-h2:mt-6 prose-h2:mb-3
-                    prose-h3:text-[18px] prose-h3:mt-4 prose-h3:mb-2
-                    prose-p:text-[18px] prose-p:text-text-secondary prose-p:leading-[1.75] prose-p:mb-4
-                    prose-li:text-[18px] prose-li:text-text-secondary prose-li:leading-[1.7] prose-li:my-1
-                    prose-ul:my-3 prose-ol:my-3
-                    prose-strong:text-[18px] prose-strong:text-text-primary prose-strong:font-semibold
-                    prose-code:text-primary prose-code:bg-primary/5 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-[17px] prose-code:font-mono
-                    prose-table:w-full prose-table:my-6 prose-table:text-left
-                    prose-th:bg-surface-alt prose-th:px-4 prose-th:py-2 prose-th:border-b-2 prose-th:border-border
-                    prose-td:px-4 prose-td:py-2 prose-td:border-b prose-td:border-border">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        code({ node, className, children, ...props }) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const language = match ? match[1] : '';
-                          const codeString = String(children).replace(/\n$/, '');
-
-                          if (language === 'mermaid') {
-                            return (
-                              <div className="my-6 p-4 bg-white rounded-lg border border-border overflow-x-auto hide-scrollbar">
-                                <div className="min-w-fit flex justify-center">
-                                  <MermaidDiagram chart={codeString} />
-                                </div>
-                              </div>
-                            );
-                          }
-
-                          if (match) {
-                            return (
-                              <pre className={className}>
-                                <code className={className} {...props}>
-                                  {children}
-                                </code>
-                              </pre>
-                            );
-                          }
-
-                          return (
-                            <code className={className} {...props}>
-                              {children}
-                            </code>
-                          );
-                        },
-                      }}
-                    >
-                      {currentContent}
-                    </ReactMarkdown>
-                  </div>
+                  <MarkdownRenderer
+                    content={currentContent}
+                    className="prose-h1:text-[28px] prose-h2:text-[22px] prose-h3:text-[18px] prose-p:text-[18px] prose-li:text-[18px] prose-strong:text-[18px] prose-code:text-[17px]"
+                  />
                 </div>
               </div>
 
-              {/* Action Panel */}
+              {/* Action Panel — Refine via chat */}
               <div className="border-t border-border pt-6 mt-8">
                 <div className="mb-4">
                   <div className="flex items-center gap-2">
@@ -647,17 +560,138 @@ function DetailedPipelineContent() {
   );
 }
 
-export default function DetailedPipelinePage() {
+// ─── Completed Results View ──────────────────────────────────────────────────
+
+function CompletedResultsView({ projectId }: { projectId: string }) {
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
+
+  useEffect(() => {
+    if (!projectId) return;
+    async function load() {
+      setIsLoading(true);
+      try {
+        const data = await SupabaseService.getArtifactsByProject(projectId);
+        setArtifacts(data);
+      } catch (err) {
+        console.error('Failed to load artifacts:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    load();
+  }, [projectId]);
+
+  const handleNewArtifact = useCallback((newArtifact: Artifact) => {
+    setArtifacts(prev => {
+      if (prev.some(a => a.id === newArtifact.id)) return prev;
+      const updated = [...prev, newArtifact];
+      return updated.sort((a, b) => {
+        const order: Record<ArtifactType, number> = { requirements: 0, design: 1, tasks: 2 };
+        return order[a.artifact_type] - order[b.artifact_type];
+      });
+    });
+  }, []);
+
+  const handleDisconnect = useCallback(() => {
+    setReconnectAttempts(prev => {
+      const n = prev + 1;
+      if (n >= 5) setShowRefreshPrompt(true);
+      return n;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!projectId) return;
+    const sub = SupabaseService.subscribeToArtifacts(projectId, handleNewArtifact, handleDisconnect);
+    setReconnectAttempts(0);
+    setShowRefreshPrompt(false);
+    return () => { sub.unsubscribe(); };
+  }, [projectId, handleNewArtifact, handleDisconnect]);
+
+  const handleDownloadBundle = async () => {
+    try {
+      const { downloadBundle } = await import('@/lib/downloadBundle');
+      await downloadBundle(artifacts, projectId);
+    } catch (err) {
+      console.error('Failed to download bundle:', err);
+    }
+  };
+
   return (
-    <Suspense fallback={
+    <ResultsViewer
+      artifacts={artifacts}
+      isLoading={isLoading}
+      onDownloadBundle={handleDownloadBundle}
+      projectId={projectId}
+      showRefreshPrompt={showRefreshPrompt}
+    />
+  );
+}
+
+// ─── Main Page Component ─────────────────────────────────────────────────────
+
+export default function ProjectPage() {
+  const params = useParams();
+  const projectId = params.id as string;
+  const router = useRouter();
+
+  const [project, setProject] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchProject = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/dashboard');
+        return;
+      }
+      const res = await fetch(`/api/projects/${projectId}`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (data.success && data.project) {
+        setProject(data.project);
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      console.error('Failed to load project', err);
+      router.push('/dashboard');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [projectId, router]);
+
+  useEffect(() => {
+    if (projectId) fetchProject();
+  }, [projectId, fetchProject]);
+
+  if (isLoading) {
+    return (
       <div className="h-full flex items-center justify-center bg-bg">
         <div className="flex flex-col items-center gap-3">
           <Loader2 size={24} className="animate-spin text-primary" />
-          <p className="text-text-muted font-medium">Loading pipeline...</p>
+          <p className="text-text-muted font-medium">Loading project...</p>
         </div>
       </div>
-    }>
-      <DetailedPipelineContent />
-    </Suspense>
-  );
+    );
+  }
+
+  if (!project) return null;
+
+  if (project.status === 'draft') {
+    return (
+      <DetailedPipelineDraftView 
+        project={project} 
+        projectId={projectId} 
+        onComplete={() => fetchProject()} 
+      />
+    );
+  }
+
+  return <CompletedResultsView projectId={projectId} />;
 }

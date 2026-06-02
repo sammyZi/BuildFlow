@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { signOut } from '@/lib/supabase/auth';
 import { useRouter } from 'next/navigation';
@@ -15,14 +16,18 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const router = useRouter();
 
   const handleSignOut = async () => {
+    setIsSigningOut(true);
     try {
       await signOut();
       router.push('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+      setIsSigningOut(false);
     }
   };
 
@@ -68,7 +73,7 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
           </div>
           <div className="flex items-center gap-4">
             <button
-              onClick={handleSignOut}
+              onClick={() => setIsSignOutModalOpen(true)}
               className="text-[15px] font-semibold text-chat-textMuted hover:text-chat-text transition-colors"
             >
               Sign out
@@ -97,6 +102,42 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
         </div>
         
       </div>
+
+      {/* Sign Out Confirmation Modal */}
+      {isSignOutModalOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-bg border border-border w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 mx-4 animate-fade-in-up">
+            <h3 className="text-lg font-bold text-text-primary mb-2">Sign Out</h3>
+            <p className="text-[15px] text-text-secondary mb-6">
+              Are you sure you want to sign out of your account?
+            </p>
+            <div className="flex items-center gap-3 w-full">
+              <button
+                onClick={() => setIsSignOutModalOpen(false)}
+                disabled={isSigningOut}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface text-text-primary font-bold hover:bg-surface-alt transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-error text-white font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isSigningOut ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                    Signing out...
+                  </>
+                ) : (
+                  'Sign out'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

@@ -171,9 +171,10 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
 
   return (
     <>
-      <div className={`group relative inline-block w-full ${className}`}>
+      <div className={`group relative flex flex-col w-full border border-border/50 rounded-xl bg-surface overflow-hidden ${className}`}>
         <div 
           ref={containerRef} 
+          className="w-full overflow-x-auto custom-scrollbar p-4"
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <button

@@ -36,17 +36,41 @@ export default function DashboardPage() {
       return;
     }
 
-    if (mode === 'detailed') {
-      router.push(`/dashboard/questionnaire?idea=${encodeURIComponent(idea)}`);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) throw new Error('Authentication error. Please sign in again.');
+
+      if (mode === 'detailed') {
+        // Create project upfront for detailed mode
+        const response = await fetch('/api/projects/autosave', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            idea,
+            status: 'draft',
+            current_step: 'questions',
+            state_data: {}
+          })
+        });
+
+        if (!response.ok) {
+          let msg = 'Failed to create project';
+          try { const d = await response.json(); msg = d.error || msg; } catch { }
+          throw new Error(msg);
+        }
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Failed to create project');
+
+        router.push(`/dashboard/project/${data.projectId}`);
+        return;
+      }
 
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -66,7 +90,7 @@ export default function DashboardPage() {
       const data = await response.json();
       if (!data.success) throw new Error(data.error || 'Generation failed');
 
-      router.push(`/dashboard/results/${data.projectId}`);
+      router.push(`/dashboard/project/${data.projectId}`);
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
     } finally {

@@ -1,15 +1,16 @@
 import { SupabaseService } from '../supabase/service';
-import { MiniMaxClient } from './client';
+import { GeminiClient } from './client';
 
 export class GenerationOrchestrator {
-  private client: MiniMaxClient;
+  private client: GeminiClient;
 
   constructor() {
-    this.client = new MiniMaxClient();
+    this.client = new GeminiClient();
   }
 
   /**
-   * Run the full generation pipeline for a project
+   * Run the full generation pipeline for a project (Fast mode).
+   * Generates requirements → design → tasks sequentially, saving each to Supabase.
    * @param projectId The ID of the project in the database
    * @param appIdea The user's app idea prompt
    * @returns The project ID if successful
