@@ -324,7 +324,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/login"
+              href="/signup"
               className="group relative inline-flex items-center gap-2.5 bg-[#111827] text-white font-semibold text-base px-9 py-4 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.25)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)] hover:-translate-y-1 hover:scale-[1.03] transition-all duration-300 overflow-hidden"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-[#1E3A8A] to-[#60A5FA] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out rounded-full" />
@@ -464,8 +464,13 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Empty middle column */}
-          <div />
+          {/* Legal */}
+          <div>
+            <h4 className="font-bold text-lg mb-4">Legal</h4>
+            <ul className="space-y-3 text-gray-400 text-sm">
+              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+            </ul>
+          </div>
 
           {/* Connect */}
           <div>
