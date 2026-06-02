@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import mermaid from 'mermaid';
 import { Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
@@ -51,6 +52,16 @@ function sanitizeMermaidChart(chart: string): string {
   }
 
   return cleaned;
+}
+
+function prepareSvgForFullscreen(svgString: string): string {
+  // Mermaid sets explicit width/height attributes and inline max-width styles
+  // on the <svg> element. These prevent CSS from scaling it down to fit.
+  // Strip them and let the viewBox handle scaling.
+  return svgString
+    .replace(/(<svg[^>]*)\s+width="[^"]*"/gi, '$1')
+    .replace(/(<svg[^>]*)\s+height="[^"]*"/gi, '$1')
+    .replace(/(<svg[^>]*)\s+style="[^"]*"/gi, '$1 style="width:100%;height:100%;"');
 }
 
 export default function MermaidDiagram({ chart, className = '' }: MermaidDiagramProps) {
@@ -186,9 +197,9 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
         </button>
       </div>
 
-      {isFullscreen && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-black/80 backdrop-blur-sm p-4 sm:p-8 animate-fade-in">
-          <div className="flex justify-between items-center mb-4">
+      {isFullscreen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex flex-col bg-black/80 backdrop-blur-sm p-4 sm:p-8 animate-fade-in overflow-hidden" style={{ height: '100vh', maxHeight: '100vh' }}>
+          <div className="flex justify-between items-center mb-4 shrink-0">
             <div className="flex gap-2">
               <button 
                 onClick={() => setZoom(z => Math.min(z + 0.2, 10))}
@@ -221,7 +232,7 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
             </button>
           </div>
           <div 
-            className="flex-1 overflow-hidden bg-white rounded-xl shadow-2xl relative cursor-grab active:cursor-grabbing"
+            className="flex-1 min-h-0 overflow-hidden bg-white rounded-xl shadow-2xl relative cursor-grab active:cursor-grabbing"
             onWheel={handleWheel}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -229,16 +240,17 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
             onMouseLeave={handleMouseUp}
           >
             <div 
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none p-8"
               style={{
                 transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                 transformOrigin: 'center center',
                 transition: isDragging ? 'none' : 'transform 0.1s ease-out'
               }}
-              dangerouslySetInnerHTML={{ __html: svg }} 
+              dangerouslySetInnerHTML={{ __html: prepareSvgForFullscreen(svg) }} 
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
