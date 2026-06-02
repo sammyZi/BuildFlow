@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { updatePassword } from '@/lib/supabase/auth';
+import { supabase } from '@/lib/supabase/client';
 import { Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 
@@ -15,6 +16,15 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,7 +75,11 @@ export default function ResetPasswordPage() {
                 Set New Password
               </h1>
               <p className="text-[15px] text-text-secondary">
-                Enter your new password below
+                {userEmail ? (
+                  <>Resetting password for <strong className="text-text-primary">{userEmail}</strong></>
+                ) : (
+                  'Enter your new password below'
+                )}
               </p>
             </div>
           </div>
