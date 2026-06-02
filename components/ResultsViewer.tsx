@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Artifact, ArtifactType } from '@/types';
 import MarkdownRenderer from './MarkdownRenderer';
+import ScrollButtons from './ScrollButtons';
 import {
   FileText, GitBranch, ListChecks, Download,
   Folder, Copy, Check, Loader2, Clock, WifiOff, CheckCircle2
@@ -32,6 +33,7 @@ export default function ResultsViewer({
 }: ResultsViewerProps) {
   const [activeTab, setActiveTab] = useState<string>('requirements');
   const [copied, setCopied] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const artifactTypes = new Set(artifacts.map(a => a.artifact_type));
   const isComplete = artifacts.length === 3
@@ -148,7 +150,7 @@ export default function ResultsViewer({
           </div>
 
           {/* Markdown content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
             {activeContent ? (
               <div className="p-8 md:p-10 lg:p-12 max-w-6xl mx-auto">
                 <MarkdownRenderer content={activeContent} />
@@ -178,6 +180,7 @@ export default function ResultsViewer({
           </div>
         </div>
       </div>
+      <ScrollButtons containerRef={scrollContainerRef} />
     </div>
   );
 }

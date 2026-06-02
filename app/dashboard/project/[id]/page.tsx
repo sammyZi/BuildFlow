@@ -11,6 +11,7 @@ import {
   ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3
 } from 'lucide-react';
 import { ShiningText } from '@/components/ui/shining-text';
+import ScrollButtons from '@/components/ScrollButtons';
 
 type Step = 'questions' | 'requirements' | 'design-questions' | 'design' | 'tasks';
 
@@ -55,6 +56,7 @@ async function fetchDetailedApi(endpoint: string, payload: Record<string, any>) 
 function DetailedPipelineDraftView({ project, projectId, onComplete }: { project: any, projectId: string, onComplete: () => void }) {
   const router = useRouter();
   const idea = project.prompt;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [currentStep, setCurrentStep] = useState<Step>((project.current_step as Step) || 'questions');
 
@@ -378,7 +380,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg">
+      <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg" ref={scrollContainerRef}>
         <div className="max-w-5xl mx-auto">
           {error && (
             <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[17px] font-medium">
@@ -556,6 +558,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
           )}
         </div>
       </div>
+      <ScrollButtons containerRef={scrollContainerRef} />
     </div>
   );
 }
