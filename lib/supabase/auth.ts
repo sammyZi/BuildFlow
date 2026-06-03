@@ -98,9 +98,7 @@ export function onAuthStateChange(
  * @param email - User's email address
  */
 export async function resetPassword(email: string) {
-  const origin = typeof window !== 'undefined' 
-    ? window.location.origin 
-    : process.env.NEXT_PUBLIC_SITE_URL || 'https://build-flow-theta.vercel.app';
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://build-flow-theta.vercel.app';
     
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/reset-password`,
