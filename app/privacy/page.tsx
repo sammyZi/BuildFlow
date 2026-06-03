@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Blocks, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 
 export default function PrivacyPolicy() {
   return (
@@ -8,7 +9,7 @@ export default function PrivacyPolicy() {
       <header className="border-b border-border bg-surface sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg text-text-primary">
-            <Blocks className="w-5 h-5 text-primary" />
+            <Logo className="w-5 h-5 text-primary" />
             BuildFlow
           </Link>
           <Link
