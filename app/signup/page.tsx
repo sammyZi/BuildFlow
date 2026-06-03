@@ -71,7 +71,7 @@ export default function SignUpPage() {
         
         {/* Brand */}
         <div className="relative z-10 flex items-center gap-3 text-white font-bold text-xl">
-          <Blocks className="w-8 h-8 text-indigo-400" />
+          <Logo className="w-8 h-8" />
           BuildFlow
         </div>
 
