@@ -13,9 +13,10 @@ export class GenerationOrchestrator {
    * Generates requirements → design → tasks sequentially, saving each to Supabase.
    * @param projectId The ID of the project in the database
    * @param appIdea The user's app idea prompt
+   * @param techPreferences The user's global tech stack preferences
    * @returns The project ID if successful
    */
-  async generateAll(projectId: string, appIdea: string): Promise<string> {
+  async generateAll(projectId: string, appIdea: string, techPreferences?: string): Promise<string> {
     try {
       // 1. Generate Requirements
       console.log(`Starting requirements generation for project ${projectId}...`);
@@ -25,7 +26,7 @@ export class GenerationOrchestrator {
 
       // 2. Generate Design
       console.log(`Starting design generation for project ${projectId}...`);
-      const design = await this.client.generateDesign(appIdea, requirements);
+      const design = await this.client.generateDesign(appIdea, requirements, techPreferences);
       await SupabaseService.saveArtifact(projectId, 'design', design);
       console.log(`Saved design for project ${projectId}.`);
 

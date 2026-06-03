@@ -8,6 +8,7 @@ export interface Profile {
   email: string;
   created_at: string;
   updated_at: string;
+  tech_preferences?: string | null;
 }
 
 export interface Project {

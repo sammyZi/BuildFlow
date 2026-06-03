@@ -35,9 +35,18 @@ export async function POST(req: Request) {
       throw new Error(`Failed to create project: ${insertError.message}`);
     }
 
+    // Fetch user preferences
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('tech_preferences')
+      .eq('id', user.id)
+      .single();
+
+    const techPreferences = profile?.tech_preferences || undefined;
+
     // Invoke GenerationOrchestrator in background
     const orchestrator = new GenerationOrchestrator();
-    orchestrator.generateAll(project.id, appIdea).catch(err => {
+    orchestrator.generateAll(project.id, appIdea, techPreferences).catch(err => {
       console.error(`Background generation failed for project ${project.id}:`, err);
     });
 

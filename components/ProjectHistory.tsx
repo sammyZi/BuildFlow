@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { Project } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
-import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2, Edit3 } from 'lucide-react';
+import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2, Edit3, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Logo } from '@/components/ui/Logo';
 
@@ -39,6 +40,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadProjects() {
@@ -202,21 +204,26 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
         </div>
       </div>
 
-      {/* Sign out button at bottom */}
-      {onSignOut && (
-        <>
-          <div className="mx-3 border-t border-sidebar-border" />
-          <div className="px-3 py-3">
-            <button
-              onClick={onSignOut}
-              className="w-full flex items-center gap-2 px-3 py-2 text-[14px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors"
-            >
-              <LogOut size={14} strokeWidth={1.5} />
-              Sign out
-            </button>
-          </div>
-        </>
-      )}
+      {/* Bottom Actions */}
+      <div className="mx-3 border-t border-sidebar-border" />
+      <div className="px-3 py-3 space-y-1">
+        <button
+          onClick={() => router.push('/dashboard/settings')}
+          className="w-full flex items-center gap-2 px-3 py-2 text-[14px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors"
+        >
+          <Settings size={14} strokeWidth={1.5} />
+          Settings
+        </button>
+        {onSignOut && (
+          <button
+            onClick={onSignOut}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[14px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors"
+          >
+            <LogOut size={14} strokeWidth={1.5} />
+            Sign out
+          </button>
+        )}
+      </div>
 
       {/* Delete Confirmation Modal */}
       {projectToDelete && typeof document !== 'undefined' && createPortal(

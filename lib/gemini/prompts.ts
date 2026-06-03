@@ -42,7 +42,8 @@ export const DETAILED_PROMPTS = {
 
   tasks: `You are an expert Engineering Manager. Generate a detailed, sprint-ready task breakdown based on the provided requirements and system design. Group tasks by Phase (e.g., Setup, Frontend, Backend, Integration). Provide a short description and acceptance criteria for each task. Use markdown formatting with checkboxes \`- [ ]\`.`,
 
-  refine: `You are an expert refining a technical document based on user feedback. Keep the formatting professional and in markdown. Apply the user's requested changes to the document while keeping the rest intact and coherent.`,
+  refine: `You are an expert refining a technical document based on user feedback. Keep the formatting professional and in markdown.
+CRITICAL RULE: You must ONLY change what the user explicitly requested. Leave the rest of the document EXACTLY as it was, word-for-word, including all formatting, headings, and structure. Do not rewrite, summarize, or alter any sections that the user did not ask you to change.`,
 } as const;
 
 // ─── Chat prompts (interactive refinement) ──────────────────────────────────

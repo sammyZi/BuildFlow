@@ -40,8 +40,11 @@ export class GeminiClient {
   /**
    * Generate design.md from app idea + requirements (fast pipeline).
    */
-  async generateDesign(appIdea: string, requirements: string): Promise<string> {
-    const userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}`;
+  async generateDesign(appIdea: string, requirements: string, techPreferences?: string): Promise<string> {
+    let userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}`;
+    if (techPreferences) {
+      userMessage += `\n\nUSER GLOBAL PREFERENCES (Prioritize these if applicable):\n${techPreferences}`;
+    }
     return this.generateWithRetry(FAST_PROMPTS.design, userMessage);
   }
 

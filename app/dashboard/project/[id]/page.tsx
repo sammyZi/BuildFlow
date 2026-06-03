@@ -565,11 +565,12 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
 
 // ─── Completed Results View ──────────────────────────────────────────────────
 
-function CompletedResultsView({ projectId }: { projectId: string }) {
+function CompletedResultsView({ project, projectId, onProjectUpdate }: { project: any, projectId: string, onProjectUpdate: (updated: any) => void }) {
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
+  const [isTogglingPublic, setIsTogglingPublic] = useState(false);
 
   useEffect(() => {
     if (!projectId) return;
@@ -623,6 +624,39 @@ function CompletedResultsView({ projectId }: { projectId: string }) {
     }
   };
 
+  const handleArtifactUpdate = useCallback((updated: Artifact) => {
+    setArtifacts(prev => prev.map(a => a.id === updated.id ? updated : a));
+  }, []);
+
+  const handleTogglePublic = async (isPublic: boolean) => {
+    if (isTogglingPublic) return;
+    setIsTogglingPublic(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const res = await fetch(`/api/projects/${projectId}/share`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ is_public: isPublic }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onProjectUpdate({ ...project, is_public: isPublic });
+      } else {
+        alert(data.error || 'Failed to update sharing');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update sharing');
+    } finally {
+      setIsTogglingPublic(false);
+    }
+  };
+
   return (
     <ResultsViewer
       artifacts={artifacts}
@@ -630,6 +664,9 @@ function CompletedResultsView({ projectId }: { projectId: string }) {
       onDownloadBundle={handleDownloadBundle}
       projectId={projectId}
       showRefreshPrompt={showRefreshPrompt}
+      onArtifactUpdate={handleArtifactUpdate}
+      isPublic={project.is_public}
+      onTogglePublic={handleTogglePublic}
     />
   );
 }
@@ -696,5 +733,5 @@ export default function ProjectPage() {
     );
   }
 
-  return <CompletedResultsView projectId={projectId} />;
+  return <CompletedResultsView project={project} projectId={projectId} onProjectUpdate={setProject} />;
 }

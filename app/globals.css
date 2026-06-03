@@ -51,6 +51,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@media print {
+  /* Override heights and overflows to ensure the entire page prints */
+  html, body, main, .h-screen, .h-full, .overflow-hidden, .overflow-y-auto {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  /* Ensure background colors and text remain visible */
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Optional: Add page breaks */
+  h1, h2 {
+    page-break-after: avoid;
+  }
+  img, svg {
+    page-break-inside: avoid;
+  }
+}
+
 /* Animations */
 @keyframes fadeInUp {
   from {
