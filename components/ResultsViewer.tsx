@@ -261,7 +261,7 @@ export default function ResultsViewer({
         {/* Content + Chat layout */}
         <div className="flex-1 flex min-w-0 min-h-0">
           {/* Content pane */}
-          <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-surface print:bg-white print:overflow-visible transition-all duration-300 ${showChat ? 'hidden sm:flex' : ''}`}>
+          <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-surface print:bg-white print:overflow-visible transition-all duration-300 relative ${showChat ? 'hidden sm:flex' : ''}`}>
             {/* Document Toolbar */}
             <div className="flex items-center justify-between px-6 border-b border-border flex-shrink-0 print:hidden h-[53px]">
               <div className="flex items-center gap-2 text-[14px] text-text-primary font-semibold">
@@ -334,6 +334,11 @@ export default function ResultsViewer({
                 </div>
               )}
             </div>
+            
+            <ScrollButtons 
+              containerRef={scrollContainerRef} 
+              className="absolute bottom-8 right-8" 
+            />
           </div>
 
           {/* Chat sidebar */}
@@ -444,7 +449,6 @@ export default function ResultsViewer({
           </form>
         </div>
       )}
-      {!showChat && <ScrollButtons containerRef={scrollContainerRef} />}
 
       {/* Version History Modal */}
       {activeArtifact && (

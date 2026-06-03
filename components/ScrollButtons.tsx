@@ -3,7 +3,13 @@
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { RefObject, useEffect, useState } from 'react';
 
-export default function ScrollButtons({ containerRef }: { containerRef: RefObject<HTMLElement | null> }) {
+export default function ScrollButtons({ 
+  containerRef,
+  className = "fixed bottom-8 right-8"
+}: { 
+  containerRef: RefObject<HTMLElement | null>;
+  className?: string;
+}) {
   const [showTop, setShowTop] = useState(false);
   const [showBottom, setShowBottom] = useState(true);
 
@@ -39,7 +45,7 @@ export default function ScrollButtons({ containerRef }: { containerRef: RefObjec
   if (!showTop && !showBottom) return null;
 
   return (
-    <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
+    <div className={`${className} flex flex-col gap-3 z-40`}>
       <button 
         onClick={scrollToTop}
         title="Scroll to top"
