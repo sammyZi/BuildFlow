@@ -212,9 +212,13 @@ export default function ResultsViewer({
               {!readOnly && onTogglePublic && (
                 <button
                   onClick={handleShareClick}
-                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors border bg-surface text-text-secondary border-border hover:bg-surface-alt hover:text-text-primary"
+                  className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors border ${
+                    showShareTooltip
+                      ? 'bg-emerald-50 text-success border-emerald-200'
+                      : 'bg-surface text-text-secondary border-border hover:bg-surface-alt hover:text-text-primary'
+                  }`}
                 >
-                  {showShareTooltip ? <LinkIcon size={14} /> : <Share2 size={14} />}
+                  {showShareTooltip ? <LinkIcon size={14} className="text-success" /> : <Share2 size={14} />}
                   {showShareTooltip ? 'Copied Link!' : 'Share'}
                 </button>
               )}
