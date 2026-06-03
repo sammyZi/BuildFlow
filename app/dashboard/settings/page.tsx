@@ -64,7 +64,7 @@ export default function SettingsPage() {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
         const data = await res.json();
-        
+
         if (data.success && data.tech_preferences) {
           try {
             const parsed = JSON.parse(data.tech_preferences);
@@ -143,7 +143,7 @@ export default function SettingsPage() {
   return (
     <div className="flex-1 flex flex-col h-full bg-bg overflow-y-auto">
       <div className="max-w-4xl mx-auto w-full p-8 md:p-12 pb-24">
-        
+
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -169,11 +169,10 @@ export default function SettingsPage() {
                         key={option}
                         type="button"
                         onClick={() => handleSelect(q.id as keyof Preferences, option)}
-                        className={`px-5 py-3 rounded-xl border-2 transition-all font-medium text-[15px] flex items-center gap-2 ${
-                          isSelected
+                        className={`px-5 py-3 rounded-xl border-2 transition-all font-medium text-[15px] flex items-center gap-2 ${isSelected
                             ? 'border-primary bg-primary/10 text-primary'
                             : 'border-border bg-surface text-text-secondary hover:border-primary/40 hover:bg-surface-alt'
-                        }`}
+                          }`}
                       >
                         {isSelected && <CheckCircle2 size={16} />}
                         {option}
@@ -185,27 +184,24 @@ export default function SettingsPage() {
             ))}
           </div>
 
-          <div className="sticky bottom-8 bg-surface/80 backdrop-blur-md p-4 rounded-2xl border border-border shadow-lg flex items-center justify-between mt-12 transition-all">
-            <div>
-              {message && (
-                <div className={`px-4 py-2 rounded-lg text-[15px] font-medium animate-fade-in ${
-                  message.type === 'success' ? 'bg-success/10 text-success' : 'bg-red-50 text-error border border-red-100'
-                }`}>
-                  {message.text}
-                </div>
-              )}
-            </div>
-            
+          <div className="flex items-center justify-end gap-6 mt-12 pt-8 border-t border-border">
+            {message && (
+              <div className={`px-4 py-2 rounded-lg text-[15px] font-medium animate-fade-in ${
+                message.type === 'success' ? 'bg-success/10 text-success' : 'bg-red-50 text-error border border-red-100'
+              }`}>
+                {message.text}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isSaving || isDirty === false}
-              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-[16px] transition-all active:scale-[0.98] ${
-                !isDirty && !isSaving && !message
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-[16px] transition-all active:scale-[0.98] ${!isDirty && !isSaving && !message
                   ? 'bg-surface-alt text-text-muted border border-border cursor-not-allowed'
                   : isSaving
                     ? 'bg-primary/80 text-white cursor-wait shadow-sm'
                     : 'bg-gradient-to-r from-primary to-blue-500 hover:from-primary-hover hover:to-blue-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-              }`}
+                }`}
             >
               {isSaving ? (
                 <>
