@@ -1,6 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
-import { FAST_PROMPTS, DETAILED_PROMPTS } from './prompts';
+import { FAST_PROMPTS, DETAILED_PROMPTS, SCAFFOLD_PROMPT } from './prompts';
 
 /**
  * GeminiClient wraps the Google Gemini API for all artifact generation.
@@ -131,6 +131,17 @@ Return ONLY a JSON array:
   async refineContent(currentContent: string, userPrompt: string): Promise<string> {
     const prompt = `Current Document:\n${currentContent}\n\nUser's requested changes:\n${userPrompt}\n\nPlease output the completely updated document.`;
     return this.generateWithRetry(DETAILED_PROMPTS.refine, prompt);
+  }
+
+  // ─── Scaffold generation ─────────────────────────────────────────────────
+
+  /**
+   * Generate starter project code scaffold from all three artifacts.
+   * Returns a JSON string of file entries: [{ path, content }, ...]
+   */
+  async generateScaffold(requirements: string, design: string, tasks: string): Promise<string> {
+    const userMessage = `Requirements Document:\n${requirements}\n\nSystem Design Document:\n${design}\n\nTask Breakdown:\n${tasks}`;
+    return this.generateWithRetry(SCAFFOLD_PROMPT, userMessage);
   }
 
   // ─── Core generation with retry ─────────────────────────────────────────

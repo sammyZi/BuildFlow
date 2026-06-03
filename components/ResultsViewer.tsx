@@ -11,7 +11,7 @@ import {
   FileText, GitBranch, ListChecks, Download,
   Folder, Copy, Check, Loader2, Clock, WifiOff, CheckCircle2,
   Send, Edit3, Sparkles, History, Share2, Printer, Link as LinkIcon,
-  MessageSquare, ChevronDown
+  MessageSquare, ChevronDown, Code2
 } from 'lucide-react';
 import { ShiningText } from '@/components/ui/shining-text';
 
@@ -58,6 +58,7 @@ export default function ResultsViewer({
   const [showChat, setShowChat] = useState(false);
   const [isApplyingChat, setIsApplyingChat] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
 
   const handlePrint = () => {
     window.print();
@@ -89,6 +90,56 @@ export default function ResultsViewer({
     navigator.clipboard.writeText(activeContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleGenerateCode = async () => {
+    if (isGeneratingCode || !projectId) return;
+    setIsGeneratingCode(true);
+    setShowExportMenu(false);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Please sign in again.');
+
+      const res = await fetch('/api/generate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ projectId }),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to generate code');
+
+      // Build zip from the file array
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      for (const file of data.files) {
+        if (file.path && file.content) {
+          zip.file(file.path, file.content);
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `starter-code-${projectId.slice(0, 8)}-${timestamp}.zip`;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('Failed to generate starter code:', err);
+      alert(err.message || 'Failed to generate starter code. Please try again.');
+    } finally {
+      setIsGeneratingCode(false);
+    }
   };
 
   const handleRefine = async (e: React.FormEvent) => {
@@ -214,7 +265,13 @@ export default function ResultsViewer({
 
           {/* Actions */}
           {isComplete && (
-            <div className="p-2 sm:border-l border-border shrink-0 flex items-center print:hidden relative">
+            <div className="p-2 sm:border-l border-border shrink-0 flex items-center gap-2 print:hidden relative">
+              {isGeneratingCode && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[13px] font-semibold animate-pulse">
+                  <Loader2 size={14} className="animate-spin" />
+                  <span className="hidden sm:inline">Generating code…</span>
+                </div>
+              )}
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
                 onBlur={() => setTimeout(() => setShowExportMenu(false), 200)}
@@ -251,6 +308,19 @@ export default function ResultsViewer({
                       <Folder size={14} />
                       Download Zip
                     </button>
+                  )}
+                  {!readOnly && projectId && (
+                    <>
+                      <div className="my-1 border-t border-border" />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleGenerateCode(); }}
+                        disabled={isGeneratingCode}
+                        className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-primary/10 text-[13px] font-semibold text-primary hover:text-primary-hover transition-colors disabled:opacity-50"
+                      >
+                        {isGeneratingCode ? <Loader2 size={14} className="animate-spin" /> : <Code2 size={14} />}
+                        {isGeneratingCode ? 'Generating...' : 'Generate Starter Code'}
+                      </button>
+                    </>
                   )}
                 </div>
               )}
