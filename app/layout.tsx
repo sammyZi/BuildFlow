@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Outfit } from 'next/font/google'
 import './globals.css'
+import { AuthListener } from '@/components/AuthListener'
 
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' })
 
@@ -21,7 +22,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${outfit.variable} font-sans`}>{children}</body>
+      <body className={`${outfit.variable} font-sans`}>
+        <AuthListener />
+        {children}
+      </body>
     </html>
   )
 }
