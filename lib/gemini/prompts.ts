@@ -20,13 +20,49 @@ const TABLE_FORMATTING = 'Ensure all Data Models are presented in standard Markd
 // ─── Fast pipeline prompts ──────────────────────────────────────────────────
 
 export const FAST_PROMPTS = {
-  requirements: `You are an expert Product Manager. Given the following app idea, generate a requirements.md file detailing the target audience, core user stories, and strict feature scope. ${MARKDOWN_NO_WRAP}`,
+  requirements: `You are an expert Product Manager. Given the following app idea, generate a requirements.md file.
+
+You MUST follow this exact structure:
+
+1. Start with an "# Requirements Document" heading.
+2. Add an "## Introduction" section with a concise paragraph describing the application.
+3. Add a "## Glossary" section with a bullet list defining key domain terms used throughout the document (e.g., "- **Term**: Definition").
+4. Add a "## Requirements" section containing numbered requirements.
+5. Each requirement MUST follow this exact format:
+   ### Requirement N: <Short Title>
+   **User Story:** As a <role>, I want <goal>, so that <benefit>.
+   #### Acceptance Criteria
+   1. THE <Component> SHALL <behavior>
+   2. WHEN <condition>, THE <Component> SHALL <behavior>
+   (Use formal keywords: SHALL, WHEN, IF/THEN for each numbered criterion.)
+6. Number the acceptance criteria sequentially within each requirement (1, 2, 3...).
+7. Each requirement should have 3-7 acceptance criteria.
+8. Generate 10-20 requirements covering: authentication, data model, UI/UX, core features, API endpoints, integrations, error handling, deployment, and non-functional requirements.
+
+${MARKDOWN_NO_WRAP}`,
 
   design: `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure. ${TABLE_FORMATTING}
 
 ${MERMAID_INSTRUCTIONS}`,
 
-  tasks: `You are a Lead Developer. Break down the attached requirements and design into a tasks.md file. Format this as a highly granular checklist where each item is small enough to be independently executed by an AI IDE without additional context. ${MARKDOWN_NO_WRAP}`,
+  tasks: `You are a Lead Developer. Break down the attached requirements and design into a tasks.md file.
+
+You MUST follow this exact structure:
+
+1. Start with "# Implementation Plan: <App Name>".
+2. Add an "## Overview" section with a brief paragraph summarizing the implementation approach.
+3. Add a "## Tasks" section with a numbered checklist.
+4. Each top-level task uses: "- [ ] N. <Task Title>".
+5. Sub-tasks use: "  - [ ] N.M <Sub-task Title>" (indented with 2 spaces).
+6. Under each sub-task, list 2-5 bullet points describing the specific work items.
+7. CRITICAL: Every task or sub-task MUST end with an italicized requirements traceability line:
+   _Requirements: X.Y, X.Z_
+   where X is the requirement number and Y is the acceptance criterion number from the requirements.md file.
+   For example: _Requirements: 1.1, 1.2, 15.1_ means Requirement 1 criteria 1 & 2, and Requirement 15 criterion 1.
+8. Order tasks to build incrementally: infrastructure → types → services → components → integration → deployment.
+9. Add a "## Notes" section at the end with implementation guidance.
+
+${MARKDOWN_NO_WRAP}`,
 } as const;
 
 // ─── Detailed pipeline prompts ──────────────────────────────────────────────
@@ -34,13 +70,47 @@ ${MERMAID_INSTRUCTIONS}`,
 export const DETAILED_PROMPTS = {
   questions: `You are an expert Product Manager conducting a discovery session. Generate exactly 5 short, crisp, and concise questions SPECIFIC to the app idea provided. Each question should be a single brief sentence. Return ONLY valid JSON array format - no markdown, no code blocks, no explanations.`,
 
-  requirements: `You are an expert Product Manager. Generate a comprehensive requirements document for the following app idea, incorporating the user's answers to discovery questions. Use highly structured markdown formatting. Start with a clear H1 heading. DO NOT include Date, Version or Author metadata. Use distinct headings, bullet points, and clear spaced sections for Target Audience, Core Features, User Stories, and Non-functional Requirements. Ensure proper spacing between paragraphs.`,
+  requirements: `You are an expert Product Manager. Generate a comprehensive requirements document for the following app idea, incorporating the user's answers to discovery questions.
+
+You MUST follow this exact structure:
+
+1. Start with an "# Requirements Document" heading.
+2. Add an "## Introduction" section with a concise paragraph describing the application.
+3. Add a "## Glossary" section with a bullet list defining key domain terms (e.g., "- **Term**: Definition").
+4. Add a "## Requirements" section containing numbered requirements.
+5. Each requirement MUST follow this exact format:
+   ### Requirement N: <Short Title>
+   **User Story:** As a <role>, I want <goal>, so that <benefit>.
+   #### Acceptance Criteria
+   1. THE <Component> SHALL <behavior>
+   2. WHEN <condition>, THE <Component> SHALL <behavior>
+   (Use formal keywords: SHALL, WHEN, IF/THEN for each numbered criterion.)
+6. Number the acceptance criteria sequentially within each requirement (1, 2, 3...).
+7. Each requirement should have 3-7 acceptance criteria.
+8. Generate 10-20 requirements covering: authentication, data model, UI/UX, core features, API endpoints, integrations, error handling, deployment, and non-functional requirements.
+9. DO NOT include Date, Version or Author metadata. Ensure proper spacing between sections.`,
 
   designQuestions: `You are an expert Software Architect. Generate exactly 3 short, crisp questions around tech stack options. Each question and its 4 options must be extremely brief. Return ONLY valid JSON array format.`,
 
   design: `You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices. Include System Architecture (with a Mermaid diagram), Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting. ${MERMAID_INSTRUCTIONS} ${TABLE_FORMATTING}`,
 
-  tasks: `You are an expert Engineering Manager. Generate a detailed, sprint-ready task breakdown based on the provided requirements and system design. Group tasks by Phase (e.g., Setup, Frontend, Backend, Integration). Provide a short description and acceptance criteria for each task. Use markdown formatting with checkboxes \`- [ ]\`.`,
+  tasks: `You are an expert Engineering Manager. Generate a detailed, sprint-ready task breakdown based on the provided requirements and system design.
+
+You MUST follow this exact structure:
+
+1. Start with "# Implementation Plan: <App Name>".
+2. Add an "## Overview" section with a brief paragraph summarizing the implementation approach.
+3. Add a "## Tasks" section with a numbered checklist.
+4. Each top-level task uses: "- [ ] N. <Task Title>".
+5. Sub-tasks use: "  - [ ] N.M <Sub-task Title>" (indented with 2 spaces).
+6. Under each sub-task, list 2-5 bullet points describing the specific work items.
+7. CRITICAL: Every task or sub-task MUST end with an italicized requirements traceability line:
+   _Requirements: X.Y, X.Z_
+   where X is the requirement number and Y is the acceptance criterion number from the requirements.md file.
+   For example: _Requirements: 1.1, 1.2, 15.1_ means Requirement 1 criteria 1 & 2, and Requirement 15 criterion 1.
+8. Order tasks to build incrementally: infrastructure → types → services → components → integration → deployment.
+9. Add a "## Notes" section at the end with implementation guidance.
+10. Mark optional tasks (like unit tests) with "[ ]*" instead of "[ ]".`,
 
   refine: `You are an expert refining a technical document based on user feedback. Keep the formatting professional and in markdown.
 CRITICAL RULE: You must ONLY change what the user explicitly requested. Leave the rest of the document EXACTLY as it was, word-for-word, including all formatting, headings, and structure. Do not rewrite, summarize, or alter any sections that the user did not ask you to change.`,
