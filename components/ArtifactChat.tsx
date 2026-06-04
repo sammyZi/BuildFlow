@@ -21,7 +21,7 @@ interface ArtifactChatProps {
   activeTab: ArtifactType;
   artifactContent: string | null;
   projectId?: string;
-  onApplyChanges?: (prompt: string) => void;
+  onApplyChanges?: (prompt: string) => Promise<void> | void;
   isApplying?: boolean;
 }
 
@@ -31,23 +31,7 @@ const TAB_META: Record<ArtifactType, { label: string; Icon: React.ComponentType<
   tasks: { label: 'Tasks', Icon: ListChecks, color: 'text-emerald-600' },
 };
 
-const SUGGESTIONS: Record<ArtifactType, string[]> = {
-  requirements: [
-    'What user stories am I missing?',
-    'Are the acceptance criteria specific enough?',
-    'Add authentication requirements',
-  ],
-  design: [
-    'Why this tech stack choice?',
-    'How would this scale to 10k users?',
-    'Add caching layer to the architecture',
-  ],
-  tasks: [
-    'Are any tasks too large to execute?',
-    'What dependencies am I missing?',
-    'Add CI/CD pipeline tasks',
-  ],
-};
+
 
 export default function ArtifactChat({
   isOpen,
@@ -58,8 +42,27 @@ export default function ArtifactChat({
   onApplyChanges,
   isApplying = false,
 }: ArtifactChatProps) {
-  // Single unified project chat history
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Single unified project chat history, persisted to sessionStorage
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window !== 'undefined' && projectId) {
+      const saved = sessionStorage.getItem(`chat_history_${projectId}`);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error("Failed to parse saved chat history", e);
+        }
+      }
+    }
+    return [];
+  });
+
+  // Save to sessionStorage whenever messages change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && projectId && messages.length > 0) {
+      sessionStorage.setItem(`chat_history_${projectId}`, JSON.stringify(messages));
+    }
+  }, [messages, projectId]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -182,9 +185,35 @@ export default function ArtifactChat({
     handleSend(suggestion);
   };
 
-  const handleApply = (messageContent: string) => {
-    if (onApplyChanges) {
-      onApplyChanges(messageContent);
+  const handleApply = async (messageContent: string) => {
+    if (onApplyChanges && !isApplying) {
+      const applyMsgId = `apply-${Date.now()}`;
+      addMessage({
+        id: applyMsgId,
+        role: 'assistant',
+        content: `Applying changes to your project... ⏳`,
+      });
+
+      try {
+        await onApplyChanges(messageContent);
+        setMessages(prev => {
+          const msgs = [...prev];
+          const applyMsg = msgs.find(m => m.id === applyMsgId);
+          if (applyMsg) {
+            applyMsg.content = `✨ Successfully applied changes! The document has been updated.\n\nYou can review these changes and restore previous versions at any time using the **History** button.`;
+          }
+          return msgs;
+        });
+      } catch (err) {
+        setMessages(prev => {
+          const msgs = [...prev];
+          const applyMsg = msgs.find(m => m.id === applyMsgId);
+          if (applyMsg) {
+            applyMsg.content = `❌ Failed to apply changes. Please try again.`;
+          }
+          return msgs;
+        });
+      }
     }
   };
 
