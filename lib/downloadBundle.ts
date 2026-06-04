@@ -5,7 +5,11 @@ import { Artifact } from '@/types';
  * Creates and triggers a browser download of a zip bundle containing
  * all three artifact markdown files for a given project.
  */
-export async function downloadBundle(artifacts: Artifact[], projectId: string): Promise<void> {
+export async function downloadBundle(
+  artifacts: Artifact[], 
+  projectId: string,
+  codeFiles?: { path: string; content: string }[]
+): Promise<void> {
   const zip = new JSZip();
 
   // Map artifact types to their markdown filenames
@@ -19,6 +23,14 @@ export async function downloadBundle(artifacts: Artifact[], projectId: string): 
     const fileName = fileNames[artifact.artifact_type];
     if (fileName) {
       zip.file(fileName, artifact.content);
+    }
+  }
+
+  if (codeFiles && Array.isArray(codeFiles)) {
+    for (const file of codeFiles) {
+      if (file.path && file.content) {
+        zip.file(`code/${file.path}`, file.content);
+      }
     }
   }
 

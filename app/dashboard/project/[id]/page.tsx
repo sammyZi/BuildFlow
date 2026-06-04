@@ -673,8 +673,11 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
 
   const handleDownloadBundle = async () => {
     try {
+      const { data } = await supabase.from('projects').select('state_data').eq('id', projectId).single();
+      const codeFiles = data?.state_data?.generatedCode;
+
       const { downloadBundle } = await import('@/lib/downloadBundle');
-      await downloadBundle(artifacts, projectId);
+      await downloadBundle(artifacts, projectId, codeFiles);
     } catch (err) {
       console.error('Failed to download bundle:', err);
     }

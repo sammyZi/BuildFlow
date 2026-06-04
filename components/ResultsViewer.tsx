@@ -7,6 +7,7 @@ import MarkdownRenderer from './MarkdownRenderer';
 import ScrollButtons from './ScrollButtons';
 import VersionHistory from './VersionHistory';
 import ArtifactChat from './ArtifactChat';
+import CodeViewer from './CodeViewer';
 import { supabase } from '@/lib/supabase/client';
 import {
   FileText, GitBranch, ListChecks, Download,
@@ -95,9 +96,8 @@ export default function ResultsViewer({
   };
 
   const handleGenerateCode = () => {
-    if (!projectId) return;
     setShowExportMenu(false);
-    router.push(`/dashboard/project/${projectId}/code`);
+    setActiveTab('code');
   };
 
   const handleRefine = async (e: React.FormEvent) => {
@@ -293,8 +293,12 @@ export default function ResultsViewer({
         <div className="flex-1 flex min-w-0 min-h-0">
           {/* Content pane */}
           <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-surface print:bg-white print:overflow-visible transition-all duration-300 relative ${showChat ? 'hidden sm:flex' : ''}`}>
-            {/* Document Toolbar */}
-            <div className="flex items-center justify-between px-6 border-b border-border flex-shrink-0 print:hidden h-[53px]">
+            {activeTab === 'code' && projectId ? (
+              <CodeViewer projectId={projectId} />
+            ) : (
+              <>
+                {/* Document Toolbar */}
+                <div className="flex items-center justify-between px-6 border-b border-border flex-shrink-0 print:hidden h-[53px]">
               <div className="flex items-center gap-2 text-[14px] text-text-primary font-semibold">
                 {activeTab === 'requirements' && <FileText size={15} className="text-blue-600" />}
                 {activeTab === 'design' && <GitBranch size={15} className="text-violet-600" />}
@@ -370,6 +374,8 @@ export default function ResultsViewer({
               containerRef={scrollContainerRef} 
               className="absolute bottom-8 right-8" 
             />
+            </>
+          )}
           </div>
 
           {/* Chat sidebar */}
