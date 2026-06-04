@@ -58,19 +58,15 @@ export default function ArtifactChat({
   onApplyChanges,
   isApplying = false,
 }: ArtifactChatProps) {
-  // Per-tab chat history
-  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>({
-    requirements: [],
-    design: [],
-    tasks: [],
-  });
+  // Single unified project chat history
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const messages = chatHistories[activeTab] || [];
+
   const meta = TAB_META[activeTab];
   const TabIcon = meta.Icon;
 
@@ -86,21 +82,18 @@ export default function ArtifactChat({
     }
   }, [isOpen, activeTab]);
 
-  const addMessage = useCallback((tab: string, msg: ChatMessage) => {
-    setChatHistories(prev => ({
-      ...prev,
-      [tab]: [...(prev[tab] || []), msg],
-    }));
+  const addMessage = useCallback((msg: ChatMessage) => {
+    setMessages(prev => [...prev, msg]);
   }, []);
 
-  const updateLastAssistant = useCallback((tab: string, content: string) => {
-    setChatHistories(prev => {
-      const msgs = [...(prev[tab] || [])];
+  const updateLastAssistant = useCallback((content: string) => {
+    setMessages(prev => {
+      const msgs = [...prev];
       const lastIdx = msgs.length - 1;
       if (lastIdx >= 0 && msgs[lastIdx].role === 'assistant') {
         msgs[lastIdx] = { ...msgs[lastIdx], content };
       }
-      return { ...prev, [tab]: msgs };
+      return msgs;
     });
   }, []);
 
@@ -114,8 +107,7 @@ export default function ArtifactChat({
       content: text,
     };
 
-    const currentTab = activeTab;
-    addMessage(currentTab, userMsg);
+    addMessage(userMsg);
     setInput('');
     setIsStreaming(true);
 
@@ -125,7 +117,7 @@ export default function ArtifactChat({
       role: 'assistant',
       content: '',
     };
-    addMessage(currentTab, assistantMsg);
+    addMessage(assistantMsg);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -148,7 +140,7 @@ export default function ArtifactChat({
         },
         body: JSON.stringify({
           messages: apiMessages,
-          stage: currentTab,
+          stage: activeTab,
           artifactContent: artifactContent || undefined,
         }),
         signal: controller.signal,
@@ -170,11 +162,11 @@ export default function ArtifactChat({
         if (done) break;
 
         accumulated += decoder.decode(value, { stream: true });
-        updateLastAssistant(currentTab, accumulated);
+        updateLastAssistant(accumulated);
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;
-      updateLastAssistant(currentTab, `⚠️ ${err.message || 'Something went wrong. Please try again.'}`);
+      updateLastAssistant(`⚠️ ${err.message || 'Something went wrong. Please try again.'}`);
     } finally {
       setIsStreaming(false);
       abortControllerRef.current = null;
@@ -208,12 +200,8 @@ export default function ArtifactChat({
           </div>
           <div>
             <h3 className="text-[14px] font-bold text-text-primary leading-tight">
-              Chat
+              Project Chat
             </h3>
-            <p className="text-[11px] text-text-muted flex items-center gap-1">
-              <TabIcon size={10} className={meta.color} />
-              {meta.label}
-            </p>
           </div>
         </div>
         <button
@@ -232,15 +220,19 @@ export default function ArtifactChat({
               <Sparkles size={20} className="text-primary" />
             </div>
             <h4 className="text-[15px] font-bold text-text-primary mb-1">
-              Ask anything about your {meta.label.toLowerCase()}
+              Ask anything about your project
             </h4>
             <p className="text-[13px] text-text-muted mb-6 max-w-[260px]">
-              Discuss, question, and iterate. When you're ready, apply suggestions directly to your document.
+              Discuss requirements, architecture, or tasks. Your conversation history stays unified across the project.
             </p>
 
             {/* Suggestion chips */}
             <div className="space-y-2 w-full max-w-[280px]">
-              {SUGGESTIONS[activeTab].map((suggestion, i) => (
+              {[
+                'What features am I missing?',
+                'How would this architecture scale?',
+                'Are there any security concerns here?',
+              ].map((suggestion, i) => (
                 <button
                   key={i}
                   onClick={() => handleSuggestionClick(suggestion)}
