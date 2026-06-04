@@ -52,11 +52,7 @@ export default function ResultsViewer({
   const [copied, setCopied] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Refine state
-  const [refinePrompt, setRefinePrompt] = useState('');
-  const [isRefining, setIsRefining] = useState(false);
-  const [refineError, setRefineError] = useState<string | null>(null);
-  const [refineStatus, setRefineStatus] = useState<string | null>(null);
+
   const [showHistory, setShowHistory] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -100,65 +96,7 @@ export default function ResultsViewer({
     setActiveTab('code');
   };
 
-  const handleRefine = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!refinePrompt.trim() || isRefining || !activeArtifact || !projectId) return;
 
-    setIsRefining(true);
-    setRefineError(null);
-    setRefineStatus(`Refining ${activeFile?.filename}...`);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Please sign in again.');
-
-      // Show cascade hint
-      if (activeTab === 'requirements') {
-        setRefineStatus('Refining requirements... Design & Tasks will update automatically.');
-      } else if (activeTab === 'design') {
-        setRefineStatus('Refining design... Tasks will update automatically.');
-      }
-
-      const res = await fetch('/api/artifacts/refine', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          artifactId: activeArtifact.id,
-          projectId,
-          currentContent: activeArtifact.content,
-          prompt: refinePrompt,
-          artifactType: activeTab,
-        }),
-      });
-
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Refinement failed');
-
-      // Update all cascaded artifacts in the parent state
-      if (onArtifactUpdate && data.updatedArtifacts) {
-        for (const updated of data.updatedArtifacts) {
-          onArtifactUpdate(updated);
-        }
-      }
-
-      setRefinePrompt('');
-      const cascadeCount = (data.updatedArtifacts?.length || 1) - 1;
-      if (cascadeCount > 0) {
-        setRefineStatus(`Done! Updated ${activeFile?.filename} + ${cascadeCount} dependent file${cascadeCount > 1 ? 's' : ''}.`);
-      } else {
-        setRefineStatus('Done! Changes saved.');
-      }
-      setTimeout(() => setRefineStatus(null), 4000);
-    } catch (err: any) {
-      setRefineError(err.message || 'Something went wrong.');
-      setRefineStatus(null);
-    } finally {
-      setIsRefining(false);
-    }
-  };
 
   return (
     <div className="h-full flex flex-col animate-fade-in">
@@ -428,62 +366,7 @@ export default function ResultsViewer({
         </div>
       </div>
 
-      {/* Refine chat bar — only show when project is complete and has content */}
-      {isComplete && activeContent && !readOnly && !showChat && (
-        <div className="flex-shrink-0 border-t border-border bg-surface px-4 py-3 print:hidden">
-          <form onSubmit={handleRefine} className="max-w-5xl mx-auto">
-            {refineError && (
-              <div className="mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-error text-[13px] font-medium">
-                {refineError}
-              </div>
-            )}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-text-muted shrink-0">
-                <Sparkles size={14} className="text-primary" />
-                <span className="text-[12px] font-semibold text-text-muted hidden sm:inline">Edit {activeFile?.filename}</span>
-                {activeTab === 'requirements' && (
-                  <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded hidden md:inline">cascades to design + tasks</span>
-                )}
-                {activeTab === 'design' && (
-                  <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded hidden md:inline">cascades to tasks</span>
-                )}
-              </div>
-              <input
-                type="text"
-                value={refinePrompt}
-                onChange={(e) => setRefinePrompt(e.target.value)}
-                disabled={isRefining}
-                placeholder={`What do you want to change?`}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-border bg-bg text-[14px] text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              />
-              <button
-                type="submit"
-                disabled={!refinePrompt.trim() || isRefining}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
-              >
-                {isRefining ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    <span className="hidden sm:inline">Refining...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send size={14} />
-                    <span className="hidden sm:inline">Refine</span>
-                  </>
-                )}
-              </button>
-            </div>
-            {(refineStatus && !refineError) && (
-              <div className="mt-2 flex items-center gap-2 text-[12px] text-primary font-medium animate-fade-in">
-                {isRefining && <Loader2 size={12} className="animate-spin" />}
-                {!isRefining && <CheckCircle2 size={12} className="text-success" />}
-                {refineStatus}
-              </div>
-            )}
-          </form>
-        </div>
-      )}
+
 
       {/* Version History Modal */}
       {activeArtifact && (

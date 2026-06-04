@@ -155,51 +155,38 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto relative" style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 25%, #f0fdfa 50%, #eff6ff 75%, #fdf4ff 100%)' }}>
-      {/* Animated floating gradient orbs */}
+    <div className="h-full overflow-y-auto relative bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]">
+      {/* Premium Landing-Page Inspired Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Animated Floating Orbs matching landing page */}
         <div
-          className="absolute rounded-full blur-3xl opacity-30"
-          style={{
-            width: '500px', height: '500px',
-            background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)',
-            top: '-10%', left: '-5%',
-            animation: 'floatOrb1 18s ease-in-out infinite',
-          }}
+          className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-2xl -top-20 -left-40"
+          style={{ animation: 'floatOrb1 12s ease-in-out infinite', willChange: 'transform' }}
         />
         <div
-          className="absolute rounded-full blur-3xl opacity-25"
-          style={{
-            width: '450px', height: '450px',
-            background: 'radial-gradient(circle, #60a5fa 0%, transparent 70%)',
-            top: '50%', right: '-8%',
-            animation: 'floatOrb2 22s ease-in-out infinite',
-          }}
+          className="absolute w-[400px] h-[400px] rounded-full bg-indigo-300/15 blur-2xl top-[20%] right-[-10%]"
+          style={{ animation: 'floatOrb2 15s ease-in-out infinite', willChange: 'transform' }}
         />
         <div
-          className="absolute rounded-full blur-3xl opacity-20"
-          style={{
-            width: '400px', height: '400px',
-            background: 'radial-gradient(circle, #a78bfa 0%, transparent 70%)',
-            bottom: '-5%', left: '30%',
-            animation: 'floatOrb3 20s ease-in-out infinite',
-          }}
+          className="absolute w-[300px] h-[300px] rounded-full bg-pink-200/10 blur-2xl bottom-[10%] left-[30%]"
+          style={{ animation: 'floatOrb3 18s ease-in-out infinite', willChange: 'transform' }}
         />
         <div
-          className="absolute rounded-full blur-3xl opacity-15"
-          style={{
-            width: '350px', height: '350px',
-            background: 'radial-gradient(circle, #67e8f9 0%, transparent 70%)',
-            top: '20%', left: '50%',
-            animation: 'floatOrb4 25s ease-in-out infinite',
-          }}
+          className="absolute w-[200px] h-[200px] rounded-full bg-white/15 blur-xl top-[50%] left-[10%]"
+          style={{ animation: 'floatOrb2 10s ease-in-out infinite reverse', willChange: 'transform' }}
         />
-        {/* Subtle dot grid pattern overlay */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute w-[350px] h-[350px] rounded-full bg-sky-200/10 blur-2xl top-[10%] left-[50%]"
+          style={{ animation: 'floatOrb1 20s ease-in-out infinite reverse', willChange: 'transform' }}
+        />
+
+        {/* Optimized Premium Noise Texture */}
+        <div
+          className="absolute inset-0 opacity-[0.15] pointer-events-none"
           style={{
-            backgroundImage: 'radial-gradient(circle, #4A6BFF 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            transform: 'translateZ(0)',
+            willChange: 'transform'
           }}
         />
       </div>
@@ -207,12 +194,17 @@ export default function DashboardPage() {
       <div className="min-h-full flex flex-col items-center justify-center px-6 py-16 relative z-10">
         <div className="w-full max-w-[720px] mx-auto">
           <div className="text-center mb-10 animate-fade-in-up">
-            <h1 className="text-[38px] md:text-[48px] font-extrabold text-text-primary tracking-tight leading-[1.1] mb-3">
+            <h1 className="text-[38px] md:text-[48px] font-extrabold text-white tracking-tight leading-[1.1] mb-3" style={{ fontFamily: 'Georgia, serif' }}>
               What would you like
               <br />
-              <span className="text-primary">to build?</span>
+              <span className="relative inline-block">
+                <span className="text-[#4C1D95] relative z-10">to build?</span>
+                <svg className="absolute w-full h-4 -bottom-1 left-0 text-[#4C1D95] z-0 opacity-80" viewBox="0 0 100 15" preserveAspectRatio="none">
+                  <path d="M 2 12 C 20 5, 35 14, 60 7 C 75 2, 88 11, 98 8" stroke="currentColor" strokeWidth="2.5" fill="transparent" strokeLinecap="round" />
+                </svg>
+              </span>
             </h1>
-            <p className="text-[17px] text-text-muted max-w-md mx-auto leading-relaxed">
+            <p className="text-[17px] text-white/90 max-w-md mx-auto leading-relaxed">
               Describe your app idea and choose your generation mode
             </p>
           </div>
@@ -227,69 +219,69 @@ export default function DashboardPage() {
             </div>
           )}
 
-            {/* SSE Progress Display */}
-            {isLoading && (
-              <div className="mt-6 animate-fade-in">
-                <div className="rounded-2xl border border-white/60 overflow-hidden shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)' }}>
-                  {/* Progress bar */}
-                  <div className="h-1.5 bg-gray-100 w-full">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary via-violet-500 to-primary transition-all duration-700 ease-out rounded-full"
-                      style={{ width: `${progress?.progress || 2}%` }}
-                    />
-                  </div>
+          {/* SSE Progress Display */}
+          {isLoading && (
+            <div className="mt-6 animate-fade-in">
+              <div className="rounded-2xl border border-white/60 overflow-hidden shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)' }}>
+                {/* Progress bar */}
+                <div className="h-1.5 bg-gray-100 w-full">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary via-violet-500 to-primary transition-all duration-700 ease-out rounded-full"
+                    style={{ width: `${progress?.progress || 2}%` }}
+                  />
+                </div>
 
-                  <div className="px-5 py-4">
-                    {/* Stage message */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Sparkles size={16} className="text-primary animate-pulse" />
-                        <span className="text-[15px] font-semibold text-text-primary">
-                          {progress?.message || 'Starting generation…'}
-                        </span>
-                      </div>
-                      <span className="text-[14px] font-bold text-primary tabular-nums">
-                        {progress?.progress || 0}%
+                <div className="px-5 py-4">
+                  {/* Stage message */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={16} className="text-primary animate-pulse" />
+                      <span className="text-[15px] font-semibold text-text-primary">
+                        {progress?.message || 'Starting generation…'}
                       </span>
                     </div>
+                    <span className="text-[14px] font-bold text-primary tabular-nums">
+                      {progress?.progress || 0}%
+                    </span>
+                  </div>
 
-                    {/* Stage indicators */}
-                    <div className="flex items-center gap-3">
-                      {(['requirements', 'design', 'tasks'] as const).map((stage, idx) => {
-                        const status = getStageStatus(stage);
-                        const config = STAGE_CONFIG[stage];
-                        const Icon = config.icon;
-                        return (
-                          <div key={stage} className="flex items-center gap-3">
-                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-500 ${status === 'done'
-                                ? 'bg-emerald-50 border border-emerald-200'
-                                : status === 'active'
-                                  ? 'bg-primary/5 border border-primary/30 shadow-sm'
-                                  : 'bg-gray-50 border border-gray-200 opacity-50'
-                              }`}>
-                              {status === 'done' ? (
-                                <CheckCircle2 size={13} className="text-emerald-500" />
-                              ) : status === 'active' ? (
-                                <Loader2 size={13} className="text-primary animate-spin" />
-                              ) : (
-                                <Icon size={13} className="text-gray-400" />
-                              )}
-                              <span className={`text-[13px] font-semibold ${status === 'done' ? 'text-emerald-600' : status === 'active' ? 'text-primary' : 'text-gray-400'
-                                }`}>
-                                {config.label}
-                              </span>
-                            </div>
-                            {idx < 2 && (
-                              <div className={`w-4 h-px ${status === 'done' ? 'bg-emerald-300' : 'bg-gray-200'}`} />
+                  {/* Stage indicators */}
+                  <div className="flex items-center gap-3">
+                    {(['requirements', 'design', 'tasks'] as const).map((stage, idx) => {
+                      const status = getStageStatus(stage);
+                      const config = STAGE_CONFIG[stage];
+                      const Icon = config.icon;
+                      return (
+                        <div key={stage} className="flex items-center gap-3">
+                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-500 ${status === 'done'
+                            ? 'bg-emerald-50 border border-emerald-200'
+                            : status === 'active'
+                              ? 'bg-primary/5 border border-primary/30 shadow-sm'
+                              : 'bg-gray-50 border border-gray-200 opacity-50'
+                            }`}>
+                            {status === 'done' ? (
+                              <CheckCircle2 size={13} className="text-emerald-500" />
+                            ) : status === 'active' ? (
+                              <Loader2 size={13} className="text-primary animate-spin" />
+                            ) : (
+                              <Icon size={13} className="text-gray-400" />
                             )}
+                            <span className={`text-[13px] font-semibold ${status === 'done' ? 'text-emerald-600' : status === 'active' ? 'text-primary' : 'text-gray-400'
+                              }`}>
+                              {config.label}
+                            </span>
                           </div>
-                        );
-                      })}
-                    </div>
+                          {idx < 2 && (
+                            <div className={`w-4 h-px ${status === 'done' ? 'bg-emerald-300' : 'bg-gray-200'}`} />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
     </div>
