@@ -13,6 +13,17 @@ interface MermaidDiagramProps {
 function sanitizeMermaidChart(chart: string): string {
   let cleaned = chart;
 
+  // 0. Fix subgraph closing: Mermaid uses `end`, not `}`. AI models often
+  //    generate `}` from programming-language habits.
+  //    Protect valid Mermaid double-brace shapes ({{ and }}) first,
+  //    then replace any remaining lone `}` with `end`.
+  cleaned = cleaned.replace(/\{\{/g, '\x00DBLOPEN\x00');
+  cleaned = cleaned.replace(/\}\}/g, '\x00DBLCLOSE\x00');
+  // Replace `}` that is either on its own line OR inline between content
+  cleaned = cleaned.replace(/\}/g, 'end');
+  cleaned = cleaned.replace(/\x00DBLOPEN\x00/g, '{{');
+  cleaned = cleaned.replace(/\x00DBLCLOSE\x00/g, '}}');
+
   // 1. Replace edge labels syntax if they are not in quotes:
   // e.g. -->|some text| or -->|some "text"| -> -->|"some text"|
   cleaned = cleaned.replace(/-->\s*\|([^"|]+)\|/g, '-->|"$1"|');

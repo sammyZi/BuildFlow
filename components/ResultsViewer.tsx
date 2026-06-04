@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Artifact, ArtifactType } from '@/types';
 import MarkdownRenderer from './MarkdownRenderer';
 import ScrollButtons from './ScrollButtons';
@@ -27,10 +28,11 @@ interface ResultsViewerProps {
   readOnly?: boolean;
 }
 
-const TABS: Array<{ id: ArtifactType; label: string; filename: string; Icon: React.ComponentType<any> }> = [
+const TABS: Array<{ id: ArtifactType | 'code'; label: string; filename: string; Icon: React.ComponentType<any> }> = [
   { id: 'requirements', label: 'Requirements', filename: 'requirements.md', Icon: FileText },
   { id: 'design', label: 'System Design', filename: 'design.md', Icon: GitBranch },
   { id: 'tasks', label: 'Tasks', filename: 'tasks.md', Icon: ListChecks },
+  { id: 'code', label: 'Starter Code', filename: 'code viewer', Icon: Code2 },
 ];
 
 export default function ResultsViewer({
@@ -44,6 +46,7 @@ export default function ResultsViewer({
   onTogglePublic,
   readOnly = false,
 }: ResultsViewerProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('requirements');
   const [copied, setCopied] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -58,7 +61,6 @@ export default function ResultsViewer({
   const [showChat, setShowChat] = useState(false);
   const [isApplyingChat, setIsApplyingChat] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
 
   const handlePrint = () => {
     window.print();
@@ -92,54 +94,10 @@ export default function ResultsViewer({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleGenerateCode = async () => {
-    if (isGeneratingCode || !projectId) return;
-    setIsGeneratingCode(true);
+  const handleGenerateCode = () => {
+    if (!projectId) return;
     setShowExportMenu(false);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Please sign in again.');
-
-      const res = await fetch('/api/generate-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ projectId }),
-      });
-
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Failed to generate code');
-
-      // Build zip from the file array
-      const JSZip = (await import('jszip')).default;
-      const zip = new JSZip();
-      for (const file of data.files) {
-        if (file.path && file.content) {
-          zip.file(file.path, file.content);
-        }
-      }
-
-      const blob = await zip.generateAsync({ type: 'blob' });
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `starter-code-${projectId.slice(0, 8)}-${timestamp}.zip`;
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (err: any) {
-      console.error('Failed to generate starter code:', err);
-      alert(err.message || 'Failed to generate starter code. Please try again.');
-    } finally {
-      setIsGeneratingCode(false);
-    }
+    router.push(`/dashboard/project/${projectId}/code`);
   };
 
   const handleRefine = async (e: React.FormEvent) => {
@@ -237,13 +195,23 @@ export default function ResultsViewer({
 
           <div className="flex flex-1 overflow-x-auto hide-scrollbar">
             {TABS.map(tab => {
-              const isReady = artifactTypes.has(tab.id);
+              const isReady = artifactTypes.has(tab.id as any);
               const isActive = activeTab === tab.id;
               const TabIcon = tab.Icon;
+
+              // Only show code tab if the rest is generated
+              if (tab.id === 'code' && !isComplete) return null;
+
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    if (tab.id === 'code') {
+                      handleGenerateCode();
+                    } else {
+                      setActiveTab(tab.id);
+                    }
+                  }}
                   className={`flex items-center gap-2.5 px-4 py-3 text-[15px] transition-all border-b-2 whitespace-nowrap ${
                     isActive
                       ? 'bg-surface border-primary text-primary font-semibold'
@@ -252,10 +220,10 @@ export default function ResultsViewer({
                 >
                   <TabIcon size={16} className={isActive ? 'text-primary' : 'text-text-muted'} strokeWidth={1.5} />
                   <span>{tab.filename}</span>
-                  {!isReady && isLoading && (
+                  {!isReady && isLoading && tab.id !== 'code' && (
                     <Loader2 size={13} className="animate-spin text-primary shrink-0" />
                   )}
-                  {isReady && (
+                  {isReady && tab.id !== 'code' && (
                     <CheckCircle2 size={15} className="text-success shrink-0" strokeWidth={2} />
                   )}
                 </button>
@@ -266,12 +234,6 @@ export default function ResultsViewer({
           {/* Actions */}
           {isComplete && (
             <div className="p-2 sm:border-l border-border shrink-0 flex items-center gap-2 print:hidden relative">
-              {isGeneratingCode && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[13px] font-semibold animate-pulse">
-                  <Loader2 size={14} className="animate-spin" />
-                  <span className="hidden sm:inline">Generating code…</span>
-                </div>
-              )}
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
                 onBlur={() => setTimeout(() => setShowExportMenu(false), 200)}
@@ -314,11 +276,10 @@ export default function ResultsViewer({
                       <div className="my-1 border-t border-border" />
                       <button
                         onClick={(e) => { e.stopPropagation(); handleGenerateCode(); }}
-                        disabled={isGeneratingCode}
-                        className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-primary/10 text-[13px] font-semibold text-primary hover:text-primary-hover transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-primary/10 text-[13px] font-semibold text-primary hover:text-primary-hover transition-colors"
                       >
-                        {isGeneratingCode ? <Loader2 size={14} className="animate-spin" /> : <Code2 size={14} />}
-                        {isGeneratingCode ? 'Generating...' : 'Generate Starter Code'}
+                        <Code2 size={14} />
+                        Generate Starter Code
                       </button>
                     </>
                   )}

@@ -3,7 +3,23 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { ArrowUp, Loader2, Zap, SlidersHorizontal } from 'lucide-react';
+import { startSSEStream } from '@/lib/hooks/useSSE';
+import { ArrowUp, Loader2, Zap, SlidersHorizontal, FileText, GitBranch, ListChecks, CheckCircle2, Sparkles } from 'lucide-react';
+
+interface ProgressState {
+  stage: string;
+  status: string;
+  progress: number;
+  message: string;
+  projectId?: string;
+}
+
+const STAGE_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+  requirements: { label: 'Requirements', icon: FileText, color: 'text-blue-500' },
+  design: { label: 'System Design', icon: GitBranch, color: 'text-violet-500' },
+  tasks: { label: 'Tasks', icon: ListChecks, color: 'text-emerald-500' },
+  complete: { label: 'Complete', icon: CheckCircle2, color: 'text-success' },
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -12,6 +28,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [progress, setProgress] = useState<ProgressState | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +55,7 @@ export default function DashboardPage() {
 
     setIsLoading(true);
     setError(null);
+    setProgress(null);
 
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -72,30 +90,60 @@ export default function DashboardPage() {
         return;
       }
 
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ appIdea: idea, userId: session.user.id })
-      });
+      // Fast mode — use SSE streaming
+      let projectId: string | null = null;
 
-      if (!response.ok) {
-        let msg = 'Failed to generate artifacts';
-        try { const d = await response.json(); msg = d.error || msg; } catch { }
-        throw new Error(msg);
-      }
-
-      const data = await response.json();
-      if (!data.success) throw new Error(data.error || 'Generation failed');
-
-      router.push(`/dashboard/project/${data.projectId}`);
+      await startSSEStream(
+        '/api/generate',
+        { appIdea: idea, userId: session.user.id },
+        {
+          onEvent: (event, data: any) => {
+            if (event === 'init') {
+              projectId = data.projectId;
+              setProgress(prev => ({ ...(prev || { stage: '', status: '', progress: 0, message: '' }), projectId: data.projectId }));
+            } else if (event === 'progress') {
+              setProgress({
+                stage: data.stage,
+                status: data.status,
+                progress: data.progress,
+                message: data.message,
+                projectId: projectId || undefined,
+              });
+            } else if (event === 'error') {
+              throw new Error(data.message);
+            }
+          },
+          onError: (err) => {
+            setError(err.message || 'Something went wrong.');
+            setIsLoading(false);
+          },
+          onDone: () => {
+            if (projectId) {
+              router.push(`/dashboard/project/${projectId}`);
+            } else {
+              setError('Generation completed but no project was created.');
+              setIsLoading(false);
+            }
+          },
+        }
+      );
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
-    } finally {
       setIsLoading(false);
     }
+  };
+
+  // Determine which stages are done, active, or pending
+  const getStageStatus = (stage: string): 'done' | 'active' | 'pending' => {
+    if (!progress) return 'pending';
+    const stageOrder = ['requirements', 'design', 'tasks', 'complete'];
+    const currentIdx = stageOrder.indexOf(progress.stage);
+    const stageIdx = stageOrder.indexOf(stage);
+    if (stageIdx < currentIdx) return 'done';
+    if (stageIdx === currentIdx) {
+      return progress.status === 'done' ? 'done' : 'active';
+    }
+    return 'pending';
   };
 
   return (
@@ -250,10 +298,69 @@ export default function DashboardPage() {
               </div>
             )}
 
+            {/* SSE Progress Display */}
             {isLoading && (
-              <div className="mt-4 flex items-center justify-center gap-2 text-primary text-[15px] font-semibold animate-fade-in">
-                <Loader2 size={16} className="animate-spin" />
-                Generating your architecture docs…
+              <div className="mt-6 animate-fade-in">
+                <div className="rounded-2xl border border-white/60 overflow-hidden shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)' }}>
+                  {/* Progress bar */}
+                  <div className="h-1.5 bg-gray-100 w-full">
+                    <div
+                      className="h-full bg-gradient-to-r from-primary via-violet-500 to-primary transition-all duration-700 ease-out rounded-full"
+                      style={{ width: `${progress?.progress || 2}%` }}
+                    />
+                  </div>
+
+                  <div className="px-5 py-4">
+                    {/* Stage message */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={16} className="text-primary animate-pulse" />
+                        <span className="text-[15px] font-semibold text-text-primary">
+                          {progress?.message || 'Starting generation…'}
+                        </span>
+                      </div>
+                      <span className="text-[14px] font-bold text-primary tabular-nums">
+                        {progress?.progress || 0}%
+                      </span>
+                    </div>
+
+                    {/* Stage indicators */}
+                    <div className="flex items-center gap-3">
+                      {(['requirements', 'design', 'tasks'] as const).map((stage, idx) => {
+                        const status = getStageStatus(stage);
+                        const config = STAGE_CONFIG[stage];
+                        const Icon = config.icon;
+                        return (
+                          <div key={stage} className="flex items-center gap-3">
+                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-500 ${
+                              status === 'done'
+                                ? 'bg-emerald-50 border border-emerald-200'
+                                : status === 'active'
+                                ? 'bg-primary/5 border border-primary/30 shadow-sm'
+                                : 'bg-gray-50 border border-gray-200 opacity-50'
+                            }`}>
+                              {status === 'done' ? (
+                                <CheckCircle2 size={13} className="text-emerald-500" />
+                              ) : status === 'active' ? (
+                                <Loader2 size={13} className="text-primary animate-spin" />
+                              ) : (
+                                <Icon size={13} className="text-gray-400" />
+                              )}
+                              <span className={`text-[13px] font-semibold ${
+                                status === 'done' ? 'text-emerald-600' : status === 'active' ? 'text-primary' : 'text-gray-400'
+                              }`}>
+                                {config.label}
+                              </span>
+                            </div>
+                            {idx < 2 && (
+                              <div className={`w-4 h-px ${status === 'done' ? 'bg-emerald-300' : 'bg-gray-200'}`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </form>

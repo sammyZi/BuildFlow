@@ -11,7 +11,8 @@ const MERMAID_INSTRUCTIONS = `IMPORTANT FOR MERMAID DIAGRAMS:
 3. For ALL edge labels containing spaces, parentheses, slashes, or special characters, you MUST wrap the edge label in double quotes using the \`-->|"Edge Label"|\` syntax.
 4. NEVER use \`--(Label)-->\` or \`-- Label -->\` for edge labels; use standard \`-->|Label|\` or \`-->|"Label"|\` syntax only.
 5. For subgraphs, the ID must be a single alphanumeric word without special characters or spaces, and the visual title must be in brackets, e.g., \`subgraph InfrastructureServices ["Infrastructure & Services"]\`.
-6. DO NOT use Gantt charts or sequence diagrams with dates to prevent 'Invalid date' parsing errors. Stick to standard flowcharts (graph TD or LR).`;
+6. DO NOT use Gantt charts or sequence diagrams with dates to prevent 'Invalid date' parsing errors. Stick to standard flowcharts (graph TD or LR).
+7. CRITICAL: Close every \`subgraph\` block with the keyword \`end\`, NOT with a closing brace \`}\`. Using \`}\` will cause a parse error.`;
 
 const MARKDOWN_NO_WRAP = 'IMPORTANT: Do not wrap your response in a markdown code block (like ```markdown). Respond with raw markdown text only.';
 

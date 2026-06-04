@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { withAuth } from '@/lib/api/withAuth';
+import { createSSEStream } from '@/lib/api/sse';
 import { GenerationOrchestrator } from '@/lib/gemini';
-import type { GenerateRequest, GenerateResponse } from '@/types';
+import type { GenerateRequest } from '@/types';
+
+// Allow up to 2 minutes for the full pipeline
+export const maxDuration = 120;
 
 export async function POST(req: Request) {
   try {
@@ -44,18 +48,32 @@ export async function POST(req: Request) {
 
     const techPreferences = profile?.tech_preferences || undefined;
 
-    // Invoke GenerationOrchestrator in background
-    const orchestrator = new GenerationOrchestrator();
-    orchestrator.generateAll(project.id, appIdea, techPreferences).catch(err => {
-      console.error(`Background generation failed for project ${project.id}:`, err);
-    });
+    // Create SSE stream and run pipeline with progress
+    const { stream, send, done } = createSSEStream();
 
-    const response: GenerateResponse = {
-      success: true,
-      projectId: project.id,
-    };
+    // Send projectId immediately so the client can start navigating
+    send('init', { projectId: project.id });
 
-    return NextResponse.json(response, { status: 200 });
+    // Run pipeline asynchronously, streaming progress
+    (async () => {
+      try {
+        const orchestrator = new GenerationOrchestrator();
+        await orchestrator.generateAllWithProgress(
+          project.id,
+          appIdea,
+          techPreferences,
+          (event) => {
+            send('progress', event);
+          }
+        );
+      } catch (err: any) {
+        send('error', { message: err.message || 'Generation failed' });
+      } finally {
+        done();
+      }
+    })();
+
+    return stream;
   } catch (error: any) {
     console.error('Error in /api/generate:', error);
     return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });

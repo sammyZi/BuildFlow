@@ -4,11 +4,12 @@ import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
+import { startSSEStream } from '@/lib/hooks/useSSE';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import ResultsViewer from '@/components/ResultsViewer';
 import { Artifact, ArtifactType, Project } from '@/types';
 import {
-  ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3
+  ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3, Sparkles
 } from 'lucide-react';
 import { ShiningText } from '@/components/ui/shining-text';
 import ScrollButtons from '@/components/ScrollButtons';
@@ -75,6 +76,8 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
 
   // UI states
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationMessage, setGenerationMessage] = useState<string | null>(null);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [refinePrompt, setRefinePrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -140,6 +143,8 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
   const generateStage = async (action: string) => {
     setIsGenerating(true);
     setError(null);
+    setGenerationMessage(null);
+    setGenerationProgress(0);
     let parsedResult = null;
 
     try {
@@ -165,44 +170,78 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
         payload.design = design;
       }
 
-      const data = await fetchDetailedApi(endpoint, payload);
-      if (!data.success) throw new Error('Generation failed');
+      // SSE-enabled actions (requirements, design, tasks generation)
+      const sseActions = ['generate_requirements', 'generate_design', 'generate_tasks'];
+      if (sseActions.includes(action)) {
+        // Use SSE streaming
+        let resultContent: string | null = null;
 
-      if (action === 'generate_questions') {
-        const parsed = JSON.parse(data.content);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setQuestions(parsed);
-          parsedResult = parsed;
-        } else {
-          throw new Error('Invalid questions format');
+        await startSSEStream(endpoint, payload, {
+          onEvent: (event, data: any) => {
+            if (event === 'progress') {
+              setGenerationMessage(data.message || null);
+              setGenerationProgress(data.progress || 0);
+            } else if (event === 'result') {
+              if (data.success) {
+                resultContent = data.content;
+              } else {
+                throw new Error('Generation failed');
+              }
+            } else if (event === 'error') {
+              throw new Error(data.message || 'Generation failed');
+            }
+          },
+          onError: (err) => {
+            setError(err.message || 'Something went wrong.');
+          },
+          onDone: () => {
+            setGenerationMessage(null);
+          },
+        });
+
+        if (resultContent) {
+          if (action === 'generate_requirements') {
+            setRequirements(resultContent);
+            parsedResult = resultContent;
+          } else if (action === 'generate_design') {
+            setDesign(resultContent);
+            parsedResult = resultContent;
+          } else if (action === 'generate_tasks') {
+            setTasks(resultContent);
+            parsedResult = resultContent;
+          }
         }
-      }
-      if (action === 'generate_design_questions') {
-        const parsed = JSON.parse(data.content);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setDesignQuestions(parsed);
-          parsedResult = parsed;
-        } else {
-          throw new Error('Invalid design questions format');
+      } else {
+        // Non-SSE actions (questions, design-questions) use regular fetch
+        const data = await fetchDetailedApi(endpoint, payload);
+        if (!data.success) throw new Error('Generation failed');
+
+        if (action === 'generate_questions') {
+          const parsed = JSON.parse(data.content);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setQuestions(parsed);
+            parsedResult = parsed;
+          } else {
+            throw new Error('Invalid questions format');
+          }
         }
-      }
-      if (action === 'generate_requirements') {
-        setRequirements(data.content);
-        parsedResult = data.content;
-      }
-      if (action === 'generate_design') {
-        setDesign(data.content);
-        parsedResult = data.content;
-      }
-      if (action === 'generate_tasks') {
-        setTasks(data.content);
-        parsedResult = data.content;
+        if (action === 'generate_design_questions') {
+          const parsed = JSON.parse(data.content);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setDesignQuestions(parsed);
+            parsedResult = parsed;
+          } else {
+            throw new Error('Invalid design questions format');
+          }
+        }
       }
     } catch (err: any) {
       console.error('Error in generateStage:', err);
       setError(err.message || 'Something went wrong.');
     } finally {
       setIsGenerating(false);
+      setGenerationMessage(null);
+      setGenerationProgress(0);
     }
     return parsedResult;
   };
@@ -396,7 +435,24 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
               <p className="text-[20px] font-bold text-text-primary mb-2">
                 Generating {activeConfig.title}
               </p>
-              <ShiningText text="BuildFlow is thinking..." />
+              {generationMessage ? (
+                <div className="flex flex-col items-center gap-3 mt-2">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Sparkles size={14} className="animate-pulse" />
+                    <span className="text-[15px] font-semibold">{generationMessage}</span>
+                  </div>
+                  {generationProgress > 0 && (
+                    <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-primary to-violet-500 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${generationProgress}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <ShiningText text="BuildFlow is thinking..." />
+              )}
             </div>
           ) : (currentStep === 'questions' || currentStep === 'design-questions') ? (
             <div className="animate-fade-in-up space-y-8">
