@@ -15,12 +15,15 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/dashboard');
+      } else {
+        setIsChecking(false);
       }
     });
   }, [router]);
@@ -39,6 +42,14 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-bg">
+        <Loader2 size={32} className="animate-spin text-primary" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-bg font-sans px-4 relative overflow-hidden">
