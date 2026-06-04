@@ -258,8 +258,8 @@ export default function DashboardPage() {
                         type="button"
                         onClick={() => { setMode('fast'); setShowDropdown(false); }}
                         className={`w-full px-4 py-2 text-[15px] font-medium transition-colors text-left ${mode === 'fast'
-                            ? 'text-primary bg-primary/5'
-                            : 'text-text-primary hover:bg-surface/50'
+                          ? 'text-primary bg-primary/5'
+                          : 'text-text-primary hover:bg-surface/50'
                           }`}
                       >
                         Fast
@@ -268,8 +268,8 @@ export default function DashboardPage() {
                         type="button"
                         onClick={() => { setMode('detailed'); setShowDropdown(false); }}
                         className={`w-full px-4 py-2 text-[15px] font-medium transition-colors text-left ${mode === 'detailed'
-                            ? 'text-primary bg-primary/5'
-                            : 'text-text-primary hover:bg-surface/50'
+                          ? 'text-primary bg-primary/5'
+                          : 'text-text-primary hover:bg-surface/50'
                           }`}
                       >
                         Detailed
@@ -332,13 +332,12 @@ export default function DashboardPage() {
                         const Icon = config.icon;
                         return (
                           <div key={stage} className="flex items-center gap-3">
-                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-500 ${
-                              status === 'done'
+                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-500 ${status === 'done'
                                 ? 'bg-emerald-50 border border-emerald-200'
                                 : status === 'active'
-                                ? 'bg-primary/5 border border-primary/30 shadow-sm'
-                                : 'bg-gray-50 border border-gray-200 opacity-50'
-                            }`}>
+                                  ? 'bg-primary/5 border border-primary/30 shadow-sm'
+                                  : 'bg-gray-50 border border-gray-200 opacity-50'
+                              }`}>
                               {status === 'done' ? (
                                 <CheckCircle2 size={13} className="text-emerald-500" />
                               ) : status === 'active' ? (
@@ -346,9 +345,8 @@ export default function DashboardPage() {
                               ) : (
                                 <Icon size={13} className="text-gray-400" />
                               )}
-                              <span className={`text-[13px] font-semibold ${
-                                status === 'done' ? 'text-emerald-600' : status === 'active' ? 'text-primary' : 'text-gray-400'
-                              }`}>
+                              <span className={`text-[13px] font-semibold ${status === 'done' ? 'text-emerald-600' : status === 'active' ? 'text-primary' : 'text-gray-400'
+                                }`}>
                                 {config.label}
                               </span>
                             </div>

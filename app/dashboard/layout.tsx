@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex flex-col lg:flex-row h-screen overflow-hidden font-sans bg-bg">
         {/* Mobile Backdrop */}
         {isMobileMenuOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden animate-in fade-in"
             onClick={() => setIsMobileMenuOpen(false)}
           />

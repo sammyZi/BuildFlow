@@ -212,11 +212,10 @@ export default function ResultsViewer({
                       setActiveTab(tab.id);
                     }
                   }}
-                  className={`flex items-center gap-2.5 px-4 py-3 text-[15px] transition-all border-b-2 whitespace-nowrap ${
-                    isActive
-                      ? 'bg-surface border-primary text-primary font-semibold'
-                      : 'border-transparent text-text-secondary hover:bg-surface hover:text-text-primary'
-                  }`}
+                  className={`flex items-center gap-2.5 px-4 py-3 text-[15px] transition-all border-b-2 whitespace-nowrap ${isActive
+                    ? 'bg-surface border-primary text-primary font-semibold'
+                    : 'border-transparent text-text-secondary hover:bg-surface hover:text-text-primary'
+                    }`}
                 >
                   <TabIcon size={16} className={isActive ? 'text-primary' : 'text-text-muted'} strokeWidth={1.5} />
                   <span>{tab.filename}</span>
@@ -299,83 +298,82 @@ export default function ResultsViewer({
               <>
                 {/* Document Toolbar */}
                 <div className="flex items-center justify-between px-6 border-b border-border flex-shrink-0 print:hidden h-[53px]">
-              <div className="flex items-center gap-2 text-[14px] text-text-primary font-semibold">
-                {activeTab === 'requirements' && <FileText size={15} className="text-blue-600" />}
-                {activeTab === 'design' && <GitBranch size={15} className="text-violet-600" />}
-                {activeTab === 'tasks' && <ListChecks size={15} className="text-emerald-600" />}
-                {activeFile?.filename}
-              </div>
-              {activeContent && (
-                <div className="flex items-center gap-1">
-                  {!readOnly && (
-                    <button
-                      onClick={() => setShowChat(!showChat)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors ${
-                        showChat
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-text-muted hover:text-text-primary hover:bg-surface-alt'
-                      }`}
-                    >
-                      <MessageSquare size={14} />
-                      Chat
-                    </button>
+                  <div className="flex items-center gap-2 text-[14px] text-text-primary font-semibold">
+                    {activeTab === 'requirements' && <FileText size={15} className="text-blue-600" />}
+                    {activeTab === 'design' && <GitBranch size={15} className="text-violet-600" />}
+                    {activeTab === 'tasks' && <ListChecks size={15} className="text-emerald-600" />}
+                    {activeFile?.filename}
+                  </div>
+                  {activeContent && (
+                    <div className="flex items-center gap-1">
+                      {!readOnly && (
+                        <button
+                          onClick={() => setShowChat(!showChat)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors ${showChat
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-text-muted hover:text-text-primary hover:bg-surface-alt'
+                            }`}
+                        >
+                          <MessageSquare size={14} />
+                          Chat
+                        </button>
+                      )}
+                      {isComplete && !readOnly && (
+                        <button
+                          onClick={() => setShowHistory(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-text-muted hover:text-text-primary hover:bg-surface-alt transition-colors"
+                        >
+                          <History size={14} />
+                          History
+                        </button>
+                      )}
+                      <button
+                        onClick={handleCopy}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-text-muted hover:text-text-primary hover:bg-surface-alt transition-colors"
+                      >
+                        {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+                        {copied ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
                   )}
-                  {isComplete && !readOnly && (
-                    <button
-                      onClick={() => setShowHistory(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-text-muted hover:text-text-primary hover:bg-surface-alt transition-colors"
-                    >
-                      <History size={14} />
-                      History
-                    </button>
-                  )}
-                  <button
-                    onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-text-muted hover:text-text-primary hover:bg-surface-alt transition-colors"
-                  >
-                    {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
-                    {copied ? 'Copied' : 'Copy'}
-                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* Markdown content */}
-            <div className="flex-1 overflow-y-auto px-6 py-8 md:px-12 md:py-10 print:px-0 print:py-0 print:overflow-visible" ref={scrollContainerRef}>
-              {activeContent ? (
-                <div className="max-w-4xl mx-auto min-h-full">
-                  <MarkdownRenderer content={activeContent} />
-                </div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-text-muted">
-                  {isLoading ? (
-                    <div className="flex flex-col items-center gap-4 animate-fade-in">
-                      <div className="w-12 h-12 rounded-2xl bg-primary-muted flex items-center justify-center">
-                        <Loader2 size={22} className="animate-spin text-primary" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[17px] font-semibold text-text-primary mb-1">
-                          Generating {activeFile?.label}
-                        </p>
-                        <ShiningText text="BuildFlow is thinking..." />
-                      </div>
+                {/* Markdown content */}
+                <div className="flex-1 overflow-y-auto px-6 py-8 md:px-12 md:py-10 print:px-0 print:py-0 print:overflow-visible" ref={scrollContainerRef}>
+                  {activeContent ? (
+                    <div className="max-w-4xl mx-auto min-h-full">
+                      <MarkdownRenderer content={activeContent} />
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-3 animate-fade-in">
-                      <Clock size={28} className="text-text-faint" strokeWidth={1.2} />
-                      <ShiningText text="BuildFlow is thinking..." />
+                    <div className="h-full flex flex-col items-center justify-center text-text-muted">
+                      {isLoading ? (
+                        <div className="flex flex-col items-center gap-4 animate-fade-in">
+                          <div className="w-12 h-12 rounded-2xl bg-primary-muted flex items-center justify-center">
+                            <Loader2 size={22} className="animate-spin text-primary" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[17px] font-semibold text-text-primary mb-1">
+                              Generating {activeFile?.label}
+                            </p>
+                            <ShiningText text="BuildFlow is thinking..." />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-3 animate-fade-in">
+                          <Clock size={28} className="text-text-faint" strokeWidth={1.2} />
+                          <ShiningText text="BuildFlow is thinking..." />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-            
-            <ScrollButtons 
-              containerRef={scrollContainerRef} 
-              className="absolute bottom-8 right-8" 
-            />
-            </>
-          )}
+
+                <ScrollButtons
+                  containerRef={scrollContainerRef}
+                  className="absolute bottom-8 right-8"
+                />
+              </>
+            )}
           </div>
 
           {/* Chat sidebar */}

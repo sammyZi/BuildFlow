@@ -36,10 +36,9 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
 
       {/* Main Sidebar (Project History) */}
       {sidebar && (
-        <div 
-          className={`${
-            isSidebarOpen ? 'w-[280px] opacity-100' : 'w-0 opacity-0'
-          } transition-all duration-300 ease-in-out bg-chat-sidebar1 border-r border-chat-border flex-col flex-shrink-0 z-10 hidden lg:flex`}
+        <div
+          className={`${isSidebarOpen ? 'w-[280px] opacity-100' : 'w-0 opacity-0'
+            } transition-all duration-300 ease-in-out bg-chat-sidebar1 border-r border-chat-border flex-col flex-shrink-0 z-10 hidden lg:flex`}
         >
           <div className="w-[280px] h-full flex flex-col">
             {sidebar}
@@ -49,12 +48,12 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col relative h-full bg-chat-main w-full min-w-0">
-        
+
         {/* Top Header */}
         <header className="h-[60px] border-b border-chat-border flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-10 bg-chat-main">
           <div className="flex items-center gap-3">
             {sidebar && (
-              <button 
+              <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className="p-2 -ml-2 text-chat-textMuted hover:text-chat-text hover:bg-chat-sidebar1 rounded-md transition-colors"
                 title={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
@@ -100,7 +99,7 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
             </div>
           </div>
         </div>
-        
+
       </div>
 
       {/* Sign Out Confirmation Modal */}
