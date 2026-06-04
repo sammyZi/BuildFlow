@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ShiningText } from '@/components/ui/shining-text';
 import ScrollButtons from '@/components/ScrollButtons';
+import { useCodeStore } from '@/lib/store/useCodeStore';
 
 type Step = 'questions' | 'requirements' | 'design-questions' | 'design' | 'tasks';
 
@@ -673,11 +674,18 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
 
   const handleDownloadBundle = async () => {
     try {
-      const { data } = await supabase.from('projects').select('state_data').eq('id', projectId).single();
-      const codeFiles = data?.state_data?.generatedCode;
+      let codeFiles = useCodeStore.getState().getCode(projectId);
+
+      if (!codeFiles || codeFiles.length === 0) {
+        const { data } = await supabase.from('projects').select('state_data').eq('id', projectId).single();
+        codeFiles = data?.state_data?.generatedCode;
+        if (codeFiles && Array.isArray(codeFiles) && codeFiles.length > 0) {
+          useCodeStore.getState().setCode(projectId, codeFiles); // Cache it
+        }
+      }
 
       const { downloadBundle } = await import('@/lib/downloadBundle');
-      await downloadBundle(artifacts, projectId, codeFiles);
+      await downloadBundle(artifacts, projectId, codeFiles || undefined);
     } catch (err) {
       console.error('Failed to download bundle:', err);
     }

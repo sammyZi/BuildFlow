@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { startSSEStream } from '@/lib/hooks/useSSE';
+import { useCodeStore } from '@/lib/store/useCodeStore';
 import {
   Loader2, Code2, File, Folder, FolderOpen,
   Copy, Check, ChevronRight, Sparkles, CheckCircle2, Search, X
@@ -240,6 +241,7 @@ export default function CodeViewer({ projectId }: { projectId: string }) {
           onDone: () => {
             if (allFiles.length > 0) {
               setupFiles(allFiles);
+              useCodeStore.getState().setCode(projectId, allFiles);
             }
             setIsGenerating(false);
           },
@@ -254,6 +256,14 @@ export default function CodeViewer({ projectId }: { projectId: string }) {
   const checkExistingCode = useCallback(async () => {
     try {
       setIsLoadingCode(true);
+
+      // Check local cache first
+      const cachedCode = useCodeStore.getState().getCode(projectId);
+      if (cachedCode && cachedCode.length > 0) {
+        setupFiles(cachedCode);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('projects')
         .select('state_data')
@@ -265,6 +275,7 @@ export default function CodeViewer({ projectId }: { projectId: string }) {
       
       if (Array.isArray(parsedFiles) && parsedFiles.length > 0) {
         setupFiles(parsedFiles);
+        useCodeStore.getState().setCode(projectId, parsedFiles); // Save to cache
       } else if (isCurrentlyGenerating) {
         setIsGenerating(true);
         setGenProgress({ message: 'Generation already in progress in another tab... Please wait or refresh later.', progress: 50, fileCount: 0 });
