@@ -9,7 +9,8 @@ import MarkdownRenderer from '@/components/MarkdownRenderer';
 import ResultsViewer from '@/components/ResultsViewer';
 import { Artifact, ArtifactType, Project } from '@/types';
 import {
-  ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3, Sparkles
+  ArrowRight, Loader2, Send, CheckCircle2, FileText, GitBranch, ListChecks, Edit3, Sparkles,
+  AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { ShiningText } from '@/components/ui/shining-text';
 import ScrollButtons from '@/components/ScrollButtons';
@@ -28,6 +29,35 @@ const API_ENDPOINTS: Record<string, string> = {
   refine_content: '/api/detailed/refine',
   save_project: '/api/detailed/save',
 };
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Parse a JSON array from a model response, tolerating markdown code fences
+ * and surrounding prose. Returns null if no valid array can be extracted.
+ */
+function safeParseJsonArray(raw: string): any[] | null {
+  if (!raw || typeof raw !== 'string') return null;
+  let text = raw.trim();
+  if (text.startsWith('```')) {
+    text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  }
+  try {
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    const match = text.match(/\[[\s\S]*\]/);
+    if (match) {
+      try {
+        const parsed = JSON.parse(match[0]);
+        return Array.isArray(parsed) ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
 
 // ─── Shared API fetcher ──────────────────────────────────────────────────────
 
@@ -83,6 +113,18 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
   const [error, setError] = useState<string | null>(null);
 
   const initRef = useRef(false);
+  // Lets us cancel an in-flight SSE stream (and stop setState) if the user
+  // navigates away mid-generation.
+  const abortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
 
   // ─── Autosave ────────────────────────────────────────────────────────────
 
@@ -177,8 +219,14 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
         // Use SSE streaming
         let resultContent: string | null = null;
 
+        // Cancel any previous stream and start a fresh abortable one.
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         await startSSEStream(endpoint, payload, {
           onEvent: (event, data: any) => {
+            if (!mountedRef.current) return;
             if (event === 'progress') {
               setGenerationMessage(data.message || null);
               setGenerationProgress(data.progress || 0);
@@ -193,12 +241,15 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
             }
           },
           onError: (err) => {
+            // Ignore errors caused by us aborting on unmount/navigation.
+            if (!mountedRef.current || controller.signal.aborted) return;
             setError(err.message || 'Something went wrong.');
           },
           onDone: () => {
+            if (!mountedRef.current) return;
             setGenerationMessage(null);
           },
-        });
+        }, controller.signal);
 
         if (resultContent) {
           if (action === 'generate_requirements') {
@@ -218,21 +269,21 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
         if (!data.success) throw new Error('Generation failed');
 
         if (action === 'generate_questions') {
-          const parsed = JSON.parse(data.content);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          const parsed = safeParseJsonArray(data.content);
+          if (parsed && parsed.length > 0) {
             setQuestions(parsed);
             parsedResult = parsed;
           } else {
-            throw new Error('Invalid questions format');
+            throw new Error('Could not read the generated questions. Please try again.');
           }
         }
         if (action === 'generate_design_questions') {
-          const parsed = JSON.parse(data.content);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          const parsed = safeParseJsonArray(data.content);
+          if (parsed && parsed.length > 0) {
             setDesignQuestions(parsed);
             parsedResult = parsed;
           } else {
-            throw new Error('Invalid design questions format');
+            throw new Error('Could not read the generated tech-stack questions. Please try again.');
           }
         }
       }
@@ -331,6 +382,25 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
 
   // ─── Answer selection handlers ───────────────────────────────────────────
 
+  const retryCurrentStep = async () => {
+    if (isGenerating) return;
+    setError(null);
+    const actionMap: Record<Step, string> = {
+      questions: 'generate_questions',
+      requirements: 'generate_requirements',
+      'design-questions': 'generate_design_questions',
+      design: 'generate_design',
+      tasks: 'generate_tasks',
+    };
+    const result = await generateStage(actionMap[currentStep]);
+    if (result == null) return; // generateStage already set an error
+    if (currentStep === 'requirements') performAutoSave({ requirements: result });
+    else if (currentStep === 'design') performAutoSave({ design: result });
+    else if (currentStep === 'tasks') performAutoSave({ tasks: result });
+    else if (currentStep === 'questions') performAutoSave({ questions: result });
+    else if (currentStep === 'design-questions') performAutoSave({ designQuestions: result });
+  };
+
   const handleAnswerSelect = (questionId: string, answer: string) => {
     setAnswers(prev => {
       const current = prev[questionId] || [];
@@ -423,8 +493,20 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
       <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg" ref={scrollContainerRef}>
         <div className="max-w-5xl mx-auto">
           {error && (
-            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[17px] font-medium">
-              {error}
+            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[17px] font-medium flex items-center justify-between gap-4">
+              <span className="flex items-center gap-2">
+                <AlertTriangle size={18} className="shrink-0" />
+                {error}
+              </span>
+              {!isGenerating && (
+                <button
+                  onClick={retryCurrentStep}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error/10 hover:bg-error/20 text-error text-[14px] font-semibold transition-colors shrink-0"
+                >
+                  <RefreshCw size={14} />
+                  Retry
+                </button>
+              )}
             </div>
           )}
 
@@ -628,6 +710,11 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
   const [isTogglingPublic, setIsTogglingPublic] = useState(false);
+  // Tracks the server-side generation lifecycle for fast-mode projects so we
+  // can surface failures/timeouts instead of polling forever.
+  const [genStatus, setGenStatus] = useState<string>(project.status || 'completed');
+  const [genError, setGenError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch artifacts from DB
   const fetchArtifacts = useCallback(async () => {
@@ -657,23 +744,94 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
     })();
   }, [projectId, fetchArtifacts]);
 
-  // Poll for missing artifacts until all 3 are present
+  // Poll for missing artifacts until all 3 are present, with a bounded
+  // lifetime so a failed/stalled generation surfaces an error instead of
+  // spinning forever.
+  const pollAttemptsRef = useRef(0);
+  const MAX_POLL_ATTEMPTS = 60; // ~3 minutes at 3s intervals
+
   useEffect(() => {
     if (!projectId) return;
+    if (genStatus === 'failed') return; // Already surfaced as an error
+
     const types = new Set(artifacts.map(a => a.artifact_type));
     const isComplete = types.has('requirements') && types.has('design') && types.has('tasks');
-    if (isComplete) return; // All present, stop polling
+    if (isComplete) {
+      if (genStatus !== 'completed') setGenStatus('completed');
+      return; // All present, stop polling
+    }
 
     const interval = setInterval(async () => {
+      pollAttemptsRef.current += 1;
+
       const data = await fetchArtifacts();
       const newTypes = new Set(data.map((a: Artifact) => a.artifact_type));
       if (newTypes.has('requirements') && newTypes.has('design') && newTypes.has('tasks')) {
         clearInterval(interval);
+        setGenStatus('completed');
+        return;
+      }
+
+      // Check the server-side project status so we can detect failures fast.
+      const { data: proj } = await supabase
+        .from('projects')
+        .select('status')
+        .eq('id', projectId)
+        .single();
+
+      if (proj?.status === 'failed') {
+        clearInterval(interval);
+        setGenStatus('failed');
+        setGenError('Generation failed before all documents were created.');
+        return;
+      }
+
+      // Give up after the cap to avoid an endless spinner.
+      if (pollAttemptsRef.current >= MAX_POLL_ATTEMPTS) {
+        clearInterval(interval);
+        setGenStatus('failed');
+        setGenError('Generation timed out. Some documents may be missing.');
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [projectId, artifacts, fetchArtifacts]);
+  }, [projectId, artifacts, fetchArtifacts, genStatus]);
+
+  // Retry generation into the same project (fast pipeline).
+  const handleRetryGeneration = useCallback(async () => {
+    if (isRetrying) return;
+    setIsRetrying(true);
+    setGenError(null);
+    pollAttemptsRef.current = 0;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Please sign in again.');
+
+      setGenStatus('generating');
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ appIdea: project.prompt, userId: session.user.id, projectId }),
+      });
+
+      // The route streams SSE; we only need it to have started. Polling + the
+      // realtime subscription will pick up the regenerated artifacts.
+      if (!res.ok && res.status !== 200) {
+        let msg = 'Failed to restart generation';
+        try { const d = await res.json(); msg = d.error || msg; } catch { /* ignore */ }
+        throw new Error(msg);
+      }
+      setArtifacts([]);
+    } catch (err: any) {
+      setGenStatus('failed');
+      setGenError(err.message || 'Failed to restart generation.');
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [isRetrying, project.prompt, projectId]);
 
   const handleNewArtifact = useCallback((newArtifact: Artifact) => {
     setArtifacts(prev => {
@@ -788,6 +946,45 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
       setIsTogglingPublic(false);
     }
   };
+
+  // Surface a clear failure state with a retry instead of an endless spinner.
+  const artifactTypesPresent = new Set(artifacts.map(a => a.artifact_type));
+  const hasAllArtifacts =
+    artifactTypesPresent.has('requirements') &&
+    artifactTypesPresent.has('design') &&
+    artifactTypesPresent.has('tasks');
+
+  if (genStatus === 'failed' && !hasAllArtifacts) {
+    return (
+      <div className="h-full flex items-center justify-center bg-bg px-6">
+        <div className="text-center max-w-md animate-fade-in">
+          <div className="w-16 h-16 rounded-2xl bg-error/10 flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle size={30} className="text-error" />
+          </div>
+          <h2 className="text-[20px] font-bold text-text-primary mb-2">Generation didn’t finish</h2>
+          <p className="text-[14px] text-text-muted mb-8">
+            {genError || 'Something interrupted the generation.'} Your idea is saved — you can try again.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={handleRetryGeneration}
+              disabled={isRetrying}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-colors shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isRetrying ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+              {isRetrying ? 'Restarting…' : 'Retry generation'}
+            </button>
+            <a
+              href="/dashboard"
+              className="px-6 py-3 rounded-xl border border-border text-text-secondary font-semibold hover:bg-surface-alt transition-colors"
+            >
+              Start over
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ResultsViewer

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { GeminiClient } from '@/lib/gemini';
 
+export const maxDuration = 120;
+
 /**
  * POST /api/detailed/refine
  * Refines an existing document based on user feedback.
