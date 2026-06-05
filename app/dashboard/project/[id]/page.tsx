@@ -629,26 +629,63 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
   const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
   const [isTogglingPublic, setIsTogglingPublic] = useState(false);
 
+  // Fetch artifacts from DB
+  const fetchArtifacts = useCallback(async () => {
+    try {
+      const data = await SupabaseService.getArtifactsByProject(projectId);
+      setArtifacts(data);
+      return data;
+    } catch (err) {
+      console.error('Failed to load artifacts:', err);
+      return [];
+    }
+  }, [projectId]);
+
+  // Initial load
   useEffect(() => {
     if (!projectId) return;
-    async function load() {
+    (async () => {
       setIsLoading(true);
-      try {
-        const data = await SupabaseService.getArtifactsByProject(projectId);
-        setArtifacts(data);
-      } catch (err) {
-        console.error('Failed to load artifacts:', err);
-      } finally {
+      const data = await fetchArtifacts();
+      // Only stop loading spinner if all 3 artifacts are present
+      const types = new Set(data.map((a: Artifact) => a.artifact_type));
+      if (types.has('requirements') && types.has('design') && types.has('tasks')) {
+        setIsLoading(false);
+      } else {
         setIsLoading(false);
       }
-    }
-    load();
-  }, [projectId]);
+    })();
+  }, [projectId, fetchArtifacts]);
+
+  // Poll for missing artifacts until all 3 are present
+  useEffect(() => {
+    if (!projectId) return;
+    const types = new Set(artifacts.map(a => a.artifact_type));
+    const isComplete = types.has('requirements') && types.has('design') && types.has('tasks');
+    if (isComplete) return; // All present, stop polling
+
+    const interval = setInterval(async () => {
+      const data = await fetchArtifacts();
+      const newTypes = new Set(data.map((a: Artifact) => a.artifact_type));
+      if (newTypes.has('requirements') && newTypes.has('design') && newTypes.has('tasks')) {
+        clearInterval(interval);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [projectId, artifacts, fetchArtifacts]);
 
   const handleNewArtifact = useCallback((newArtifact: Artifact) => {
     setArtifacts(prev => {
-      if (prev.some(a => a.id === newArtifact.id)) return prev;
-      const updated = [...prev, newArtifact];
+      // For INSERT: add if not already present
+      // For UPDATE: replace the existing artifact
+      const existing = prev.find(a => a.id === newArtifact.id);
+      let updated;
+      if (existing) {
+        updated = prev.map(a => a.id === newArtifact.id ? newArtifact : a);
+      } else {
+        updated = [...prev, newArtifact];
+      }
       return updated.sort((a, b) => {
         const order: Record<ArtifactType, number> = { requirements: 0, design: 1, tasks: 2 };
         return order[a.artifact_type] - order[b.artifact_type];
@@ -666,10 +703,38 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
 
   useEffect(() => {
     if (!projectId) return;
-    const sub = SupabaseService.subscribeToArtifacts(projectId, handleNewArtifact, handleDisconnect);
+    // Subscribe to both INSERT and UPDATE events
+    const channel = supabase
+      .channel(`artifacts:${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'artifacts',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => handleNewArtifact(payload.new as Artifact)
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'artifacts',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => handleNewArtifact(payload.new as Artifact)
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' && handleDisconnect) {
+          handleDisconnect();
+        }
+      });
+
     setReconnectAttempts(0);
     setShowRefreshPrompt(false);
-    return () => { sub.unsubscribe(); };
+    return () => { supabase.removeChannel(channel); };
   }, [projectId, handleNewArtifact, handleDisconnect]);
 
   const handleDownloadBundle = async () => {

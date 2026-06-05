@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { startSSEStream } from '@/lib/hooks/useSSE';
@@ -91,7 +91,7 @@ function getFileIcon(filename: string): string {
 
 // ─── FileTree Component ──────────────────────────────────────────────────────
 
-function FileTreeNode({
+const FileTreeNode = memo(function FileTreeNode({
   node,
   selectedPath,
   onSelect,
@@ -163,7 +163,7 @@ function FileTreeNode({
       <span className="truncate">{node.name}</span>
     </button>
   );
-}
+});
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
@@ -314,15 +314,25 @@ export default function CodeViewer({ projectId }: { projectId: string }) {
     });
   }, []);
 
-  const selectedFileData = files.find(f => f.path === selectedFile);
-  const tree = buildFileTree(files);
+  const selectedFileData = useMemo(
+    () => files.find(f => f.path === selectedFile),
+    [files, selectedFile]
+  );
+  const tree = useMemo(() => buildFileTree(files), [files]);
 
   // Filter files for search
-  const filteredFiles = searchQuery
-    ? files.filter(f => f.path.toLowerCase().includes(searchQuery.toLowerCase()))
-    : [];
+  const filteredFiles = useMemo(
+    () =>
+      searchQuery
+        ? files.filter(f => f.path.toLowerCase().includes(searchQuery.toLowerCase()))
+        : [],
+    [files, searchQuery]
+  );
 
-  const lineCount = selectedFileData?.content.split('\n').length || 0;
+  const lineCount = useMemo(
+    () => selectedFileData?.content.split('\n').length || 0,
+    [selectedFileData]
+  );
 
   // ─── Generating State ────────────────────────────────────────────────────
 

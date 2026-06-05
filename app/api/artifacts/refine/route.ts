@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { GeminiClient } from '@/lib/gemini';
 
+// Refining requirements cascades into regenerating design + tasks,
+// which can mean up to ~5 sequential Gemini calls. Allow extra headroom.
+export const maxDuration = 300;
+
 /**
  * POST /api/artifacts/refine
  * Refines an existing completed artifact and updates it in the database.

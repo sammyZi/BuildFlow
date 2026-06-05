@@ -2,7 +2,16 @@
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import MermaidDiagram from './MermaidDiagram';
+import dynamic from 'next/dynamic';
+
+// Mermaid is a large dependency (~500KB). Load it only when a diagram is
+// actually present, and never on the server (it touches the DOM).
+const MermaidDiagram = dynamic(() => import('./MermaidDiagram'), {
+  ssr: false,
+  loading: () => (
+    <div className="my-6 h-32 w-full animate-pulse rounded-xl border border-border/50 bg-surface" />
+  ),
+});
 
 interface MarkdownRendererProps {
   content: string;

@@ -154,6 +154,16 @@ body {
   animation: shimmer 1.5s infinite;
 }
 
+/* Blinking cursor for streaming text */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 0.8s step-end infinite;
+}
+
 /* Floating orb animations for dashboard background */
 @keyframes floatOrb1 {
   0%, 100% { transform: translate(0, 0) scale(1); }

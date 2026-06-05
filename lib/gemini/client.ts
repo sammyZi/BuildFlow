@@ -1,6 +1,7 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText } from 'ai';
+import { generateText, streamText } from 'ai';
 import { FAST_PROMPTS, DETAILED_PROMPTS, SCAFFOLD_PROMPT } from './prompts';
+import { getGoogleProvider, getGeminiModelId } from './provider';
 
 /**
  * GeminiClient wraps the Google Gemini API for all artifact generation.
@@ -19,13 +20,7 @@ export class GeminiClient {
   private baseDelay: number = 1000; // 1 second
 
   constructor(apiKey?: string) {
-    const key = apiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || '';
-
-    if (!key) {
-      throw new Error('GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY is required. Please set it in your environment variables.');
-    }
-
-    this.google = createGoogleGenerativeAI({ apiKey: key });
+    this.google = getGoogleProvider(apiKey);
   }
 
   // ─── Fast pipeline methods ──────────────────────────────────────────────
@@ -133,6 +128,34 @@ Return ONLY a JSON array:
     return this.generateWithRetry(DETAILED_PROMPTS.refine, prompt);
   }
 
+  // ─── Streaming pipeline methods ────────────────────────────────────────────
+
+  /**
+   * Stream requirements generation — yields text chunks as they arrive.
+   */
+  async *streamRequirements(appIdea: string): AsyncGenerator<string> {
+    yield* this.generateWithStreaming(FAST_PROMPTS.requirements, appIdea);
+  }
+
+  /**
+   * Stream design generation — yields text chunks as they arrive.
+   */
+  async *streamDesign(appIdea: string, requirements: string, techPreferences?: string): AsyncGenerator<string> {
+    let userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}`;
+    if (techPreferences) {
+      userMessage += `\n\nUSER GLOBAL PREFERENCES (Prioritize these if applicable):\n${techPreferences}`;
+    }
+    yield* this.generateWithStreaming(FAST_PROMPTS.design, userMessage);
+  }
+
+  /**
+   * Stream tasks generation — yields text chunks as they arrive.
+   */
+  async *streamTasks(appIdea: string, requirements: string, design: string): AsyncGenerator<string> {
+    const userMessage = `App Idea: ${appIdea}\n\nRequirements:\n${requirements}\n\nDesign:\n${design}`;
+    yield* this.generateWithStreaming(FAST_PROMPTS.tasks, userMessage);
+  }
+
   // ─── Scaffold generation ─────────────────────────────────────────────────
 
   /**
@@ -155,7 +178,7 @@ Return ONLY a JSON array:
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const result = await generateText({
-          model: this.google(process.env.GEMINI_MODEL || 'gemini-2.5-flash'),
+          model: this.google(getGeminiModelId()),
           system: systemPrompt,
           prompt: userMessage,
         });
@@ -187,6 +210,52 @@ Return ONLY a JSON array:
 
     throw new Error(
       `Gemini API call failed after ${this.maxRetries} attempts. ` +
+      `Last error: ${lastError?.message || 'Unknown error'}`
+    );
+  }
+
+  /**
+   * Generate text via streaming with retry logic.
+   * Yields text chunks as they arrive from the LLM.
+   */
+  private async *generateWithStreaming(systemPrompt: string, userMessage: string): AsyncGenerator<string> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+      try {
+        const result = streamText({
+          model: this.google(getGeminiModelId()),
+          system: systemPrompt,
+          prompt: userMessage,
+        });
+
+        for await (const chunk of result.textStream) {
+          yield chunk;
+        }
+        return; // Success — exit retry loop
+      } catch (error: any) {
+        lastError = error;
+
+        const isRateLimitError =
+          error?.message?.includes('rate limit') ||
+          error?.message?.includes('429') ||
+          error?.status === 429;
+
+        if (attempt === this.maxRetries - 1) break;
+
+        const delay = this.baseDelay * Math.pow(2, attempt);
+        console.warn(
+          `Gemini streaming call failed (attempt ${attempt + 1}/${this.maxRetries}). ` +
+          `${isRateLimitError ? 'Rate limit error. ' : ''}` +
+          `Retrying in ${delay}ms...`
+        );
+
+        await this.sleep(delay);
+      }
+    }
+
+    throw new Error(
+      `Gemini streaming call failed after ${this.maxRetries} attempts. ` +
       `Last error: ${lastError?.message || 'Unknown error'}`
     );
   }

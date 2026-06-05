@@ -24,24 +24,24 @@ BuildFlow (formerly AI Architect Hub) is a full-stack SaaS application that gene
 ## 🛠 Tech Stack
 
 ### Frontend
-- **Next.js 14+** (App Router)
+- **Next.js 16** (App Router, Turbopack)
 - **React 19**
 - **TypeScript** (Strict Mode)
 - **Tailwind CSS v4**
-- **Framer Motion** (for smooth animations and UI transitions)
+- **Framer Motion / Motion** (for smooth animations and UI transitions)
 - **Radix UI** (for accessible components like Dialogs and Tooltips)
 
 ### Backend
-- **Express.js API**
-- **Google Gemini SDK** (`@ai-sdk/google`) / Vercel AI SDK
+- **Next.js Route Handlers** (`app/api/**`) running on the Node.js runtime
+- **Google Gemini SDK** (`@ai-sdk/google`) via the Vercel AI SDK
 - **Supabase** (PostgreSQL Database & Authentication)
 
 ## 📁 Project Structure
 
 ```
 ai_app/
-├── api/                    # Express.js API backend routes
 ├── app/                    # Next.js App Router
+│   ├── api/                # Backend route handlers (chat, generate, projects…)
 │   ├── dashboard/          # Main BuildFlow workspace
 │   ├── login/              # Authentication pages
 │   ├── layout.tsx          # Root layout with providers
@@ -53,10 +53,9 @@ ai_app/
 │   ├── InputPanel.tsx      # Chat/Prompt input component
 │   └── ProjectHistory.tsx  # Sidebar navigation
 ├── lib/                    # Utilities and services
+│   ├── gemini/             # Gemini provider, client & prompts
 │   ├── supabase/           # Auth and DB client helpers
 │   └── theme.ts            # Shared theme definitions
-├── types/                  # TypeScript interfaces and types
-│   └── index.ts            # Shared data models
 └── package.json            # Scripts and dependencies
 ```
 
@@ -70,8 +69,12 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# Google Gemini API
+# Google Gemini API (provide either variable)
 GEMINI_API_KEY=your_google_gemini_api_key
+# GEMINI_MODEL=gemini-2.5-flash   # optional model override
+
+# App
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 ## 🚀 Getting Started

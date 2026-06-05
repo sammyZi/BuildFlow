@@ -54,16 +54,17 @@ export async function POST(req: Request) {
     // Send projectId immediately so the client can start navigating
     send('init', { projectId: project.id });
 
-    // Run pipeline asynchronously, streaming progress
+    // Run streaming pipeline, forwarding each event as a typed SSE message
     (async () => {
       try {
         const orchestrator = new GenerationOrchestrator();
-        await orchestrator.generateAllWithProgress(
+        await orchestrator.generateAllStreaming(
           project.id,
           appIdea,
           techPreferences,
           (event) => {
-            send('progress', event);
+            // Send each event using its type as the SSE event name
+            send(event.type, event);
           }
         );
       } catch (err: any) {
