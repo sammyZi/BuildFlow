@@ -32,6 +32,17 @@ const API_ENDPOINTS: Record<string, string> = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/** An artifact only counts as "ready" once it has real (non-empty) content. */
+function isArtifactReady(a: Artifact): boolean {
+  return !!a?.content && a.content.trim().length > 0;
+}
+
+/** True only when all three documents exist AND have content. */
+function hasAllReadyArtifacts(artifacts: Artifact[]): boolean {
+  const types = new Set(artifacts.filter(isArtifactReady).map(a => a.artifact_type));
+  return types.has('requirements') && types.has('design') && types.has('tasks');
+}
+
 /**
  * Parse a JSON array from a model response, tolerating markdown code fences
  * and surrounding prose. Returns null if no valid array can be extracted.
@@ -713,7 +724,7 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
   // Tracks the server-side generation lifecycle for fast-mode projects so we
   // can surface failures/timeouts instead of polling forever.
   const [genStatus, setGenStatus] = useState<string>(project.status || 'completed');
-  const [genError, setGenError] = useState<string | null>(null);
+  const [genError, setGenError] = useState<string | null>(project.state_data?.error || null);
   const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch artifacts from DB
@@ -752,21 +763,21 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
 
   useEffect(() => {
     if (!projectId) return;
-    if (genStatus === 'failed') return; // Already surfaced as an error
+    // Only poll while generation is actively running. Completed/failed states
+    // are terminal and handled by the render logic below.
+    if (genStatus !== 'generating') return;
 
-    const types = new Set(artifacts.map(a => a.artifact_type));
-    const isComplete = types.has('requirements') && types.has('design') && types.has('tasks');
+    const isComplete = hasAllReadyArtifacts(artifacts);
     if (isComplete) {
-      if (genStatus !== 'completed') setGenStatus('completed');
-      return; // All present, stop polling
+      setGenStatus('completed');
+      return; // All present with content, stop polling
     }
 
     const interval = setInterval(async () => {
       pollAttemptsRef.current += 1;
 
       const data = await fetchArtifacts();
-      const newTypes = new Set(data.map((a: Artifact) => a.artifact_type));
-      if (newTypes.has('requirements') && newTypes.has('design') && newTypes.has('tasks')) {
+      if (hasAllReadyArtifacts(data)) {
         clearInterval(interval);
         setGenStatus('completed');
         return;
@@ -775,14 +786,14 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
       // Check the server-side project status so we can detect failures fast.
       const { data: proj } = await supabase
         .from('projects')
-        .select('status')
+        .select('status, state_data')
         .eq('id', projectId)
         .single();
 
       if (proj?.status === 'failed') {
         clearInterval(interval);
         setGenStatus('failed');
-        setGenError('Generation failed before all documents were created.');
+        setGenError(proj?.state_data?.error || 'Generation failed before all documents were created.');
         return;
       }
 
@@ -948,13 +959,13 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
   };
 
   // Surface a clear failure state with a retry instead of an endless spinner.
-  const artifactTypesPresent = new Set(artifacts.map(a => a.artifact_type));
-  const hasAllArtifacts =
-    artifactTypesPresent.has('requirements') &&
-    artifactTypesPresent.has('design') &&
-    artifactTypesPresent.has('tasks');
+  // A project is "failed" if generation isn't actively running yet the three
+  // documents aren't all present with content (covers hard failures, timeouts,
+  // and stale projects that were marked complete but saved empty artifacts).
+  const hasAllArtifacts = hasAllReadyArtifacts(artifacts);
+  const generationFailed = !isLoading && !hasAllArtifacts && genStatus !== 'generating';
 
-  if (genStatus === 'failed' && !hasAllArtifacts) {
+  if (generationFailed) {
     return (
       <div className="h-full flex items-center justify-center bg-bg px-6">
         <div className="text-center max-w-md animate-fade-in">
@@ -989,7 +1000,7 @@ function CompletedResultsView({ project, projectId, onProjectUpdate }: { project
   return (
     <ResultsViewer
       artifacts={artifacts}
-      isLoading={isLoading}
+      isLoading={isLoading || (genStatus === 'generating' && !hasAllArtifacts)}
       onDownloadBundle={handleDownloadBundle}
       projectId={projectId}
       showRefreshPrompt={showRefreshPrompt}

@@ -107,7 +107,8 @@ export class GenerationOrchestrator {
       return projectId;
     } catch (error: any) {
       console.error(`Generation pipeline failed for project ${projectId}:`, error);
-      throw new Error(`Generation pipeline failed: ${error.message || 'Unknown error'}`);
+      // Rethrow as-is so the (already user-friendly) message reaches the client.
+      throw error;
     }
   }
 
@@ -139,6 +140,8 @@ export class GenerationOrchestrator {
         emit({ type: 'chunk', stage: 'requirements', content: chunk });
       }
 
+      if (!requirements.trim()) throw new Error('Failed to generate the requirements document.');
+
       emit({ type: 'progress', stage: 'requirements', progress: 25, message: 'Saving requirements…' });
       await SupabaseService.saveArtifact(projectId, 'requirements', requirements);
       emit({ type: 'file_done', stage: 'requirements' });
@@ -153,6 +156,8 @@ export class GenerationOrchestrator {
         design += chunk;
         emit({ type: 'chunk', stage: 'design', content: chunk });
       }
+
+      if (!design.trim()) throw new Error('Failed to generate the system design document.');
 
       emit({ type: 'progress', stage: 'design', progress: 60, message: 'Saving design…' });
       await SupabaseService.saveArtifact(projectId, 'design', design);
@@ -169,6 +174,8 @@ export class GenerationOrchestrator {
         emit({ type: 'chunk', stage: 'tasks', content: chunk });
       }
 
+      if (!tasks.trim()) throw new Error('Failed to generate the task breakdown.');
+
       emit({ type: 'progress', stage: 'tasks', progress: 95, message: 'Saving tasks…' });
       await SupabaseService.saveArtifact(projectId, 'tasks', tasks);
       emit({ type: 'file_done', stage: 'tasks' });
@@ -180,7 +187,8 @@ export class GenerationOrchestrator {
       return projectId;
     } catch (error: any) {
       console.error(`Streaming generation pipeline failed for project ${projectId}:`, error);
-      throw new Error(`Generation pipeline failed: ${error.message || 'Unknown error'}`);
+      // Rethrow as-is so the (already user-friendly) message reaches the client.
+      throw error;
     }
   }
 }

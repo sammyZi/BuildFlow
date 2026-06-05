@@ -101,9 +101,14 @@ export async function POST(req: Request) {
         }
 
         // Validate it's parseable JSON
-        const files = JSON.parse(cleaned);
+        let files: any;
+        try {
+          files = JSON.parse(cleaned);
+        } catch {
+          throw new Error('The AI returned code in an unexpected format. Please try generating again.');
+        }
         if (!Array.isArray(files)) {
-          throw new Error('Generated output is not a valid file array');
+          throw new Error('The AI returned code in an unexpected format. Please try generating again.');
         }
 
         // Stream each file as it's "discovered"

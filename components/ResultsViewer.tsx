@@ -73,16 +73,20 @@ export default function ResultsViewer({
     setTimeout(() => setShowShareTooltip(false), 2000);
   };
 
-  const artifactTypes = new Set(artifacts.map(a => a.artifact_type));
-  const isComplete = artifacts.length === 3
-    && artifactTypes.has('requirements')
-    && artifactTypes.has('design')
-    && artifactTypes.has('tasks');
+  // Only count artifacts that actually have content — an empty artifact means
+  // generation never completed for that file, so it must not look "ready".
+  const readyTypes = new Set(
+    artifacts.filter(a => a.content && a.content.trim().length > 0).map(a => a.artifact_type)
+  );
+  const artifactTypes = readyTypes;
+  const isComplete = readyTypes.has('requirements')
+    && readyTypes.has('design')
+    && readyTypes.has('tasks');
 
   const activeArtifact = artifacts.find(a => a.artifact_type === activeTab);
   const activeContent = activeArtifact?.content || null;
   const activeFile = TABS.find(t => t.id === activeTab);
-  const readyCount = artifacts.length;
+  const readyCount = readyTypes.size;
 
   const handleCopy = () => {
     if (!activeContent) return;

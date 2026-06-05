@@ -2,6 +2,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText, streamText } from 'ai';
 import { FAST_PROMPTS, DETAILED_PROMPTS, SCAFFOLD_PROMPT } from './prompts';
 import { getGoogleProvider, getGeminiModelId } from './provider';
+import { classifyAIError, friendlyAIErrorMessage } from './errors';
 
 /**
  * GeminiClient wraps the Google Gemini API for all artifact generation.
@@ -181,6 +182,9 @@ Return ONLY a JSON array:
           model: this.google(getGeminiModelId()),
           system: systemPrompt,
           prompt: userMessage,
+          // We run our own retry/backoff loop below, so disable the SDK's
+          // internal retries to avoid stacking (3 × 3 = 9 calls per request).
+          maxRetries: 0,
         });
 
         return result.text;
@@ -208,10 +212,10 @@ Return ONLY a JSON array:
       }
     }
 
-    throw new Error(
-      `Gemini API call failed after ${this.maxRetries} attempts. ` +
-      `Last error: ${lastError?.message || 'Unknown error'}`
-    );
+    const friendlyError = new Error(friendlyAIErrorMessage(lastError));
+    (friendlyError as any).cause = lastError;
+    (friendlyError as any).kind = classifyAIError(lastError);
+    throw friendlyError;
   }
 
   /**
@@ -222,24 +226,49 @@ Return ONLY a JSON array:
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+      let streamError: any = null;
+      let yielded = false;
       try {
         const result = streamText({
           model: this.google(getGeminiModelId()),
           system: systemPrompt,
           prompt: userMessage,
+          // See note above — single retry strategy owned by this class.
+          maxRetries: 0,
+          // The AI SDK does NOT throw stream failures (e.g. 503/429) from the
+          // textStream iterator when an onError handler is present — it would
+          // otherwise end the stream silently, causing us to save EMPTY
+          // artifacts. Capture the error here so we can surface/retry it.
+          onError: ({ error }) => { streamError = error; },
         });
 
         for await (const chunk of result.textStream) {
-          yield chunk;
+          if (chunk) {
+            yielded = true;
+            yield chunk;
+          }
         }
+
+        // Surface a swallowed stream error so we retry/classify it.
+        if (streamError) throw streamError;
+
+        // A failed stream can also just end with no content and no error.
+        if (!yielded) {
+          throw new Error('The AI returned an empty response.');
+        }
+
         return; // Success — exit retry loop
       } catch (error: any) {
-        lastError = error;
+        lastError = streamError || error;
+
+        // If we've already streamed partial content to the caller, retrying
+        // would duplicate it — fail now instead.
+        if (yielded) break;
 
         const isRateLimitError =
-          error?.message?.includes('rate limit') ||
-          error?.message?.includes('429') ||
-          error?.status === 429;
+          lastError?.message?.includes('rate limit') ||
+          lastError?.message?.includes('429') ||
+          (lastError as any)?.status === 429;
 
         if (attempt === this.maxRetries - 1) break;
 
@@ -254,10 +283,10 @@ Return ONLY a JSON array:
       }
     }
 
-    throw new Error(
-      `Gemini streaming call failed after ${this.maxRetries} attempts. ` +
-      `Last error: ${lastError?.message || 'Unknown error'}`
-    );
+    const friendlyError = new Error(friendlyAIErrorMessage(lastError));
+    (friendlyError as any).cause = lastError;
+    (friendlyError as any).kind = classifyAIError(lastError);
+    throw friendlyError;
   }
 
   /**

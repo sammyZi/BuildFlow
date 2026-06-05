@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { createSSEStream } from '@/lib/api/sse';
-import { GenerationOrchestrator } from '@/lib/gemini';
+import { GenerationOrchestrator, friendlyAIErrorMessage } from '@/lib/gemini';
 import type { GenerateRequest } from '@/types';
 
 // Allow up to 2 minutes for the full pipeline
@@ -106,15 +106,29 @@ export async function POST(req: Request) {
           .update({ status: 'completed', updated_at: new Date().toISOString() })
           .eq('id', project.id);
       } catch (err: any) {
-        send('error', { message: err.message || 'Generation failed' });
+        const message = err?.message || friendlyAIErrorMessage(err);
+        send('error', { message });
 
-        // Persist the failure so a reloading/returning client can surface it
-        // instead of polling forever.
-        await supabaseAdmin
-          .from('projects')
-          .update({ status: 'failed', updated_at: new Date().toISOString() })
-          .eq('id', project.id)
-          .then(undefined, () => {/* best-effort */});
+        // Persist the failure + reason so a reloading/returning client can
+        // surface it instead of polling forever.
+        try {
+          const { data: cur } = await supabaseAdmin
+            .from('projects')
+            .select('state_data')
+            .eq('id', project.id)
+            .single();
+
+          await supabaseAdmin
+            .from('projects')
+            .update({
+              status: 'failed',
+              state_data: { ...(cur?.state_data || {}), error: message },
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', project.id);
+        } catch {
+          /* best-effort — the SSE error event was already sent */
+        }
       } finally {
         done();
       }
