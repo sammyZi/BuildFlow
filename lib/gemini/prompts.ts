@@ -5,14 +5,60 @@
 
 // ─── Shared fragments ───────────────────────────────────────────────────────
 
-const MERMAID_INSTRUCTIONS = `IMPORTANT FOR MERMAID DIAGRAMS:
-1. Wrap diagrams in code blocks with the 'mermaid' language identifier.
-2. For ALL nodes, if the node label contains spaces, slashes \`/\`, parentheses \`()\`, brackets \`[]\`, braces \`{}\`, quotes, or other special characters, you MUST wrap the ENTIRE label text in double quotes to prevent syntax errors. Example: \`NodeId["My Node (Details)"]\` or \`A["Buyer/Seller Web Browser/PWA"]\`. Do NOT mix quotes inside brackets without wrapping the entire label, such as \`A[Buyer/Seller "Web Browser/PWA"]\`.
-3. For ALL edge labels containing spaces, parentheses, slashes, or special characters, you MUST wrap the edge label in double quotes using the \`-->|"Edge Label"|\` syntax.
-4. NEVER use \`--(Label)-->\` or \`-- Label -->\` for edge labels; use standard \`-->|Label|\` or \`-->|"Label"|\` syntax only.
-5. For subgraphs, the ID must be a single alphanumeric word without special characters or spaces, and the visual title must be in brackets, e.g., \`subgraph InfrastructureServices ["Infrastructure & Services"]\`.
-6. DO NOT use Gantt charts or sequence diagrams with dates to prevent 'Invalid date' parsing errors. Stick to standard flowcharts (graph TD or LR).
-7. CRITICAL: Close every \`subgraph\` block with the keyword \`end\`, NOT with a closing brace \`}\`. Using \`}\` will cause a parse error.`;
+const MERMAID_INSTRUCTIONS = `RULES FOR THE MERMAID ARCHITECTURE DIAGRAM (follow EXACTLY — invalid syntax breaks rendering):
+
+STRUCTURE
+- Wrap the diagram in a fenced code block using the \`mermaid\` language identifier.
+- The first line MUST be \`graph TD\` (top-down). Do not use LR, sequence, gantt, class, or state diagrams.
+- Write the diagram in THREE ordered sections, each statement on its OWN line:
+  1) Declare every node first (one per line) with an explicit ID and a quoted label.
+  2) Declare every \`subgraph\` block (group node IDs you already declared).
+  3) Declare every connection/edge LAST, AFTER all subgraphs are closed.
+
+NODES
+- Give each node a short alphanumeric ID (letters/numbers only, no spaces, no symbols): e.g. \`WebApp\`, \`ApiServer\`, \`PrimaryDb\`, \`ReadReplica\`.
+- NEVER use a reserved word as an ID: end, graph, subgraph, class, click, style, state, direction.
+- Define each node EXACTLY once as \`ID["Label text"]\`. Always wrap the label in double quotes. Afterwards reference it by ID only.
+- Use ONLY the square-bracket shape \`ID["..."]\`. Do NOT use \`()\`, \`{}\`, \`{{}}\`, \`[[]]\`, \`([])\`, or any other shape.
+- The characters \`{\` and \`}\` must NOT appear anywhere in the diagram.
+
+SUBGRAPHS
+- Syntax: \`subgraph GroupId ["Group Title"]\` then group members, then \`end\` on its OWN line.
+- Close EVERY subgraph with the keyword \`end\` on a line by itself. Never use \`}\`. Never put \`end\` on the same line as a node or edge.
+- Put ONLY node IDs (already declared above) inside a subgraph. Do NOT put edges/connections inside subgraph blocks.
+
+EDGES
+- Use only \`A --> B\` or, with a label, \`A -->|"Label"|B\`. Always quote the edge label.
+- NEVER use \`--(Label)-->\` or \`-- Label -->\`.
+- Every edge connects two existing node IDs and sits on its own line, after all subgraphs.
+
+CORRECT EXAMPLE (copy this structure):
+\`\`\`mermaid
+graph TD
+    User["User Browser"]
+    WebApp["Next.js Web App"]
+    ApiServer["API Server"]
+    AuthSvc["Auth Service"]
+    PrimaryDb["Primary Database"]
+    ReadReplica["Read Replica"]
+    subgraph Client ["Client Layer"]
+        User
+        WebApp
+    end
+    subgraph Services ["Application Layer"]
+        ApiServer
+        AuthSvc
+    end
+    subgraph DataLayer ["Data Layer"]
+        PrimaryDb
+        ReadReplica
+    end
+    User --> WebApp
+    WebApp -->|"REST / JSON"|ApiServer
+    ApiServer --> AuthSvc
+    ApiServer -->|"Read / Write"|PrimaryDb
+    PrimaryDb -->|"Replication"|ReadReplica
+\`\`\``;
 
 const MARKDOWN_NO_WRAP = 'IMPORTANT: Do not wrap your response in a markdown code block (like ```markdown). Respond with raw markdown text only.';
 
@@ -42,9 +88,22 @@ You MUST follow this exact structure:
 
 ${MARKDOWN_NO_WRAP}`,
 
-  design: `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure. ${TABLE_FORMATTING}
+  design: `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure.
 
-${MERMAID_INSTRUCTIONS}`,
+You MUST include these sections in order:
+1. "# Design Document" heading.
+2. "## Overview" — a short paragraph on the architecture approach.
+3. "## High-Level Architecture" — a single Mermaid flowchart (graph TD) showing the main layers/components and how they connect. Keep it to roughly 6-14 nodes so it stays readable.
+4. "## Tech Stack" — Frontend, Backend, and Database choices with brief justifications.
+5. "## Data Models" — presented as Markdown tables.
+6. "## API Endpoints" — method, path, and description.
+7. "## Folder Structure" — the exact project tree in a code block.
+
+${TABLE_FORMATTING}
+
+${MERMAID_INSTRUCTIONS}
+
+${MARKDOWN_NO_WRAP}`,
 
   tasks: `You are a Lead Developer. Break down the attached requirements and design into a tasks.md file.
 
@@ -93,7 +152,19 @@ You MUST follow this exact structure:
 
   designQuestions: `You are an expert Software Architect. Generate exactly 3 short, crisp questions around tech stack options. Each question and its 4 options must be extremely brief. Return ONLY valid JSON array format.`,
 
-  design: `You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices. Include System Architecture (with a Mermaid diagram), Tech Stack (Frontend, Backend, Database), Data Models, and API Endpoints. Use markdown formatting. ${MERMAID_INSTRUCTIONS} ${TABLE_FORMATTING}`,
+  design: `You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices.
+
+You MUST include these sections in order:
+1. "# Design Document" heading.
+2. "## Overview" — a short paragraph on the architecture approach.
+3. "## High-Level Architecture" — a single Mermaid flowchart (graph TD) showing the main layers/components and how they connect. Keep it to roughly 6-14 nodes so it stays readable.
+4. "## Tech Stack" — Frontend, Backend, and Database (honoring the user's tech stack choices).
+5. "## Data Models" — presented as Markdown tables.
+6. "## API Endpoints" — method, path, and description.
+
+${MERMAID_INSTRUCTIONS}
+
+${TABLE_FORMATTING}`,
 
   tasks: `You are an expert Engineering Manager. Generate a detailed, sprint-ready task breakdown based on the provided requirements and system design.
 

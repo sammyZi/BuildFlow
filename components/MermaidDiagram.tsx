@@ -19,8 +19,10 @@ function sanitizeMermaidChart(chart: string): string {
   //    then replace any remaining lone `}` with `end`.
   cleaned = cleaned.replace(/\{\{/g, '\x00DBLOPEN\x00');
   cleaned = cleaned.replace(/\}\}/g, '\x00DBLCLOSE\x00');
-  // Replace `}` that is either on its own line OR inline between content
-  cleaned = cleaned.replace(/\}/g, 'end');
+  // Replace a lone `}` with a newline + `end` so it never glues onto the
+  // preceding token (e.g. `ReadReplica}` must become `ReadReplica\nend`, not
+  // the invalid `ReadReplicaend`).
+  cleaned = cleaned.replace(/[ \t]*\}/g, '\nend');
   cleaned = cleaned.replace(/\x00DBLOPEN\x00/g, '{{');
   cleaned = cleaned.replace(/\x00DBLCLOSE\x00/g, '}}');
 
