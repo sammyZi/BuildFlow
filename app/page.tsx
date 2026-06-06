@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { Sparkles, LayoutTemplate, SplitSquareHorizontal, FileText, Blocks, ListTodo, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Sparkles, LayoutTemplate, FileText, Blocks, ChevronRight, ChevronLeft, GitBranch, Code2, Share2 } from 'lucide-react';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -398,63 +398,57 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm font-semibold tracking-widest uppercase text-[#4A6BFF] mb-3">Features</p>
           <h2 className="text-center text-3xl md:text-4xl font-medium text-[#111827] mb-16" style={{ fontFamily: 'Georgia, serif' }}>
-            Everything you need to plan, design, and ship.
+            From idea to developer-ready docs.
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-12">
 
-            {/* Col 1 */}
-            <div className="flex flex-col gap-10 py-8 md:py-0 md:pr-10">
-              <div className="group">
-                <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Interactive Workflow</h3>
-                <p className="text-[#6B7280] text-sm leading-relaxed">Iterate via a conversational chat to shape and refine your requirements.</p>
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+                <Sparkles className="w-5 h-5" />
               </div>
-              <div className="group">
-                <div className="w-11 h-11 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Requirements Generation</h3>
-                <p className="text-[#6B7280] text-sm leading-relaxed">Produce comprehensive, actionable product specs automatically.</p>
-              </div>
+              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Interactive Workflow</h3>
+              <p className="text-[#6B7280] text-sm leading-relaxed">Answer a few quick questions and chat to refine your idea as you go.</p>
             </div>
 
-            {/* Col 2 */}
-            <div className="flex flex-col gap-10 py-8 md:py-0 md:px-10">
-              <div className="group">
-                <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <LayoutTemplate className="w-5 h-5" />
-                </div>
-                <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Fast vs. Detailed</h3>
-                <p className="text-[#6B7280] text-sm leading-relaxed">One-shot generation or deep multi-stage architectural planning.</p>
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
+                <LayoutTemplate className="w-5 h-5" />
               </div>
-              <div className="group">
-                <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <Blocks className="w-5 h-5" />
-                </div>
-                <h3 className="text-[#111827] font-semibold text-lg mb-1.5">System Architecture</h3>
-                <p className="text-[#6B7280] text-sm leading-relaxed">Design robust technical foundations and component structures instantly.</p>
-              </div>
+              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Fast &amp; Detailed Modes</h3>
+              <p className="text-[#6B7280] text-sm leading-relaxed">Generate everything in one shot, or step through it stage by stage.</p>
             </div>
 
-            {/* Col 3 */}
-            <div className="flex flex-col gap-10 py-8 md:py-0 md:pl-10">
-              <div className="group">
-                <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <SplitSquareHorizontal className="w-5 h-5" />
-                </div>
-                <h3 className="text-[#111827] font-semibold text-lg mb-1.5">VSCode-Style Viewer</h3>
-                <p className="text-[#6B7280] text-sm leading-relaxed">Review generated markdown artifacts in a professional split-pane UI.</p>
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center mb-4">
+                <FileText className="w-5 h-5" />
               </div>
-              <div className="group">
-                <div className="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <ListTodo className="w-5 h-5" />
-                </div>
-                <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Task Breakdown</h3>
-                <p className="text-[#6B7280] text-sm leading-relaxed">Get granular, ready-to-code development tickets generated effortlessly.</p>
+              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Requirements, Design &amp; Tasks</h3>
+              <p className="text-[#6B7280] text-sm leading-relaxed">Three ready-to-use documents: what to build, how to build it, and the steps to get there.</p>
+            </div>
+
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-4">
+                <GitBranch className="w-5 h-5" />
               </div>
+              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Architecture Diagrams</h3>
+              <p className="text-[#6B7280] text-sm leading-relaxed">See your system laid out visually with clear, auto-generated diagrams.</p>
+            </div>
+
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-4">
+                <Code2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Starter Code</h3>
+              <p className="text-[#6B7280] text-sm leading-relaxed">Turn your plan into a working starter project you can download and run.</p>
+            </div>
+
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Share &amp; Export</h3>
+              <p className="text-[#6B7280] text-sm leading-relaxed">Download everything as a ZIP, or share a link with your team.</p>
             </div>
 
           </div>
