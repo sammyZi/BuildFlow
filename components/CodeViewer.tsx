@@ -329,10 +329,11 @@ export default function CodeViewer({ projectId }: { projectId: string }) {
     [files, searchQuery]
   );
 
-  const lineCount = useMemo(
-    () => selectedFileData?.content.split('\n').length || 0,
+  const codeLines = useMemo(
+    () => (selectedFileData ? selectedFileData.content.split('\n') : []),
     [selectedFileData]
   );
+  const lineCount = codeLines.length;
 
   // ─── Generating State ────────────────────────────────────────────────────
 
@@ -569,23 +570,18 @@ export default function CodeViewer({ projectId }: { projectId: string }) {
               </div>
 
               {/* Code content */}
-              <div className="flex-1 overflow-auto custom-scrollbar" ref={codeRef}>
-                <div className="flex min-h-full">
-                  {/* Line numbers */}
-                  <div className="sticky left-0 bg-surface-alt border-r border-border px-3 py-4 text-right select-none shrink-0 z-10">
-                    {selectedFileData.content.split('\n').map((_, i) => (
-                      <div key={i} className="text-[12px] leading-[20px] text-text-muted/50 font-mono">
+              <div className="flex-1 overflow-auto custom-scrollbar bg-bg" ref={codeRef}>
+                <div className="w-max min-w-full py-4 font-mono text-[13px] leading-[20px]">
+                  {codeLines.map((line, i) => (
+                    <div key={i} className="flex">
+                      <span className="sticky left-0 z-10 shrink-0 w-14 pr-3 text-right text-text-muted/50 bg-surface-alt border-r border-border select-none">
                         {i + 1}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Code */}
-                  <pre className="flex-1 py-4 px-4 overflow-x-auto">
-                    <code className={`text-[13px] leading-[20px] font-mono text-text-primary language-${getLanguage(selectedFileData.path)}`}>
-                      {selectedFileData.content}
-                    </code>
-                  </pre>
+                      </span>
+                      <span className="whitespace-pre px-4 text-text-primary">
+                        {line === '' ? '\u00A0' : line}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </>

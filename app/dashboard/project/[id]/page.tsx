@@ -1024,17 +1024,12 @@ export default function ProjectPage() {
   const fetchProject = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/dashboard');
-        return;
-      }
-      const res = await fetch(`/api/projects/${projectId}`, {
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
-      });
-      const data = await res.json();
-      if (data.success && data.project) {
-        setProject(data.project);
+      // Read directly via the client (cached session + RLS) instead of going
+      // through /api/projects/[id], which re-validates the token against
+      // Supabase auth on every call and adds a slow extra round-trip.
+      const proj = await SupabaseService.getProjectById(projectId);
+      if (proj) {
+        setProject(proj);
       } else {
         router.push('/dashboard');
       }

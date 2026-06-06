@@ -46,58 +46,56 @@ export default function DashboardPage() {
       if (sessionError || !session) throw new Error('Authentication error. Please sign in again.');
 
       if (currentMode === 'detailed') {
-        // Create project upfront for detailed mode
-        const response = await fetch('/api/projects/autosave', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            idea,
+        // Create the draft project directly via the client (RLS) and redirect
+        // immediately — no slow server round-trip before navigation.
+        const { data: newProject, error: createError } = await supabase
+          .from('projects')
+          .insert({
+            user_id: session.user.id,
+            prompt: idea,
             status: 'draft',
             current_step: 'questions',
-            state_data: {}
+            state_data: {},
           })
-        });
+          .select('id')
+          .single();
 
-        if (!response.ok) {
-          let msg = 'Failed to create project';
-          try { const d = await response.json(); msg = d.error || msg; } catch { }
-          throw new Error(msg);
+        if (createError || !newProject) {
+          throw new Error(createError?.message || 'Failed to create project');
         }
 
-        const data = await response.json();
-        if (!data.success) throw new Error(data.error || 'Failed to create project');
-
-        router.push(`/dashboard/project/${data.projectId}`);
+        router.push(`/dashboard/project/${newProject.id}`);
         return;
       }
 
-      // Fast mode — kick off generation and redirect immediately
-      await startSSEStream(
+      // Fast mode — create the project client-side, redirect instantly, then
+      // kick off generation in the background. The project page picks up the
+      // streamed artifacts via realtime + polling.
+      const { data: newProject, error: createError } = await supabase
+        .from('projects')
+        .insert({
+          user_id: session.user.id,
+          prompt: idea,
+          status: 'generating',
+        })
+        .select('id')
+        .single();
+
+      if (createError || !newProject) {
+        throw new Error(createError?.message || 'Failed to create project');
+      }
+
+      const newProjectId = newProject.id;
+
+      // Fire-and-forget; generation runs server-side independent of this page.
+      startSSEStream(
         '/api/generate',
-        { appIdea: idea, userId: session.user.id },
-        {
-          onEvent: (event, data: any) => {
-            if (event === 'init' && data.projectId) {
-              // Redirect to project page immediately — artifacts will appear
-              // via Supabase realtime subscriptions as they're generated
-              router.push(`/dashboard/project/${data.projectId}`);
-            } else if (event === 'error') {
-              setError(data.message || 'Generation failed.');
-              setIsLoading(false);
-            }
-          },
-          onError: (err) => {
-            setError(err.message || 'Something went wrong.');
-            setIsLoading(false);
-          },
-          onDone: () => {
-            // Stream finished — if we haven't redirected yet, something went wrong
-          },
-        }
+        { appIdea: idea, userId: session.user.id, projectId: newProjectId },
+        { onEvent: () => {}, onError: () => {}, onDone: () => {} }
       );
+
+      router.push(`/dashboard/project/${newProjectId}`);
+      return;
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
       setIsLoading(false);
