@@ -317,7 +317,7 @@ export default function ResultsViewer({
 
                 <ScrollButtons
                   containerRef={scrollContainerRef}
-                  className="absolute bottom-8 right-8"
+                  className="fixed bottom-20 right-4 sm:bottom-8 sm:right-8"
                 />
               </>
             )}

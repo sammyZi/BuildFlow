@@ -106,14 +106,14 @@ export default function ResultsGrid({
       )}
 
       {/* File Viewer */}
-      <div className="flex flex-1 border border-chat-border rounded-xl overflow-hidden bg-white shadow-sm min-h-[500px]">
+      <div className="flex flex-col md:flex-row flex-1 border border-chat-border rounded-xl overflow-hidden bg-white shadow-sm min-h-[400px] md:min-h-[500px]">
         
         {/* Sidebar file tree */}
-        <div className="w-[200px] bg-gray-50 border-r border-chat-border flex flex-col shrink-0">
-          <div className="px-3 py-2.5 border-b border-chat-border">
+        <div className="w-full md:w-[200px] bg-gray-50 border-b md:border-b-0 md:border-r border-chat-border flex flex-col shrink-0">
+          <div className="px-3 py-2.5 border-b border-chat-border hidden md:block">
             <p className="text-[13px] font-semibold text-chat-textMuted uppercase tracking-wider">Files</p>
           </div>
-          <div className="flex-1 py-1">
+          <div className="flex md:flex-col overflow-x-auto md:overflow-visible flex-1 py-1 custom-scrollbar">
             {TABS.map((tab) => {
               const isReady = artifactTypes.has(tab.id);
               const isActive = activeTab === tab.id;
@@ -122,7 +122,7 @@ export default function ResultsGrid({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-[15px] transition-colors ${
+                  className={`shrink-0 md:w-full flex items-center gap-2 px-3 py-2 text-[15px] whitespace-nowrap transition-colors ${
                     isActive 
                       ? 'bg-chat-accent/10 text-chat-accent font-medium' 
                       : 'text-chat-text hover:bg-gray-100'

@@ -111,7 +111,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto relative bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]">
+    <div className="h-full overflow-y-auto overflow-x-hidden relative bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]">
       {/* Premium Landing-Page Inspired Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Animated Floating Orbs matching landing page */}

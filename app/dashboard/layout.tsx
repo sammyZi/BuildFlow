@@ -6,7 +6,7 @@ import AuthGuard from '@/components/AuthGuard';
 import ProjectHistory from '@/components/ProjectHistory';
 import { signOut } from '@/lib/supabase/auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { PanelLeft, LogOut, Layers, Menu } from 'lucide-react';
+import { PanelLeft, LogOut, Menu } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -81,24 +81,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Main */}
         <div className="flex-1 flex flex-col min-w-0 h-full">
-          {/* Mobile Header */}
-          <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-bg">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 -ml-2 text-text-primary hover:bg-surface-alt rounded-lg transition-colors"
-              >
-                <Menu size={24} />
-              </button>
-              <div className="font-semibold text-text-primary flex items-center gap-2">
-                <Layers className="w-5 h-5 text-primary" />
-                BuildFlow
-              </div>
-            </div>
-          </div>
-
           {/* Page content */}
           <main className="flex-1 overflow-hidden relative">
+            {/* Mobile floating menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden absolute top-3 left-3 z-40 p-2 bg-surface/80 backdrop-blur-md text-text-primary hover:bg-surface border border-border/50 shadow-md rounded-xl transition-all"
+              title="Open menu"
+            >
+              <Menu size={20} strokeWidth={2} />
+            </button>
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}

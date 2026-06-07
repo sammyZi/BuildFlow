@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 
 import { signOut } from '@/lib/supabase/auth';
 import { useRouter } from 'next/navigation';
-import { PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { PanelLeftOpen, PanelLeftClose, Menu } from 'lucide-react';
 
 import { Logo } from '@/components/ui/Logo';
 
@@ -17,6 +17,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const router = useRouter();
@@ -35,12 +36,25 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
   return (
     <div className="flex h-screen bg-chat-main text-chat-text overflow-hidden font-sans selection:bg-chat-accent/20">
 
+      {/* Mobile backdrop */}
+      {sidebar && isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* Main Sidebar (Project History) */}
       {sidebar && (
         <div
-          style={{ willChange: 'width' }}
-          className={`${isSidebarOpen ? 'w-[280px]' : 'w-0'
-            } transition-[width] duration-200 ease-out bg-chat-sidebar1 border-r border-chat-border flex-col flex-shrink-0 z-10 hidden lg:flex overflow-hidden`}
+          style={{ willChange: 'width, transform' }}
+          className={`
+            fixed lg:static inset-y-0 left-0 z-50 lg:z-10
+            transform transition-transform duration-300 ease-in-out lg:transition-[width] lg:duration-200 lg:ease-out
+            ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            ${isSidebarOpen ? 'lg:w-[280px]' : 'lg:w-0'}
+            w-[280px] bg-chat-sidebar1 border-r border-chat-border flex flex-col flex-shrink-0 overflow-hidden shadow-2xl lg:shadow-none
+          `}
         >
           <div className="w-[280px] h-full flex flex-col">
             {sidebar}
@@ -55,17 +69,28 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
         <header className="h-[60px] border-b border-chat-border flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-10 bg-chat-main">
           <div className="flex items-center gap-3">
             {sidebar && (
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2 -ml-2 text-chat-textMuted hover:text-chat-text hover:bg-chat-border/60 rounded-md transition-colors"
-                title={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-              >
-                {isSidebarOpen ? (
-                  <PanelLeftClose className="w-5 h-5" strokeWidth={1.75} />
-                ) : (
-                  <PanelLeftOpen className="w-5 h-5" strokeWidth={1.75} />
-                )}
-              </button>
+              <>
+                {/* Mobile hamburger */}
+                <button
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="p-2 -ml-2 text-chat-textMuted hover:text-chat-text hover:bg-chat-border/60 rounded-md transition-colors lg:hidden"
+                  title="Open menu"
+                >
+                  <Menu className="w-5 h-5" strokeWidth={1.75} />
+                </button>
+                {/* Desktop sidebar toggle */}
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="p-2 -ml-2 text-chat-textMuted hover:text-chat-text hover:bg-chat-border/60 rounded-md transition-colors hidden lg:block"
+                  title={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+                >
+                  {isSidebarOpen ? (
+                    <PanelLeftClose className="w-5 h-5" strokeWidth={1.75} />
+                  ) : (
+                    <PanelLeftOpen className="w-5 h-5" strokeWidth={1.75} />
+                  )}
+                </button>
+              </>
             )}
             <div className="flex items-center gap-2">
               <Logo className="w-6 h-6" />

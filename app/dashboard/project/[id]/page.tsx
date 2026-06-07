@@ -452,7 +452,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-bg via-bg to-surface">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-3 border-b border-border/50 bg-surface/80 backdrop-blur-sm">
+      <div className="flex-shrink-0 px-4 md:px-6 py-3 border-b border-border/50 bg-surface/80 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.12em] mb-1">
             Detailed Pipeline
@@ -462,7 +462,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
           </h1>
 
           {/* Progress stepper */}
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2 overflow-x-auto custom-scrollbar pb-1">
             {(['questions', 'requirements', 'design-questions', 'design', 'tasks'] as Step[]).map((step, idx) => {
               const order = ['questions', 'requirements', 'design-questions', 'design', 'tasks'];
               const isActive = currentStep === step;
@@ -477,7 +477,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
               };
 
               return (
-                <div key={step} className="flex items-center gap-2">
+                <div key={step} className="flex items-center gap-2 shrink-0">
                   <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all duration-300 ${isActive
                       ? 'bg-primary/10 border border-primary'
                       : isPast
@@ -502,7 +502,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-8 bg-bg" ref={scrollContainerRef}>
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-8 bg-bg" ref={scrollContainerRef}>
         <div className="max-w-5xl mx-auto">
           {error && (
             <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-error text-[17px] font-medium flex items-center justify-between gap-4">
@@ -653,7 +653,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
 
                 <div>
                   <form onSubmit={handleRefine} className="space-y-4">
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <input
                         type="text"
                         value={refinePrompt}
@@ -665,7 +665,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
                       <button
                         type="submit"
                         disabled={!refinePrompt.trim() || isGenerating}
-                        className="flex items-center gap-2 px-5 py-3 rounded-lg bg-surface-alt text-text-primary font-semibold text-[17px] border border-border hover:bg-border hover:border-border disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-surface-alt text-text-primary font-semibold text-[17px] border border-border hover:bg-border hover:border-border disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
                       >
                         {isGenerating ? (
                           <>

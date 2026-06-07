@@ -5,7 +5,7 @@ import { RefObject, useEffect, useState } from 'react';
 
 export default function ScrollButtons({ 
   containerRef,
-  className = "fixed bottom-8 right-8"
+  className = "fixed bottom-20 right-4 sm:bottom-8 sm:right-8"
 }: { 
   containerRef: RefObject<HTMLElement | null>;
   className?: string;

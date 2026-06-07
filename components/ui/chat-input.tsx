@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Plus, ChevronDown, ArrowUp, X, FileText, Loader2, Check, Archive } from "lucide-react";
 
 /* --- ICONS --- */
@@ -154,12 +155,19 @@ interface ModelSelectorProps {
 const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModel, onSelect }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const [pos, setPos] = useState<{ left: number; bottom: number; width: number } | null>(null);
 
     const currentModel = models.find(m => m.id === selectedModel) || models[0];
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (
+                dropdownRef.current && !dropdownRef.current.contains(target) &&
+                menuRef.current && !menuRef.current.contains(target)
+            ) {
                 setIsOpen(false);
             }
         };
@@ -167,9 +175,36 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModel, on
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Position the dropdown relative to the viewport so it never overflows off-screen.
+    useLayoutEffect(() => {
+        if (!isOpen || !buttonRef.current) return;
+
+        const computePosition = () => {
+            if (!buttonRef.current) return;
+            const rect = buttonRef.current.getBoundingClientRect();
+            const margin = 12;
+            const width = Math.min(260, window.innerWidth - margin * 2);
+            // Align the dropdown's right edge with the button, then clamp into the viewport.
+            let left = rect.right - width;
+            if (left < margin) left = margin;
+            if (left + width > window.innerWidth - margin) left = window.innerWidth - margin - width;
+            const bottom = window.innerHeight - rect.top + 8;
+            setPos({ left, bottom, width });
+        };
+
+        computePosition();
+        window.addEventListener("resize", computePosition);
+        window.addEventListener("scroll", computePosition, true);
+        return () => {
+            window.removeEventListener("resize", computePosition);
+            window.removeEventListener("scroll", computePosition, true);
+        };
+    }, [isOpen]);
+
     return (
         <div className="relative" ref={dropdownRef}>
             <button
+                ref={buttonRef}
                 onClick={() => setIsOpen(!isOpen)}
                 className={`inline-flex items-center justify-center relative shrink-0 transition font-base duration-300 ease-[cubic-bezier(0.165,0.85,0.45,1)] h-8 rounded-xl px-3 min-w-[4rem] active:scale-[0.98] whitespace-nowrap !text-xs pl-2.5 pr-2 gap-1 
                 ${isOpen
@@ -186,8 +221,17 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModel, on
                 </div>
             </button>
 
-            {isOpen && (
-                <div className="absolute bottom-full right-0 mb-2 w-[260px] bg-white border border-[#DDDDDD] rounded-2xl shadow-2xl overflow-hidden z-50 flex flex-col p-1.5 animate-fade-in origin-bottom-right">
+            {isOpen && typeof document !== 'undefined' && createPortal(
+                <div
+                    ref={menuRef}
+                    className="fixed bg-white border border-[#DDDDDD] rounded-2xl shadow-2xl overflow-hidden z-[200] flex flex-col p-1.5 animate-fade-in origin-bottom-right"
+                    style={{
+                        left: pos ? pos.left : undefined,
+                        bottom: pos ? pos.bottom : undefined,
+                        width: pos ? pos.width : 260,
+                        visibility: pos ? 'visible' : 'hidden',
+                    }}
+                >
                     {models.map(model => (
                         <button
                             key={model.id}
@@ -220,7 +264,8 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModel, on
                             )}
                         </button>
                     ))}
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

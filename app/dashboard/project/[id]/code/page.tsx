@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { startSSEStream } from '@/lib/hooks/useSSE';
 import {
   ArrowLeft, Download, Loader2, Code2, File, Folder, FolderOpen,
-  Copy, Check, ChevronRight, Sparkles, CheckCircle2, Search, X
+  Copy, Check, ChevronRight, Sparkles, CheckCircle2, Search, X, Menu
 } from 'lucide-react';
 
 interface GeneratedFile {
@@ -181,6 +181,7 @@ export default function CodeViewerPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set());
   const [showSearch, setShowSearch] = useState(false);
+  const [isTreeOpen, setIsTreeOpen] = useState(false);
   const [isLoadingCode, setIsLoadingCode] = useState(true);
   const [needsGeneration, setNeedsGeneration] = useState(false);
   const codeRef = useRef<HTMLDivElement>(null);
@@ -488,6 +489,13 @@ export default function CodeViewerPage() {
           >
             <ArrowLeft size={18} />
           </button>
+          <button
+            onClick={() => setIsTreeOpen(true)}
+            className="p-1.5 rounded-lg hover:bg-surface-alt transition-colors text-text-muted hover:text-text-primary md:hidden"
+            title="Show files"
+          >
+            <Menu size={18} />
+          </button>
           <div className="flex items-center gap-2">
             <Code2 size={16} className="text-primary" />
             <h1 className="text-[15px] font-bold text-text-primary">Starter Code</h1>
@@ -515,9 +523,21 @@ export default function CodeViewerPage() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
+      <div className="flex-1 flex min-h-0 overflow-hidden relative">
+        {/* Mobile backdrop */}
+        {isTreeOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden animate-fade-in"
+            onClick={() => setIsTreeOpen(false)}
+          />
+        )}
         {/* File tree sidebar */}
-        <div className="w-[260px] min-w-[220px] border-r border-border bg-surface flex flex-col shrink-0">
+        <div className={`
+          fixed md:static inset-y-0 left-0 z-50 md:z-auto
+          transform transition-transform duration-300 ease-in-out md:transform-none
+          ${isTreeOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          w-[260px] min-w-[220px] border-r border-border bg-surface flex flex-col shrink-0 shadow-2xl md:shadow-none
+        `}>
           {/* Search toggle */}
           <div className="px-3 py-2 border-b border-border">
             {showSearch ? (
@@ -552,7 +572,7 @@ export default function CodeViewerPage() {
                 filteredFiles.map(f => (
                   <button
                     key={f.path}
-                    onClick={() => { setSelectedFile(f.path); setSearchQuery(''); setShowSearch(false); }}
+                    onClick={() => { setSelectedFile(f.path); setSearchQuery(''); setShowSearch(false); setIsTreeOpen(false); }}
                     className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-left rounded-md text-[13px] transition-colors ${
                       selectedFile === f.path
                         ? 'bg-primary/10 text-primary font-semibold'
@@ -572,7 +592,7 @@ export default function CodeViewerPage() {
                   key={node.path}
                   node={node}
                   selectedPath={selectedFile}
-                  onSelect={setSelectedFile}
+                  onSelect={(p) => { setSelectedFile(p); setIsTreeOpen(false); }}
                   expandedDirs={expandedDirs}
                   onToggleDir={toggleDir}
                 />

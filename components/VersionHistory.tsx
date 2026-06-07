@@ -113,7 +113,7 @@ export default function VersionHistory({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-8 animate-fade-in">
       <div className="bg-surface rounded-2xl shadow-2xl border border-border w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-alt shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border bg-surface-alt shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
               <Clock size={18} className="text-primary" />
@@ -132,7 +132,7 @@ export default function VersionHistory({
         </div>
 
         {/* Body */}
-        <div className="flex-1 flex min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col sm:flex-row min-h-0 overflow-hidden">
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center">
               <Loader2 size={24} className="animate-spin text-primary" />
@@ -146,7 +146,7 @@ export default function VersionHistory({
           ) : (
             <>
               {/* Version list sidebar */}
-              <div className="w-64 border-r border-border bg-bg overflow-y-auto shrink-0">
+              <div className="w-full sm:w-64 max-h-44 sm:max-h-none border-b sm:border-b-0 sm:border-r border-border bg-bg overflow-y-auto shrink-0">
                 <div className="p-3">
                   <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 px-2">Versions</p>
 
@@ -191,11 +191,11 @@ export default function VersionHistory({
               </div>
 
               {/* Diff pane */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                 {selectedVersion ? (
                   <div className="space-y-4">
                     {/* Compare selector */}
-                    <div className="flex items-center gap-3 text-[13px]">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px]">
                       <ArrowLeftRight size={14} className="text-text-muted" />
                       <span className="text-text-muted">Comparing</span>
                       <span className="font-semibold text-text-primary bg-surface-alt px-2 py-0.5 rounded">
