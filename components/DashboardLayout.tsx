@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 
 import { signOut } from '@/lib/supabase/auth';
 import { useRouter } from 'next/navigation';
+import { PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 
 import { Logo } from '@/components/ui/Logo';
 
@@ -37,8 +38,9 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
       {/* Main Sidebar (Project History) */}
       {sidebar && (
         <div
-          className={`${isSidebarOpen ? 'w-[280px] opacity-100' : 'w-0 opacity-0'
-            } transition-all duration-300 ease-in-out bg-chat-sidebar1 border-r border-chat-border flex-col flex-shrink-0 z-10 hidden lg:flex`}
+          style={{ willChange: 'width' }}
+          className={`${isSidebarOpen ? 'w-[280px]' : 'w-0'
+            } transition-[width] duration-200 ease-out bg-chat-sidebar1 border-r border-chat-border flex-col flex-shrink-0 z-10 hidden lg:flex overflow-hidden`}
         >
           <div className="w-[280px] h-full flex flex-col">
             {sidebar}
@@ -55,12 +57,14 @@ export default function DashboardLayout({ sidebar, leftPanel, rightPanel }: Dash
             {sidebar && (
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2 -ml-2 text-chat-textMuted hover:text-chat-text hover:bg-chat-sidebar1 rounded-md transition-colors"
+                className="p-2 -ml-2 text-chat-textMuted hover:text-chat-text hover:bg-chat-border/60 rounded-md transition-colors"
                 title={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                </svg>
+                {isSidebarOpen ? (
+                  <PanelLeftClose className="w-5 h-5" strokeWidth={1.75} />
+                ) : (
+                  <PanelLeftOpen className="w-5 h-5" strokeWidth={1.75} />
+                )}
               </button>
             )}
             <div className="flex items-center gap-2">

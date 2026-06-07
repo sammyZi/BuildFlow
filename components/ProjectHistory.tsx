@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Project } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
-import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2, Edit3, Settings } from 'lucide-react';
+import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2, Edit3, Settings, Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useDebounce } from '@/lib/hooks/useDebounce';
 
 import { Logo } from '@/components/ui/Logo';
 
@@ -40,6 +41,8 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 250);
   const router = useRouter();
 
   useEffect(() => {
@@ -61,6 +64,12 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
     }
     loadProjects();
   }, [currentProjectId]);
+
+  const filteredProjects = useMemo(() => {
+    const q = debouncedQuery.trim().toLowerCase();
+    if (!q) return projects;
+    return projects.filter(p => (p.prompt || '').toLowerCase().includes(q));
+  }, [projects, debouncedQuery]);
 
   const handleDeleteClick = (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation(); // Prevent triggering onSelectProject
@@ -117,6 +126,33 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
 
       <div className="mx-3 border-t border-sidebar-border" />
 
+      {/* Search */}
+      <div className="px-3 pt-3">
+        <div className="relative">
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted pointer-events-none"
+            strokeWidth={2}
+          />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search projects..."
+            className="w-full bg-sidebar-active/60 text-sidebar-text placeholder:text-sidebar-text-muted text-[13px] rounded-lg pl-8 pr-8 py-2 outline-none border border-transparent focus:border-primary/50 focus:bg-sidebar-active transition-colors"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-sidebar-text-muted hover:text-white hover:bg-sidebar-active transition-colors"
+              title="Clear search"
+            >
+              <X size={13} strokeWidth={2} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* History label */}
       <div className="px-4 pt-3 pb-1.5 flex items-center gap-1.5">
         <Clock size={10} className="text-sidebar-text-muted" strokeWidth={2} />
@@ -132,13 +168,15 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
                 <div key={i} className="h-10 rounded-lg shimmer-bg opacity-10" />
               ))}
             </div>
-          ) : projects.length === 0 ? (
+          ) : filteredProjects.length === 0 ? (
             <div className="px-3 py-10 text-center">
               <FolderOpen size={20} className="mx-auto text-sidebar-text-muted/40 mb-2" strokeWidth={1.5} />
-              <p className="text-[13px] text-sidebar-text-muted">No projects yet</p>
+              <p className="text-[13px] text-sidebar-text-muted">
+                {debouncedQuery.trim() ? 'No matching projects' : 'No projects yet'}
+              </p>
             </div>
           ) : (
-            projects.map(project => {
+            filteredProjects.map(project => {
               const isActive = currentProjectId === project.id;
               const isDeleting = deletingId === project.id;
               

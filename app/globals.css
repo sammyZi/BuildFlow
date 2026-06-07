@@ -36,6 +36,15 @@
   --color-warning: #F59E0B;
   --color-error: #EF4444;
 
+  /* Chat / App shell — deep navy sidebar + light content */
+  --color-chat-main: #FAFAFA;        /* content + header background */
+  --color-chat-text: #111827;        /* primary text on light */
+  --color-chat-textMuted: #6B7280;   /* muted labels, captions */
+  --color-chat-border: #E5E7EB;      /* separators, card borders */
+  --color-chat-accent: #4A6BFF;      /* brand accent */
+  --color-chat-accentHover: #3B5AE0; /* accent hover */
+  --color-chat-sidebar1: #0C1222;    /* deep navy sidebar */
+
   --font-sans: var(--font-outfit), sans-serif;
 }
 
