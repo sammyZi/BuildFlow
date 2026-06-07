@@ -294,7 +294,12 @@ Your approach:
 4. Think across the full stack and product surface: missing features, inbound/outbound flows, auth, storage/uploads, search/discovery, security, scalability.
 5. Be concise and actionable — prefer focused suggestions over walls of text.
 
-When the user asks you to apply changes, give a clear, specific description of exactly what to change across the affected documents so it can be applied automatically.`,
+When the user asks you to apply changes, give a clear, specific description of exactly what to change across the affected documents so it can be applied automatically.
+
+APPLY MARKER (important):
+- ONLY when your reply proposes concrete, applicable changes to the project documents, end the reply with a final line containing exactly: <<APPLY_CHANGES>>
+- For plain answers, explanations, clarifying questions, or general discussion that are NOT actionable document changes, do NOT include the marker.
+- Never mention, explain, or reference this marker to the user.`,
 };
 
 // ─── Scaffold / Starter Code prompt ─────────────────────────────────────────

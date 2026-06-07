@@ -30,6 +30,11 @@ const ARTIFACT_LABELS: Record<string, string> = {
   tasks: 'tasks.md',
 };
 
+// The assistant appends this marker when (and only when) its reply contains
+// concrete, applicable changes. It's stripped before display and only then is
+// the "Apply Changes" button shown.
+const APPLY_MARKER = '<<APPLY_CHANGES>>';
+
 export default function ArtifactChat({
   isOpen,
   onClose,
@@ -274,7 +279,13 @@ export default function ArtifactChat({
           </div>
         ) : (
           <>
-            {messages.map((msg) => (
+            {messages.map((msg) => {
+              const isStatusMsg = msg.id.startsWith('apply-');
+              const hasApplyMarker = msg.role === 'assistant' && msg.content.includes(APPLY_MARKER);
+              const displayContent = hasApplyMarker
+                ? msg.content.replace(APPLY_MARKER, '').trim()
+                : msg.content;
+              return (
               <div
                 key={msg.id}
                 className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -295,13 +306,13 @@ export default function ArtifactChat({
                       {msg.content ? (
                         <>
                           <MarkdownRenderer
-                            content={msg.content}
+                            content={displayContent}
                             className="prose-sm prose-p:text-[13px] prose-p:leading-relaxed prose-li:text-[13px] prose-headings:text-[14px] prose-code:text-[12px]"
                           />
-                          {/* Apply Changes button */}
-                          {!isStreaming && msg.content.length > 20 && onApplyChanges && (
+                          {/* Apply Changes button — only when the reply actually proposes applicable changes */}
+                          {!isStreaming && !isStatusMsg && hasApplyMarker && onApplyChanges && (
                             <button
-                              onClick={() => handleApply(msg.content)}
+                              onClick={() => handleApply(displayContent)}
                               disabled={isApplying}
                               className="mt-2.5 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -336,7 +347,8 @@ export default function ArtifactChat({
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </>
         )}
