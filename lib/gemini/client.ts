@@ -142,6 +142,42 @@ Return ONLY a JSON array:
     return this.generateWithRetry(DETAILED_PROMPTS.refine, prompt);
   }
 
+  /**
+   * Surgically propagate a change made in one document into a related document.
+   * Only the sections affected by the change are updated; every other part of
+   * the target document is preserved verbatim. If nothing is affected, the
+   * model returns the document unchanged.
+   *
+   * @param targetLabel  Human label for the doc being updated (e.g. "system design")
+   * @param targetContent The current content of the document to update
+   * @param changeSummary The user's original change request
+   * @param sourceLabel  Human label for the doc that was changed (e.g. "requirements")
+   * @param sourceContent The updated content of the changed document, for context
+   */
+  async propagateChange(
+    targetLabel: string,
+    targetContent: string,
+    changeSummary: string,
+    sourceLabel: string,
+    sourceContent: string
+  ): Promise<string> {
+    const prompt = `A change was just made to the ${sourceLabel} document based on this user request:
+"${changeSummary}"
+
+Here is the UPDATED ${sourceLabel} document for reference:
+---
+${sourceContent}
+---
+
+Below is the current ${targetLabel} document. Update ONLY the sections of this ${targetLabel} that must change to stay consistent with the change above (for example, if the tech stack changed, update only the tech-stack sections, related architecture diagrams, data flow, and impacted tasks). Preserve every other part of the document EXACTLY word-for-word — same headings, structure, ordering, and wording. Do NOT rewrite or restyle unaffected sections. If nothing in this document is affected, output it completely unchanged.
+
+Current ${targetLabel} document:
+${targetContent}
+
+Output the complete, updated ${targetLabel} document as raw markdown.`;
+    return this.generateWithRetry(DETAILED_PROMPTS.refine, prompt);
+  }
+
   // ─── Streaming pipeline methods ────────────────────────────────────────────
 
   /**

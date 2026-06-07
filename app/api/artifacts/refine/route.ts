@@ -46,7 +46,6 @@ export async function POST(req: Request) {
     }
 
     const client = new GeminiClient(resolveProvider(provider ?? project.state_data?.provider));
-    const appIdea = project.prompt;
     const updatedArtifacts: any[] = [];
 
     // ─── Helper: save version before update ──────────────────────────────
@@ -95,105 +94,68 @@ export async function POST(req: Request) {
 
     updatedArtifacts.push(updatedArtifact);
 
-    // ─── Step 2: Cascade regeneration ────────────────────────────────────
+    // ─── Step 2: Surgically propagate the change to the other documents ──
+    // Rather than regenerating downstream docs from scratch (which would
+    // discard prior content/edits), we update ONLY the sections affected by
+    // this change in each related document. This keeps requirements, design,
+    // and tasks consistent — e.g. a tech-stack change updates the design's
+    // tech-stack section and the impacted tasks, leaving everything else as-is.
+    const TYPE_LABELS: Record<string, string> = {
+      requirements: 'requirements',
+      design: 'system design',
+      tasks: 'implementation tasks',
+    };
 
-    if (artifactType === 'requirements') {
-      // Requirements changed → regenerate design, then tasks
+    // Propagate to every other artifact, in canonical order, using the freshly
+    // refined document as the source of truth for the change.
+    const cascadeTargets = ['requirements', 'design', 'tasks'].filter(t => t !== artifactType);
 
-      // Get current design artifact to save its version
-      const { data: designArtifactCurrent } = await supabaseAdmin
+    for (const targetType of cascadeTargets) {
+      const { data: targetCurrent } = await supabaseAdmin
         .from('artifacts')
         .select('*')
         .eq('project_id', projectId)
-        .eq('artifact_type', 'design')
+        .eq('artifact_type', targetType)
         .single();
 
-      if (designArtifactCurrent) {
-        await saveVersion(designArtifactCurrent.id, projectId, designArtifactCurrent.content, `[Auto] Requirements changed: ${prompt}`);
+      if (!targetCurrent || !targetCurrent.content?.trim()) continue;
+
+      let updatedTarget: string;
+      try {
+        updatedTarget = await client.propagateChange(
+          TYPE_LABELS[targetType] || targetType,
+          targetCurrent.content,
+          prompt,
+          TYPE_LABELS[artifactType] || artifactType,
+          refinedContent
+        );
+      } catch (err) {
+        console.error(`Failed to propagate change to ${targetType}:`, err);
+        continue;
       }
 
-      const newDesign = await client.generateDesign(appIdea, refinedContent);
+      // If the document was unaffected, skip the DB write and version bump.
+      if (!updatedTarget.trim() || updatedTarget.trim() === targetCurrent.content.trim()) continue;
 
-      const { data: designArtifact, error: designError } = await supabaseAdmin
+      await saveVersion(
+        targetCurrent.id,
+        projectId,
+        targetCurrent.content,
+        `[Auto] ${TYPE_LABELS[artifactType] || artifactType} changed: ${prompt}`
+      );
+
+      const { data: savedTarget, error: targetError } = await supabaseAdmin
         .from('artifacts')
-        .update({ content: newDesign })
+        .update({ content: updatedTarget })
+        .eq('id', targetCurrent.id)
         .eq('project_id', projectId)
-        .eq('artifact_type', 'design')
         .select()
         .single();
 
-      if (designError) {
-        console.error('Failed to cascade-update design:', designError);
-      } else {
-        updatedArtifacts.push(designArtifact);
-      }
-
-      // Get current tasks artifact to save its version
-      const { data: tasksArtifactCurrent } = await supabaseAdmin
-        .from('artifacts')
-        .select('*')
-        .eq('project_id', projectId)
-        .eq('artifact_type', 'tasks')
-        .single();
-
-      if (tasksArtifactCurrent) {
-        await saveVersion(tasksArtifactCurrent.id, projectId, tasksArtifactCurrent.content, `[Auto] Requirements changed: ${prompt}`);
-      }
-
-      const designContent = designArtifact?.content || newDesign;
-      const newTasks = await client.generateTasks(appIdea, refinedContent, designContent);
-
-      const { data: tasksArtifact, error: tasksError } = await supabaseAdmin
-        .from('artifacts')
-        .update({ content: newTasks })
-        .eq('project_id', projectId)
-        .eq('artifact_type', 'tasks')
-        .select()
-        .single();
-
-      if (tasksError) {
-        console.error('Failed to cascade-update tasks:', tasksError);
-      } else {
-        updatedArtifacts.push(tasksArtifact);
-      }
-
-    } else if (artifactType === 'design') {
-      // Design changed → regenerate tasks
-
-      const { data: reqArtifact } = await supabaseAdmin
-        .from('artifacts')
-        .select('content')
-        .eq('project_id', projectId)
-        .eq('artifact_type', 'requirements')
-        .single();
-
-      // Save current tasks version
-      const { data: tasksArtifactCurrent } = await supabaseAdmin
-        .from('artifacts')
-        .select('*')
-        .eq('project_id', projectId)
-        .eq('artifact_type', 'tasks')
-        .single();
-
-      if (tasksArtifactCurrent) {
-        await saveVersion(tasksArtifactCurrent.id, projectId, tasksArtifactCurrent.content, `[Auto] Design changed: ${prompt}`);
-      }
-
-      const requirementsContent = reqArtifact?.content || '';
-      const newTasks = await client.generateTasks(appIdea, requirementsContent, refinedContent);
-
-      const { data: tasksArtifact, error: tasksError } = await supabaseAdmin
-        .from('artifacts')
-        .update({ content: newTasks })
-        .eq('project_id', projectId)
-        .eq('artifact_type', 'tasks')
-        .select()
-        .single();
-
-      if (tasksError) {
-        console.error('Failed to cascade-update tasks:', tasksError);
-      } else {
-        updatedArtifacts.push(tasksArtifact);
+      if (targetError) {
+        console.error(`Failed to cascade-update ${targetType}:`, targetError);
+      } else if (savedTarget) {
+        updatedArtifacts.push(savedTarget);
       }
     }
 
@@ -202,7 +164,7 @@ export async function POST(req: Request) {
       content: refinedContent,
       artifact: updatedArtifact,
       updatedArtifacts,
-      cascaded: artifactType !== 'tasks',
+      cascaded: updatedArtifacts.length > 1,
     });
   } catch (error: any) {
     console.error('Error in /api/artifacts/refine:', error);

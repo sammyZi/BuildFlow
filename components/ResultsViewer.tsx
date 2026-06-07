@@ -335,11 +335,10 @@ export default function ResultsViewer({
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) throw new Error('Please sign in again.');
 
-                    // Always apply chat changes to the Requirements artifact first,
-                    // so that the backend automatically cascades changes down to Design and Tasks.
-                    const reqArtifact = artifacts.find(a => a.artifact_type === 'requirements');
-                    if (!reqArtifact) throw new Error('Requirements artifact not found');
-
+                    // Apply the change to the artifact the user is currently
+                    // viewing; the backend then surgically propagates it to the
+                    // other documents (e.g. a design tech-stack change updates
+                    // the impacted tasks) without overwriting unaffected parts.
                     const res = await fetch('/api/artifacts/refine', {
                       method: 'POST',
                       headers: {
@@ -347,11 +346,11 @@ export default function ResultsViewer({
                         'Authorization': `Bearer ${session.access_token}`,
                       },
                       body: JSON.stringify({
-                        artifactId: reqArtifact.id,
+                        artifactId: activeArtifact.id,
                         projectId,
-                        currentContent: reqArtifact.content,
+                        currentContent: activeArtifact.content,
                         prompt: `Apply the following changes from our conversation:\n\n${suggestion}`,
-                        artifactType: 'requirements',
+                        artifactType: activeTab,
                       }),
                     });
 
