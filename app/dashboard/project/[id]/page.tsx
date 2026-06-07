@@ -539,7 +539,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
                   {generationProgress > 0 && (
                     <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-primary to-violet-500 rounded-full transition-all duration-500 ease-out"
+                        className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${generationProgress}%` }}
                       />
                     </div>
