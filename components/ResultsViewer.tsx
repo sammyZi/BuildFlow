@@ -173,58 +173,75 @@ export default function ResultsViewer({
           </div>
 
           {/* Actions */}
-          {isComplete && (
+          {(isComplete || (artifacts.length > 0 && !readOnly)) && (
             <div className="p-2 sm:border-l border-border shrink-0 flex items-center gap-2 print:hidden relative">
-              <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                onBlur={() => setTimeout(() => setShowExportMenu(false), 200)}
-                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-alt text-text-secondary hover:text-text-primary text-[13px] font-semibold transition-colors"
-              >
-                <Download size={14} />
-                <span className="hidden sm:inline">Export</span>
-                <ChevronDown size={14} className={`transition-transform duration-200 ${showExportMenu ? 'rotate-180' : ''}`} />
-              </button>
-
-              {showExportMenu && (
-                <div className="absolute top-full mt-1 right-2 w-48 bg-surface border border-border rounded-xl shadow-xl flex flex-col p-1.5 z-50 animate-fade-in">
-                  {!readOnly && onTogglePublic && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleShareClick(); }}
-                      className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-surface-alt text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors"
-                    >
-                      {showShareTooltip ? <LinkIcon size={14} className="text-success" /> : <Share2 size={14} />}
-                      {showShareTooltip ? 'Copied Link!' : 'Share Project'}
-                    </button>
-                  )}
+              {!readOnly && artifacts.length > 0 && (
+                <button
+                  onClick={() => setShowChat(!showChat)}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] font-semibold transition-colors ${showChat
+                    ? 'border-primary/30 bg-primary/10 text-primary'
+                    : 'border-border bg-surface text-text-secondary hover:bg-surface-alt hover:text-text-primary'
+                    }`}
+                  title="Chat about your whole project"
+                >
+                  <MessageSquare size={14} />
+                  <span className="hidden sm:inline">Chat</span>
+                </button>
+              )}
+              {isComplete && (
+                <>
                   <button
-                    onClick={(e) => { e.stopPropagation(); handlePrint(); }}
-                    className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-surface-alt text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors"
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    onBlur={() => setTimeout(() => setShowExportMenu(false), 200)}
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-alt text-text-secondary hover:text-text-primary text-[13px] font-semibold transition-colors"
                   >
-                    <Printer size={14} />
-                    Export as PDF
+                    <Download size={14} />
+                    <span className="hidden sm:inline">Export</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${showExportMenu ? 'rotate-180' : ''}`} />
                   </button>
-                  {onDownloadBundle && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDownloadBundle(); }}
-                      className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-surface-alt text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors"
-                    >
-                      <Folder size={14} />
-                      Download Zip
-                    </button>
-                  )}
-                  {!readOnly && projectId && (
-                    <>
-                      <div className="my-1 border-t border-border" />
+
+                  {showExportMenu && (
+                    <div className="absolute top-full mt-1 right-2 w-48 bg-surface border border-border rounded-xl shadow-xl flex flex-col p-1.5 z-50 animate-fade-in">
+                      {!readOnly && onTogglePublic && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleShareClick(); }}
+                          className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-surface-alt text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors"
+                        >
+                          {showShareTooltip ? <LinkIcon size={14} className="text-success" /> : <Share2 size={14} />}
+                          {showShareTooltip ? 'Copied Link!' : 'Share Project'}
+                        </button>
+                      )}
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleGenerateCode(); }}
-                        className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-primary/10 text-[13px] font-semibold text-primary hover:text-primary-hover transition-colors"
+                        onClick={(e) => { e.stopPropagation(); handlePrint(); }}
+                        className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-surface-alt text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors"
                       >
-                        <Code2 size={14} />
-                        Generate Starter Code
+                        <Printer size={14} />
+                        Export as PDF
                       </button>
-                    </>
+                      {onDownloadBundle && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDownloadBundle(); }}
+                          className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-surface-alt text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors"
+                        >
+                          <Folder size={14} />
+                          Download Zip
+                        </button>
+                      )}
+                      {!readOnly && projectId && (
+                        <>
+                          <div className="my-1 border-t border-border" />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleGenerateCode(); }}
+                            className="flex items-center gap-2.5 px-3 py-2 w-full text-left rounded-lg hover:bg-primary/10 text-[13px] font-semibold text-primary hover:text-primary-hover transition-colors"
+                          >
+                            <Code2 size={14} />
+                            Generate Starter Code
+                          </button>
+                        </>
+                      )}
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           )}
@@ -248,18 +265,6 @@ export default function ResultsViewer({
                   </div>
                   {activeContent && (
                     <div className="flex items-center gap-1">
-                      {!readOnly && (
-                        <button
-                          onClick={() => setShowChat(!showChat)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors ${showChat
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-text-muted hover:text-text-primary hover:bg-surface-alt'
-                            }`}
-                        >
-                          <MessageSquare size={14} />
-                          Chat
-                        </button>
-                      )}
                       {isComplete && !readOnly && (
                         <button
                           onClick={() => setShowHistory(true)}
@@ -324,21 +329,22 @@ export default function ResultsViewer({
               <ArtifactChat
                 isOpen={showChat}
                 onClose={() => setShowChat(false)}
-                activeTab={activeTab as ArtifactType}
-                artifactContent={activeContent}
+                artifacts={artifacts}
                 projectId={projectId}
                 isApplying={isApplyingChat}
                 onApplyChanges={async (suggestion) => {
-                  if (!activeArtifact || !projectId || isApplyingChat) return;
+                  if (!projectId || isApplyingChat) return;
+                  // Project-level chat: apply to requirements as the primary
+                  // document (scope/feature changes originate there), then the
+                  // backend surgically propagates the change into design + tasks.
+                  const primary =
+                    artifacts.find(a => a.artifact_type === 'requirements') || artifacts[0];
+                  if (!primary) return;
                   setIsApplyingChat(true);
                   try {
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) throw new Error('Please sign in again.');
 
-                    // Apply the change to the artifact the user is currently
-                    // viewing; the backend then surgically propagates it to the
-                    // other documents (e.g. a design tech-stack change updates
-                    // the impacted tasks) without overwriting unaffected parts.
                     const res = await fetch('/api/artifacts/refine', {
                       method: 'POST',
                       headers: {
@@ -346,11 +352,11 @@ export default function ResultsViewer({
                         'Authorization': `Bearer ${session.access_token}`,
                       },
                       body: JSON.stringify({
-                        artifactId: activeArtifact.id,
+                        artifactId: primary.id,
                         projectId,
-                        currentContent: activeArtifact.content,
+                        currentContent: primary.content,
                         prompt: `Apply the following changes from our conversation:\n\n${suggestion}`,
-                        artifactType: activeTab,
+                        artifactType: primary.artifact_type,
                       }),
                     });
 

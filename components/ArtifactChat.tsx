@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ArtifactType } from '@/types';
+import { Artifact, ArtifactType } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import {
   X, Send, Loader2, Sparkles, User, Wand2,
@@ -18,26 +18,22 @@ interface ChatMessage {
 interface ArtifactChatProps {
   isOpen: boolean;
   onClose: () => void;
-  activeTab: ArtifactType;
-  artifactContent: string | null;
+  artifacts: Artifact[];
   projectId?: string;
   onApplyChanges?: (prompt: string) => Promise<void> | void;
   isApplying?: boolean;
 }
 
-const TAB_META: Record<ArtifactType, { label: string; Icon: React.ComponentType<any>; color: string }> = {
-  requirements: { label: 'Requirements', Icon: FileText, color: 'text-blue-600' },
-  design: { label: 'System Design', Icon: GitBranch, color: 'text-violet-600' },
-  tasks: { label: 'Tasks', Icon: ListChecks, color: 'text-emerald-600' },
+const ARTIFACT_LABELS: Record<string, string> = {
+  requirements: 'requirements.md',
+  design: 'design.md',
+  tasks: 'tasks.md',
 };
-
-
 
 export default function ArtifactChat({
   isOpen,
   onClose,
-  activeTab,
-  artifactContent,
+  artifacts,
   projectId,
   onApplyChanges,
   isApplying = false,
@@ -69,10 +65,6 @@ export default function ArtifactChat({
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-
-  const meta = TAB_META[activeTab];
-  const TabIcon = meta.Icon;
-
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -83,7 +75,7 @@ export default function ArtifactChat({
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen]);
 
   const addMessage = useCallback((msg: ChatMessage) => {
     setMessages(prev => [...prev, msg]);
@@ -135,6 +127,13 @@ export default function ArtifactChat({
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
+      // Build a project-wide context from all generated documents so the
+      // assistant can reason across requirements, design, and tasks together.
+      const projectContext = artifacts
+        .filter(a => a.content && a.content.trim())
+        .map(a => `### ${ARTIFACT_LABELS[a.artifact_type] || a.artifact_type}\n\n${a.content}`)
+        .join('\n\n---\n\n');
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -143,8 +142,8 @@ export default function ArtifactChat({
         },
         body: JSON.stringify({
           messages: apiMessages,
-          stage: activeTab,
-          artifactContent: artifactContent || undefined,
+          stage: 'project',
+          projectContext,
           projectId,
         }),
         signal: controller.signal,
@@ -352,7 +351,7 @@ export default function ArtifactChat({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isStreaming}
-            placeholder="Ask about this document..."
+            placeholder="Ask about your project..."
             className="flex-1 px-3.5 py-2.5 rounded-xl border border-border bg-bg text-[13px] text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 transition-all"
           />
           <button

@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const auth = await withAuth(req);
     if (!auth.success) return auth.response;
 
-    const { messages, stage, artifactContent, provider, projectId } = await req.json();
+    const { messages, stage, artifactContent, projectContext, provider, projectId } = await req.json();
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -31,6 +31,21 @@ export async function POST(req: Request) {
         .eq('id', projectId)
         .single();
       providerChoice = proj?.state_data?.provider;
+    }
+
+    // Project-level chat: the assistant reasons across all documents at once.
+    // Fall back to the per-document prompt for any legacy single-file usage.
+    if (projectContext && typeof projectContext === 'string') {
+      let systemPrompt = CHAT_PROMPTS.project;
+      systemPrompt += `\n\nHere are the current project documents the user is discussing:\n\n${projectContext}\n\nReference these documents by name and be specific about sections, requirement numbers, and task numbers when answering or suggesting changes.`;
+
+      const result = streamText({
+        model: getModel(resolveProvider(providerChoice)),
+        system: systemPrompt,
+        messages,
+      });
+
+      return result.toTextStreamResponse();
     }
 
     const stageKey = typeof stage === 'string' && stage in CHAT_PROMPTS ? stage : 'requirements';
