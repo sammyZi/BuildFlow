@@ -1,7 +1,8 @@
 import { streamText } from 'ai';
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { CHAT_PROMPTS, geminiModel } from '@/lib/gemini';
+import { supabaseAdmin } from '@/lib/supabase/server';
+import { CHAT_PROMPTS, getModel, resolveProvider } from '@/lib/gemini';
 
 export const maxDuration = 60;
 
@@ -10,13 +11,26 @@ export async function POST(req: Request) {
     const auth = await withAuth(req);
     if (!auth.success) return auth.response;
 
-    const { messages, stage, artifactContent } = await req.json();
+    const { messages, stage, artifactContent, provider, projectId } = await req.json();
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
         { error: 'messages must be a non-empty array' },
         { status: 400 }
       );
+    }
+
+    // Resolve the provider: explicit request value wins, otherwise fall back to
+    // the provider stored on the project so chat uses the same model as the
+    // artifacts were generated with.
+    let providerChoice: unknown = provider;
+    if (!providerChoice && projectId) {
+      const { data: proj } = await supabaseAdmin
+        .from('projects')
+        .select('state_data')
+        .eq('id', projectId)
+        .single();
+      providerChoice = proj?.state_data?.provider;
     }
 
     const stageKey = typeof stage === 'string' && stage in CHAT_PROMPTS ? stage : 'requirements';
@@ -28,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     const result = streamText({
-      model: geminiModel(),
+      model: getModel(resolveProvider(providerChoice)),
       system: systemPrompt,
       messages,
     });

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { createSSEStream } from '@/lib/api/sse';
-import { GeminiClient } from '@/lib/gemini';
+import { GeminiClient, resolveProvider } from '@/lib/gemini';
 
 export const maxDuration = 120;
 
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const auth = await withAuth(req);
     if (!auth.success) return auth.response;
 
-    const { idea, requirements, answers } = await req.json();
+    const { idea, requirements, answers, provider } = await req.json();
     if (!idea || !requirements) {
       return NextResponse.json({ success: false, error: 'idea and requirements are required' }, { status: 400 });
     }
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       try {
         send('progress', { status: 'generating', message: 'Designing system architecture…', progress: 10 });
 
-        const client = new GeminiClient();
+        const client = new GeminiClient(resolveProvider(provider));
         const content = await client.generateDetailedDesign(idea, requirements, answers);
 
         send('progress', { status: 'complete', message: 'Design ready', progress: 100 });

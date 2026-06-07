@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { GeminiClient } from '@/lib/gemini';
+import { GeminiClient, resolveProvider } from '@/lib/gemini';
 
 export const maxDuration = 120;
 
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const auth = await withAuth(req);
     if (!auth.success) return auth.response;
 
-    const { currentContent, prompt } = await req.json();
+    const { currentContent, prompt, provider } = await req.json();
     if (!currentContent || !prompt) {
       return NextResponse.json(
         { success: false, error: 'currentContent and prompt are required' },
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = new GeminiClient();
+    const client = new GeminiClient(resolveProvider(provider));
     const content = await client.refineContent(currentContent, prompt);
 
     return NextResponse.json({ success: true, content });

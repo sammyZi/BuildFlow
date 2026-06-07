@@ -28,10 +28,11 @@ export default function DashboardPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = async (e?: React.FormEvent, ideaOverride?: string, modeOverride?: string) => {
+  const handleSubmit = async (e?: React.FormEvent, ideaOverride?: string, modeOverride?: string, providerOverride?: string) => {
     if (e) e.preventDefault();
     const idea = (ideaOverride ?? appIdea).trim();
     const currentMode = modeOverride ?? mode;
+    const currentProvider = providerOverride ?? 'gemini';
     if (!idea || isLoading) return;
     if (idea.length < 10) {
       setError('Please describe your idea in at least 10 characters');
@@ -55,7 +56,7 @@ export default function DashboardPage() {
             prompt: idea,
             status: 'draft',
             current_step: 'questions',
-            state_data: {},
+            state_data: { provider: currentProvider },
           })
           .select('id')
           .single();
@@ -77,6 +78,7 @@ export default function DashboardPage() {
           user_id: session.user.id,
           prompt: idea,
           status: 'generating',
+          state_data: { provider: currentProvider },
         })
         .select('id')
         .single();
@@ -90,7 +92,7 @@ export default function DashboardPage() {
       // Fire-and-forget; generation runs server-side independent of this page.
       startSSEStream(
         '/api/generate',
-        { appIdea: idea, userId: session.user.id, projectId: newProjectId },
+        { appIdea: idea, userId: session.user.id, projectId: newProjectId, provider: currentProvider },
         { onEvent: () => {}, onError: () => {}, onDone: () => {} }
       );
 
@@ -102,10 +104,10 @@ export default function DashboardPage() {
     }
   };
 
-  const handleChatSendMessage = (data: { message: string, files: any[], pastedContent: any[], model: string, isThinkingEnabled: boolean }) => {
+  const handleChatSendMessage = (data: { message: string, files: any[], pastedContent: any[], model: string, provider: string, isThinkingEnabled: boolean }) => {
     setAppIdea(data.message);
     setMode(data.model as 'fast' | 'detailed');
-    handleSubmit(undefined, data.message, data.model);
+    handleSubmit(undefined, data.message, data.model, data.provider);
   };
 
   return (

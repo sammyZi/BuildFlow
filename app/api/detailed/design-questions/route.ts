@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { GeminiClient } from '@/lib/gemini';
+import { GeminiClient, resolveProvider } from '@/lib/gemini';
 
 /**
  * POST /api/detailed/design-questions
@@ -11,12 +11,12 @@ export async function POST(req: Request) {
     const auth = await withAuth(req);
     if (!auth.success) return auth.response;
 
-    const { idea, requirements } = await req.json();
+    const { idea, requirements, provider } = await req.json();
     if (!idea || !requirements) {
       return NextResponse.json({ success: false, error: 'idea and requirements are required' }, { status: 400 });
     }
 
-    const client = new GeminiClient();
+    const client = new GeminiClient(resolveProvider(provider));
     const raw = await client.generateDesignQuestions(idea, requirements);
 
     // Clean up the response — remove markdown code blocks if present

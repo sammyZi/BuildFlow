@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@ai-sdk/google": "^3.0.72",
+    "@ai-sdk/openai": "^3.0.68",
     "@ai-sdk/react": "^3.0.182",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-tooltip": "^1.2.8",

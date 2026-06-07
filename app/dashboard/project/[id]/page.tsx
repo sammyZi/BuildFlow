@@ -205,7 +205,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
       const endpoint = API_ENDPOINTS[action];
       if (!endpoint) throw new Error(`Unknown action: ${action}`);
 
-      const payload: Record<string, any> = { idea };
+      const payload: Record<string, any> = { idea, provider: stateData.provider };
 
       if (action === 'generate_requirements' && Object.keys(answers).length > 0) {
         payload.answers = JSON.stringify(answers);
@@ -323,6 +323,7 @@ function DetailedPipelineDraftView({ project, projectId, onComplete }: { project
       const data = await fetchDetailedApi(API_ENDPOINTS.refine_content, {
         currentContent,
         prompt: refinePrompt,
+        provider: stateData.provider,
       });
 
       if (!data.success) throw new Error('Refinement failed');

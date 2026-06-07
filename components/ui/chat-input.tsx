@@ -239,9 +239,19 @@ interface ChatInputProps {
         files: AttachedFile[];
         pastedContent: PastedContent[];
         model: string;
+        provider: string;
         isThinkingEnabled: boolean
     }) => void;
 }
+
+// Provider options — labels show the configured model name from env when set.
+const GEMINI_MODEL_LABEL = process.env.NEXT_PUBLIC_GEMINI_MODEL || 'Gemini';
+const OPENAI_MODEL_LABEL = process.env.NEXT_PUBLIC_OPENAI_MODEL || 'OpenAI';
+
+const PROVIDERS: Model[] = [
+    { id: 'gemini', name: GEMINI_MODEL_LABEL, description: 'Google Gemini' },
+    { id: 'openai', name: OPENAI_MODEL_LABEL, description: 'OpenAI' },
+];
 
 export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
     const [message, setMessage] = useState("");
@@ -249,6 +259,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
     const [pastedContent, setPastedContent] = useState<PastedContent[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedModel, setSelectedModel] = useState("fast");
+    const [selectedProvider, setSelectedProvider] = useState("gemini");
     const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -346,7 +357,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
 
     const handleSend = () => {
         if (!message.trim() && files.length === 0 && pastedContent.length === 0) return;
-        onSendMessage({ message, files, pastedContent, model: selectedModel, isThinkingEnabled });
+        onSendMessage({ message, files, pastedContent, model: selectedModel, provider: selectedProvider, isThinkingEnabled });
         setMessage("");
         setFiles([]);
         setPastedContent([]);
@@ -426,7 +437,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
 
                         {/* Right Tools */}
                         <div className="flex flex-row items-center min-w-0 gap-1">
-                            {/* Model Selector */}
+                            {/* Provider Selector (Gemini / OpenAI) */}
+                            <div className="shrink-0 p-1 -m-1">
+                                <ModelSelector
+                                    models={PROVIDERS}
+                                    selectedModel={selectedProvider}
+                                    onSelect={setSelectedProvider}
+                                />
+                            </div>
+
+                            {/* Mode Selector */}
                             <div className="shrink-0 p-1 -m-1">
                                 <ModelSelector
                                     models={models}

@@ -165,6 +165,51 @@ export class SupabaseService {
   }
 
   /**
+   * Rename a project by storing a custom display title in state_data.
+   * Leaves the original prompt untouched.
+   * @param projectId - The project ID
+   * @param title - The new display title
+   */
+  static async renameProject(projectId: string, title: string): Promise<void> {
+    const { data: current, error: fetchError } = await supabase
+      .from('projects')
+      .select('state_data')
+      .eq('id', projectId)
+      .single();
+
+    if (fetchError) {
+      throw new Error(`Failed to load project: ${fetchError.message}`);
+    }
+
+    const nextState = { ...(current?.state_data || {}), title };
+
+    const { error } = await supabase
+      .from('projects')
+      .update({ state_data: nextState })
+      .eq('id', projectId);
+
+    if (error) {
+      throw new Error(`Failed to rename project: ${error.message}`);
+    }
+  }
+
+  /**
+   * Toggle a project's public visibility (used for sharing).
+   * @param projectId - The project ID
+   * @param isPublic - Whether the project should be publicly viewable
+   */
+  static async setProjectPublic(projectId: string, isPublic: boolean): Promise<void> {
+    const { error } = await supabase
+      .from('projects')
+      .update({ is_public: isPublic })
+      .eq('id', projectId);
+
+    if (error) {
+      throw new Error(`Failed to update sharing: ${error.message}`);
+    }
+  }
+
+  /**
    * Delete a project and all its artifacts
    * @param projectId - The project ID
    */

@@ -1,5 +1,6 @@
 import { SupabaseService } from '../supabase/service';
 import { GeminiClient } from './client';
+import type { AIProvider } from './provider';
 
 export type GenerationStage = 'requirements' | 'design' | 'tasks' | 'complete';
 export type GenerationStatus = 'generating' | 'saving' | 'done';
@@ -46,8 +47,8 @@ export type OnStreamEvent = (event: StreamEvent) => void;
 export class GenerationOrchestrator {
   private client: GeminiClient;
 
-  constructor() {
-    this.client = new GeminiClient();
+  constructor(provider?: AIProvider) {
+    this.client = new GeminiClient(provider);
   }
 
   /**

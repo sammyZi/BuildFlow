@@ -1,11 +1,16 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText, streamText } from 'ai';
+import type { LanguageModel } from 'ai';
 import { FAST_PROMPTS, DETAILED_PROMPTS, SCAFFOLD_PROMPT } from './prompts';
-import { getGoogleProvider, getGeminiModelId } from './provider';
+import { getModel, resolveProvider, type AIProvider } from './provider';
 import { classifyAIError, friendlyAIErrorMessage } from './errors';
 
 /**
- * GeminiClient wraps the Google Gemini API for all artifact generation.
+ * GeminiClient wraps the configured AI provider (Gemini or OpenAI) for all
+ * artifact generation.
+ *
+ * Despite the historical name, the provider is selectable: pass 'gemini' or
+ * 'openai' to the constructor (defaults to the env/global default). All
+ * generation calls run against the resolved model.
  *
  * Used by both the Fast pipeline (sequential generation) and the
  * Detailed pipeline (step-by-step with user refinement).
@@ -16,12 +21,14 @@ import { classifyAIError, friendlyAIErrorMessage } from './errors';
  * - Centralized prompts from prompts.ts
  */
 export class GeminiClient {
-  private google: ReturnType<typeof createGoogleGenerativeAI>;
+  private model: LanguageModel;
+  public readonly provider: AIProvider;
   private maxRetries: number = 3;
   private baseDelay: number = 1000; // 1 second
 
-  constructor(apiKey?: string) {
-    this.google = getGoogleProvider(apiKey);
+  constructor(provider?: AIProvider) {
+    this.provider = resolveProvider(provider);
+    this.model = getModel(this.provider);
   }
 
   // ─── Fast pipeline methods ──────────────────────────────────────────────
@@ -179,7 +186,7 @@ Return ONLY a JSON array:
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const result = await generateText({
-          model: this.google(getGeminiModelId()),
+          model: this.model,
           system: systemPrompt,
           prompt: userMessage,
           // We run our own retry/backoff loop below, so disable the SDK's
@@ -203,7 +210,7 @@ Return ONLY a JSON array:
         const delay = this.baseDelay * Math.pow(2, attempt);
 
         console.warn(
-          `Gemini API call failed (attempt ${attempt + 1}/${this.maxRetries}). ` +
+          `${this.provider} API call failed (attempt ${attempt + 1}/${this.maxRetries}). ` +
           `${isRateLimitError ? 'Rate limit error. ' : ''}` +
           `Retrying in ${delay}ms...`
         );
@@ -230,7 +237,7 @@ Return ONLY a JSON array:
       let yielded = false;
       try {
         const result = streamText({
-          model: this.google(getGeminiModelId()),
+          model: this.model,
           system: systemPrompt,
           prompt: userMessage,
           // See note above — single retry strategy owned by this class.
@@ -274,7 +281,7 @@ Return ONLY a JSON array:
 
         const delay = this.baseDelay * Math.pow(2, attempt);
         console.warn(
-          `Gemini streaming call failed (attempt ${attempt + 1}/${this.maxRetries}). ` +
+          `${this.provider} streaming call failed (attempt ${attempt + 1}/${this.maxRetries}). ` +
           `${isRateLimitError ? 'Rate limit error. ' : ''}` +
           `Retrying in ${delay}ms...`
         );

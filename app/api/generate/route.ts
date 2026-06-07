@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { createSSEStream } from '@/lib/api/sse';
-import { GenerationOrchestrator, friendlyAIErrorMessage } from '@/lib/gemini';
+import { GenerationOrchestrator, friendlyAIErrorMessage, resolveProvider } from '@/lib/gemini';
 import type { GenerateRequest } from '@/types';
 
 // Allow up to 2 minutes for the full pipeline
@@ -14,9 +14,14 @@ export async function POST(req: Request) {
     if (!auth.success) return auth.response;
     const { user } = auth;
 
-    const { appIdea, userId, projectId } = (await req.json()) as GenerateRequest & {
+    const { appIdea, userId, projectId, provider } = (await req.json()) as GenerateRequest & {
       projectId?: string;
+      provider?: string;
     };
+
+    // Resolve provider from the request; for retries we fall back to the
+    // provider stored on the project so regeneration uses the same model.
+    let aiProvider = resolveProvider(provider);
 
     if (!appIdea || typeof appIdea !== 'string' || appIdea.trim() === '') {
       return NextResponse.json({ success: false, error: 'Bad Request: appIdea must be a non-empty string' }, { status: 400 });
@@ -32,7 +37,7 @@ export async function POST(req: Request) {
       // ─── Retry / regenerate into an existing project ──────────────────────
       const { data: existing, error: lookupError } = await supabaseAdmin
         .from('projects')
-        .select('id, user_id')
+        .select('id, user_id, state_data')
         .eq('id', projectId)
         .single();
 
@@ -43,10 +48,19 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: 'Forbidden: You do not own this project' }, { status: 403 });
       }
 
+      // If the caller didn't specify a provider, reuse the project's stored one.
+      if (!provider && existing.state_data?.provider) {
+        aiProvider = resolveProvider(existing.state_data.provider);
+      }
+
       // Reset to a clean slate: mark generating and remove any partial artifacts.
       await supabaseAdmin
         .from('projects')
-        .update({ status: 'generating', prompt: appIdea })
+        .update({
+          status: 'generating',
+          prompt: appIdea,
+          state_data: { ...(existing.state_data || {}), provider: aiProvider },
+        })
         .eq('id', projectId);
       await supabaseAdmin.from('artifacts').delete().eq('project_id', projectId);
 
@@ -59,6 +73,7 @@ export async function POST(req: Request) {
           user_id: userId,
           prompt: appIdea,
           status: 'generating',
+          state_data: { provider: aiProvider },
         })
         .select('id')
         .single();
@@ -89,7 +104,7 @@ export async function POST(req: Request) {
     // even if the user navigates away mid-stream.
     (async () => {
       try {
-        const orchestrator = new GenerationOrchestrator();
+        const orchestrator = new GenerationOrchestrator(aiProvider);
         await orchestrator.generateAllStreaming(
           project.id,
           appIdea,

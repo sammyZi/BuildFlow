@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/withAuth';
-import { GeminiClient } from '@/lib/gemini';
+import { GeminiClient, resolveProvider } from '@/lib/gemini';
 
 // Refining requirements cascades into regenerating design + tasks,
 // which can mean up to ~5 sequential Gemini calls. Allow extra headroom.
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const auth = await withAuth(req);
     if (!auth.success) return auth.response;
 
-    const { artifactId, projectId, currentContent, prompt, artifactType } = await req.json();
+    const { artifactId, projectId, currentContent, prompt, artifactType, provider } = await req.json();
     if (!artifactId || !projectId || !currentContent || !prompt || !artifactType) {
       return NextResponse.json(
         { success: false, error: 'artifactId, projectId, currentContent, prompt, and artifactType are required' },
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     // Verify the user owns this project
     const { data: project } = await supabaseAdmin
       .from('projects')
-      .select('user_id, prompt')
+      .select('user_id, prompt, state_data')
       .eq('id', projectId)
       .single();
 
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = new GeminiClient();
+    const client = new GeminiClient(resolveProvider(provider ?? project.state_data?.provider));
     const appIdea = project.prompt;
     const updatedArtifacts: any[] = [];
 

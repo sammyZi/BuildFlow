@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { withAuth } from '@/lib/api/withAuth';
 import { createSSEStream } from '@/lib/api/sse';
-import { GeminiClient } from '@/lib/gemini';
+import { GeminiClient, resolveProvider } from '@/lib/gemini';
 
 // Scaffold generation can take 60+ seconds (generates 15-35 files via Gemini)
 export const maxDuration = 120;
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     if (!auth.success) return auth.response;
     const { user } = auth;
 
-    const { projectId } = await req.json();
+    const { projectId, provider } = await req.json();
 
     if (!projectId || typeof projectId !== 'string') {
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     // Verify the user owns this project
     const { data: project, error: projectError } = await supabaseAdmin
       .from('projects')
-      .select('id, user_id')
+      .select('id, user_id, state_data')
       .eq('id', projectId)
       .single();
 
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
           .eq('id', projectId);
 
         // Generate scaffold
-        const client = new GeminiClient();
+        const client = new GeminiClient(resolveProvider(provider ?? project.state_data?.provider));
         const rawOutput = await client.generateScaffold(requirements, design, tasks);
 
         send('progress', { status: 'parsing', message: 'Parsing generated files…', progress: 70 });

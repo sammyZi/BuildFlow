@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Project } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import { SupabaseService } from '@/lib/supabase/service';
-import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2, Edit3, Settings, Search, X } from 'lucide-react';
+import { Layers, Plus, FileText, Clock, FolderOpen, ChevronsLeft, LogOut, Trash2, Loader2, Edit3, Settings, Search, X, MoreHorizontal, Pencil, Share2, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
@@ -31,9 +31,13 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function getPreview(prompt: string): string {
+/** Display name for a project — a custom title (from rename) wins over the prompt. */
+function getDisplayName(project: Project): string {
+  const title = project.state_data?.title;
+  if (typeof title === 'string' && title.trim()) return title.trim();
+  const prompt = project.prompt;
   if (!prompt) return 'Untitled Project';
-  return prompt.length > 70 ? prompt.substring(0, 70) + '…' : prompt;
+  return prompt.length > 80 ? prompt.substring(0, 80) + '…' : prompt;
 }
 
 export default function ProjectHistory({ onSelectProject, currentProjectId, onCollapse, onSignOut }: ProjectHistoryProps) {
@@ -43,6 +47,15 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 250);
+
+  // Kebab menu + actions
+  const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [renameTarget, setRenameTarget] = useState<Project | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [sharedId, setSharedId] = useState<string | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -68,8 +81,78 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
   const filteredProjects = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
     if (!q) return projects;
-    return projects.filter(p => (p.prompt || '').toLowerCase().includes(q));
+    return projects.filter(p =>
+      getDisplayName(p).toLowerCase().includes(q) ||
+      (p.prompt || '').toLowerCase().includes(q)
+    );
   }, [projects, debouncedQuery]);
+
+  // Close the kebab menu on outside click, scroll, or resize.
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    document.addEventListener('mousedown', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+      document.removeEventListener('mousedown', close);
+    };
+  }, [menu]);
+
+  const openMenu = (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    // If this project's menu is already open, toggle it closed.
+    setMenu(prev => (prev?.id === projectId ? null : { id: projectId, x: rect.right, y: rect.bottom + 4 }));
+  };
+
+  const startRename = (project: Project) => {
+    setMenu(null);
+    setRenameTarget(project);
+    setRenameValue(getDisplayName(project));
+  };
+
+  const confirmRename = async () => {
+    if (!renameTarget) return;
+    const title = renameValue.trim();
+    if (!title) return;
+    setIsRenaming(true);
+    try {
+      await SupabaseService.renameProject(renameTarget.id, title);
+      setProjects(prev =>
+        prev.map(p =>
+          p.id === renameTarget.id
+            ? { ...p, state_data: { ...(p.state_data || {}), title } }
+            : p
+        )
+      );
+      setRenameTarget(null);
+    } catch (error) {
+      console.error('Failed to rename project:', error);
+      alert('Failed to rename project');
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const handleShare = async (project: Project) => {
+    setMenu(null);
+    setSharingId(project.id);
+    try {
+      await SupabaseService.setProjectPublic(project.id, true);
+      const url = `${window.location.origin}/share/${project.id}`;
+      await navigator.clipboard.writeText(url);
+      setSharedId(project.id);
+      setTimeout(() => setSharedId(null), 2000);
+    } catch (error) {
+      console.error('Failed to share project:', error);
+      alert('Failed to create share link');
+    } finally {
+      setSharingId(null);
+    }
+  };
 
   const handleDeleteClick = (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation(); // Prevent triggering onSelectProject
@@ -209,9 +292,9 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
                         strokeWidth={1.5}
                       />
                     )}
-                    <div className="min-w-0">
-                      <div className="text-[14px] leading-snug line-clamp-2 break-words">
-                        {getPreview(project.prompt)}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[14px] leading-snug truncate">
+                        {getDisplayName(project)}
                       </div>
                       <div className={`flex items-center gap-1.5 text-[10px] mt-0.5 ${isActive ? 'text-sidebar-text' : 'text-sidebar-text-muted'}`}>
                         {project.status === 'draft' && (
@@ -221,18 +304,23 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Delete Button */}
-                  <div 
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-sidebar-text-muted hover:text-error hover:bg-error/10 transition-colors ${
-                      isDeleting ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+
+                  {/* Kebab menu trigger */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => openMenu(e, project.id)}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-sidebar-text-muted hover:text-white hover:bg-sidebar-active transition-colors ${
+                      menu?.id === project.id || sharedId === project.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                     }`}
-                    onClick={(e) => handleDeleteClick(e, project.id)}
+                    title="More options"
                   >
-                    {isDeleting ? (
-                      <Loader2 size={13} className="animate-spin text-error" />
+                    {sharingId === project.id ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : sharedId === project.id ? (
+                      <Check size={14} className="text-success" strokeWidth={2.5} />
                     ) : (
-                      <Trash2 size={13} strokeWidth={2} />
+                      <MoreHorizontal size={14} strokeWidth={2} />
                     )}
                   </div>
                 </button>
@@ -262,6 +350,94 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
           </button>
         )}
       </div>
+
+      {/* Kebab dropdown menu */}
+      {menu && typeof document !== 'undefined' && createPortal(
+        (() => {
+          const project = projects.find(p => p.id === menu.id);
+          if (!project) return null;
+          return (
+            <div
+              className="fixed z-[110] w-44 bg-sidebar-surface border border-sidebar-border rounded-xl shadow-2xl p-1.5 animate-fade-in"
+              style={{ top: menu.y, left: Math.max(8, menu.x - 176) }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => startRename(project)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active transition-colors"
+              >
+                <Pencil size={14} strokeWidth={1.75} />
+                Rename
+              </button>
+              <button
+                onClick={() => handleShare(project)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active transition-colors"
+              >
+                <Share2 size={14} strokeWidth={1.75} />
+                Share
+              </button>
+              <div className="my-1 border-t border-sidebar-border" />
+              <button
+                onClick={(e) => { setMenu(null); handleDeleteClick(e, project.id); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-red-400 hover:text-white hover:bg-error/80 transition-colors"
+              >
+                <Trash2 size={14} strokeWidth={1.75} />
+                Delete
+              </button>
+            </div>
+          );
+        })(),
+        document.body
+      )}
+
+      {/* Rename Modal */}
+      {renameTarget && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-bg border border-border w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 mx-4 animate-fade-in-up">
+            <h3 className="text-lg font-bold text-text-primary mb-2">Rename Project</h3>
+            <p className="text-[14px] text-text-secondary mb-4">
+              Give this project a name that's easy to recognize.
+            </p>
+            <input
+              autoFocus
+              type="text"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); confirmRename(); }
+                if (e.key === 'Escape') setRenameTarget(null);
+              }}
+              placeholder="Project name"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-surface text-text-primary text-[15px] outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 transition-colors mb-5"
+            />
+            <div className="flex items-center gap-3 w-full">
+              <button
+                onClick={() => setRenameTarget(null)}
+                disabled={isRenaming}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface text-text-primary font-bold hover:bg-surface-alt transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRename}
+                disabled={isRenaming || !renameValue.trim()}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isRenaming ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Delete Confirmation Modal */}
       {projectToDelete && typeof document !== 'undefined' && createPortal(

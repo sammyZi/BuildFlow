@@ -145,6 +145,7 @@ export default function ArtifactChat({
           messages: apiMessages,
           stage: activeTab,
           artifactContent: artifactContent || undefined,
+          projectId,
         }),
         signal: controller.signal,
       });
