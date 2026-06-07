@@ -64,15 +64,25 @@ const MARKDOWN_NO_WRAP = 'IMPORTANT: Do not wrap your response in a markdown cod
 
 const TABLE_FORMATTING = 'Ensure all Data Models are presented in standard Markdown tables with proper line breaks for each row. Do not output tables on a single line.';
 
+// Shared instruction that forces every document to adapt to the user's actual request.
+const ADAPTIVE_GUIDANCE = `ADAPT TO THE USER'S REQUEST — this is the most important rule:
+- Tailor everything to the SPECIFIC product described: its domain, its users, and its platform(s) — web, mobile (iOS/Android), desktop, CLI, browser extension, API/service, etc.
+- Infer the platform(s) from the request. If the user names more than one (e.g., "web and app"), you MUST address EACH platform; never silently drop one.
+- Only include sections, requirements, and topics that genuinely apply to THIS product. Omit what doesn't fit (e.g., skip authentication for an anonymous tool, skip a mobile client for a web-only app, skip a database for a stateless utility).
+- Scale depth to scope: a small utility needs less than a multi-tenant SaaS. Don't pad with irrelevant boilerplate.
+- Recommend current, production-grade technologies and versions (2025). Name specific frameworks (e.g., Next.js, React Native/Expo, Flutter, FastAPI, PostgreSQL, Supabase) rather than vague categories, and prefer popular, well-supported choices.`;
+
 // ─── Fast pipeline prompts ──────────────────────────────────────────────────
 
 export const FAST_PROMPTS = {
   requirements: `You are an expert Product Manager. Given the following app idea, generate a requirements.md file.
 
+${ADAPTIVE_GUIDANCE}
+
 You MUST follow this exact structure:
 
 1. Start with an "# Requirements Document" heading.
-2. Add an "## Introduction" section with a concise paragraph describing the application.
+2. Add an "## Introduction" section with a concise paragraph describing the application and the platform(s) it targets.
 3. Add a "## Glossary" section with a bullet list defining key domain terms used throughout the document (e.g., "- **Term**: Definition").
 4. Add a "## Requirements" section containing numbered requirements.
 5. Each requirement MUST follow this exact format:
@@ -84,20 +94,22 @@ You MUST follow this exact structure:
    (Use formal keywords: SHALL, WHEN, IF/THEN for each numbered criterion.)
 6. Number the acceptance criteria sequentially within each requirement (1, 2, 3...).
 7. Each requirement should have 3-7 acceptance criteria.
-8. Generate 10-20 requirements covering: authentication, data model, UI/UX, core features, API endpoints, integrations, error handling, deployment, and non-functional requirements.
+8. Generate as many requirements as the product genuinely needs (typically 8-20). Cover ONLY the areas that apply to THIS product — which may include authentication, data model, UI/UX (per platform), core features, API endpoints, integrations, error handling, deployment, and non-functional requirements. Skip areas that don't apply.
 
 ${MARKDOWN_NO_WRAP}`,
 
   design: `You are an expert Software Architect. Using the attached requirements, create a design.md file specifying the ideal tech stack, database schema, and exact folder structure.
 
+${ADAPTIVE_GUIDANCE}
+
 You MUST include these sections in order:
 1. "# Design Document" heading.
-2. "## Overview" — a short paragraph on the architecture approach.
-3. "## High-Level Architecture" — a single Mermaid flowchart (graph TD) showing the main layers/components and how they connect. Keep it to roughly 6-14 nodes so it stays readable.
-4. "## Tech Stack" — Frontend, Backend, and Database choices with brief justifications.
-5. "## Data Models" — presented as Markdown tables.
-6. "## API Endpoints" — method, path, and description.
-7. "## Folder Structure" — the exact project tree in a code block.
+2. "## Overview" — a short paragraph on the architecture approach and target platform(s).
+3. "## High-Level Architecture" — a single Mermaid flowchart (graph TD) showing the main layers/components (including every client platform) and how they connect. Keep it to roughly 6-14 nodes so it stays readable.
+4. "## Tech Stack" — use a subsection per layer that applies: "### Web Frontend", "### Mobile App", "### Backend", "### Database", "### Infrastructure & Auth". Name specific, current frameworks with a one-line justification. Omit subsections that don't apply to this product.
+5. "## Data Models" — presented as Markdown tables. (Omit if the product is stateless.)
+6. "## API Endpoints" — method, path, and description. (Omit if there is no backend/API.)
+7. "## Folder Structure" — the exact project tree in a code block, matching the chosen stack(s).
 
 ${TABLE_FORMATTING}
 
@@ -106,6 +118,8 @@ ${MERMAID_INSTRUCTIONS}
 ${MARKDOWN_NO_WRAP}`,
 
   tasks: `You are a Lead Developer. Break down the attached requirements and design into a tasks.md file.
+
+${ADAPTIVE_GUIDANCE}
 
 You MUST follow this exact structure:
 
@@ -119,7 +133,7 @@ You MUST follow this exact structure:
    _Requirements: X.Y, X.Z_
    where X is the requirement number and Y is the acceptance criterion number from the requirements.md file.
    For example: _Requirements: 1.1, 1.2, 15.1_ means Requirement 1 criteria 1 & 2, and Requirement 15 criterion 1.
-8. Order tasks to build incrementally: infrastructure → types → services → components → integration → deployment.
+8. Order tasks to build incrementally, and reflect the chosen stack(s) and every target platform: infrastructure → types → services → components (per platform) → integration → deployment.
 9. Add a "## Notes" section at the end with implementation guidance.
 
 ${MARKDOWN_NO_WRAP}`,
@@ -128,14 +142,27 @@ ${MARKDOWN_NO_WRAP}`,
 // ─── Detailed pipeline prompts ──────────────────────────────────────────────
 
 export const DETAILED_PROMPTS = {
-  questions: `You are an expert Product Manager conducting a discovery session. Generate exactly 5 short, crisp, and concise questions SPECIFIC to the app idea provided. Each question should be a single brief sentence. Return ONLY valid JSON array format - no markdown, no code blocks, no explanations.`,
+  questions: `You are an expert Product Manager conducting a discovery session. Generate exactly 5 short, crisp questions SPECIFIC to the app idea provided.
+
+Cover these distinct aspects — one question each:
+1. Target audience / primary user
+2. Core must-have feature or main use case
+3. Platform(s) — explicitly let the user pick Web, Mobile (iOS/Android), Desktop, or a combination (e.g., "Web + Mobile"). Make multi-platform an option when the idea implies it.
+4. Design style / look and feel
+5. Key technical or business constraint (scale, budget, offline, integrations, etc.)
+
+Each question must have exactly 4 short, concrete answer options. Return ONLY a valid JSON array — no markdown, no code blocks, no explanations.`,
 
   requirements: `You are an expert Product Manager. Generate a comprehensive requirements document for the following app idea, incorporating the user's answers to discovery questions.
+
+${ADAPTIVE_GUIDANCE}
+
+Carefully honor the platform choice from the answers: if the user selected multiple platforms (e.g., Web AND Mobile), the requirements MUST explicitly cover EACH platform (web app, mobile app, shared backend/API) rather than only one.
 
 You MUST follow this exact structure:
 
 1. Start with an "# Requirements Document" heading.
-2. Add an "## Introduction" section with a concise paragraph describing the application.
+2. Add an "## Introduction" section with a concise paragraph describing the application and the platforms it targets.
 3. Add a "## Glossary" section with a bullet list defining key domain terms (e.g., "- **Term**: Definition").
 4. Add a "## Requirements" section containing numbered requirements.
 5. Each requirement MUST follow this exact format:
@@ -147,26 +174,51 @@ You MUST follow this exact structure:
    (Use formal keywords: SHALL, WHEN, IF/THEN for each numbered criterion.)
 6. Number the acceptance criteria sequentially within each requirement (1, 2, 3...).
 7. Each requirement should have 3-7 acceptance criteria.
-8. Generate 10-20 requirements covering: authentication, data model, UI/UX, core features, API endpoints, integrations, error handling, deployment, and non-functional requirements.
+8. Generate 10-20 requirements covering: authentication, data model, UI/UX (per platform), core features, API endpoints, integrations, error handling, deployment, and non-functional requirements.
 9. DO NOT include Date, Version or Author metadata. Ensure proper spacing between sections.`,
 
-  designQuestions: `You are an expert Software Architect. Generate exactly 3 short, crisp questions around tech stack options. Each question and its 4 options must be extremely brief. Return ONLY valid JSON array format.`,
+  designQuestions: `You are an expert Software Architect running a tech-stack discovery session. Read the app idea AND requirements, identify EVERY platform and layer the product actually needs, then generate one tech-stack question per relevant aspect.
+
+ASPECTS TO CONSIDER (include a question ONLY when it applies to this product):
+- Web frontend framework — if the product has a web app.
+- Mobile / cross-platform framework — if the product has a mobile or native app.
+- Backend language / framework.
+- Database.
+- Hosting / infrastructure (and auth if relevant) — combine into one question.
+
+RULES:
+- Generate between 3 and 6 questions — adapt to the product. CRITICAL: if the product targets BOTH web and mobile, include a SEPARATE question for the web stack AND another for the mobile stack. Do not collapse them into one.
+- Each question has EXACTLY 4 options that are CURRENT, production-grade, widely-adopted technologies (2025). Name specific frameworks, never vague categories.
+  Examples of acceptable, modern options:
+  • Web: Next.js (React), Remix/React Router, Nuxt (Vue), SvelteKit, Astro, Angular
+  • Mobile: React Native (Expo), Flutter, native Swift (iOS) / Kotlin (Android), Kotlin Multiplatform
+  • Backend: Node.js (NestJS), Node.js (Hono/Express), Python (FastAPI), Go, Bun, Java (Spring Boot)
+  • Database: PostgreSQL, Supabase (Postgres), MongoDB, MySQL/PlanetScale, SQLite/Turso, Firebase
+  • Hosting/Auth: Vercel, AWS, Cloudflare, Supabase Auth, Clerk, Auth0
+- Prefer the latest stable, popular choices. Put the recommended/most popular option first in each list.
+- Return ONLY a valid JSON array: [{"id":"tech1","question":"...","options":["..","..","..",".."]}]`,
 
   design: `You are an expert Software Architect. Generate a technical system design document based on the given app idea, requirements, and tech stack choices.
 
+${ADAPTIVE_GUIDANCE}
+
+Honor the platform scope: if the product targets multiple platforms (e.g., Web + Mobile), the design MUST address each (web client, mobile client, shared backend/API) and recommend modern, current (2025) technologies and versions.
+
 You MUST include these sections in order:
 1. "# Design Document" heading.
-2. "## Overview" — a short paragraph on the architecture approach.
-3. "## High-Level Architecture" — a single Mermaid flowchart (graph TD) showing the main layers/components and how they connect. Keep it to roughly 6-14 nodes so it stays readable.
-4. "## Tech Stack" — Frontend, Backend, and Database (honoring the user's tech stack choices).
+2. "## Overview" — a short paragraph on the architecture approach and target platforms.
+3. "## High-Level Architecture" — a single Mermaid flowchart (graph TD) showing the main layers/components (including every client platform) and how they connect. Keep it to roughly 6-14 nodes so it stays readable.
+4. "## Tech Stack" — honor the user's tech stack choices. Use a subsection per layer that applies: "### Web Frontend", "### Mobile App", "### Backend", "### Database", "### Infrastructure & Auth". Name specific, current frameworks with a one-line justification. Omit subsections that don't apply.
 5. "## Data Models" — presented as Markdown tables.
-6. "## API Endpoints" — method, path, and description.
+6. "## API Endpoints" — method, path, and description (the shared API used by all clients).
 
 ${MERMAID_INSTRUCTIONS}
 
 ${TABLE_FORMATTING}`,
 
   tasks: `You are an expert Engineering Manager. Generate a detailed, sprint-ready task breakdown based on the provided requirements and system design.
+
+${ADAPTIVE_GUIDANCE}
 
 You MUST follow this exact structure:
 

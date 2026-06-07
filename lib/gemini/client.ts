@@ -71,9 +71,9 @@ export class GeminiClient {
 Based on this specific app idea, generate 5 short and crisp discovery questions covering:
 1. Target audience
 2. Key features
-3. Platform
+3. Platform — the options MUST let the user choose Web, Mobile (iOS/Android), Desktop, or a combination. Include a combined option like "Web + Mobile" when the idea could be both.
 4. Design style
-5. Technical constraints
+5. Technical or business constraint
 
 Each question must have exactly 4 short answer options. Keep the wording very concise.
 
@@ -101,13 +101,19 @@ Make the questions and options SPECIFIC to: ${idea}`;
 Requirements:
 ${requirements}
 
-Generate 3 short technical discovery questions covering:
-1. Frontend Tech
-2. Backend Programming Language (Do NOT ask about deployment models like Serverless/K8s/PaaS, ONLY ask about programming languages/frameworks like Node.js/Python/Go)
-3. Database
+First infer which platforms and layers this product needs from the idea and requirements above. Then generate between 3 and 6 tech-stack questions — ONE per relevant aspect:
+- Web frontend framework — ONLY if there is a web app.
+- Mobile / cross-platform framework — ONLY if there is a mobile/native app.
+- Backend language/framework (ask about languages/frameworks like Node.js/NestJS, Python/FastAPI, Go, Bun — NOT deployment models like Serverless/K8s).
+- Database.
+- Hosting / infrastructure (include auth if relevant).
+
+IMPORTANT: If the product targets BOTH web and mobile, you MUST include a separate question for the web stack AND another for the mobile stack — do not merge them.
+
+Each question MUST have exactly 4 options that are CURRENT, popular, production-grade technologies (2025), named specifically (e.g., "Next.js (React)", "React Native (Expo)", "Flutter", "PostgreSQL", "Supabase", "FastAPI", "Go"). Put the most recommended option first.
 
 Return ONLY a JSON array:
-[{"id":"tech1","question":"Short tech question?","options":["Short Opt 1","Short Opt 2","Short Opt 3","Short Opt 4"]}]`;
+[{"id":"tech1","question":"Short tech question?","options":["Modern Opt 1","Modern Opt 2","Modern Opt 3","Modern Opt 4"]}]`;
 
     return this.generateWithRetry(DETAILED_PROMPTS.designQuestions, prompt);
   }
