@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type ElementType } from 'react';
 
 type RevealProps = {
   children: ReactNode;
@@ -9,7 +9,7 @@ type RevealProps = {
   delay?: number;
   /** vertical offset to rise from, in px */
   y?: number;
-  as?: keyof JSX.IntrinsicElements;
+  as?: ElementType;
 };
 
 export default function Reveal({
@@ -38,7 +38,7 @@ export default function Reveal({
     return () => observer.disconnect();
   }, []);
 
-  const Tag = as as any;
+  const Tag = as;
 
   return (
     <Tag
