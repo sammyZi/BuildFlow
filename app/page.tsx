@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { Sparkles, LayoutTemplate, FileText, Blocks, ChevronRight, ChevronLeft, GitBranch, Code2, Share2 } from 'lucide-react';
+import { Blocks, ChevronRight, ChevronLeft } from 'lucide-react';
+import FeaturesShowcase from '@/components/FeaturesShowcase';
+import Reveal from '@/components/Reveal';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -198,7 +200,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-gradient-to-b from-white via-[#F4F7FE] to-[#E9EEFA] font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Hero Section */}
       <div className="relative pt-6 pb-32 lg:pt-10 lg:pb-48 overflow-hidden">
         {/* Sky / Sunset Gradient Background */}
@@ -384,76 +386,33 @@ export default function LandingPage() {
       </div>
 
       {/* Value Proposition */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-24">
-        <h2 className="text-3xl md:text-4xl font-medium text-[#111827] mb-6 leading-tight" style={{ fontFamily: 'Georgia, serif' }}>
-          Your projects deserve a beautiful home.
-        </h2>
-        <p className="text-[#4B5563] text-xl leading-relaxed max-w-2xl mx-auto">
-          BuildFlow gives you an efficient, interactive way to generate software requirements and architecture. Forget chaotic notes—plan with finesse and build faster.
-        </p>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-28">
+        <Reveal as="span" className="mb-5 block text-xs font-semibold uppercase tracking-[0.22em] text-[#4A6BFF]">
+          Why BuildFlow
+        </Reveal>
+        <Reveal
+          as="h2"
+          delay={80}
+          className="text-balance text-[2rem] md:text-[2.85rem] font-normal leading-[1.1] tracking-[-0.02em] text-[#0F172A] mb-6"
+        >
+          <span style={{ fontFamily: 'Georgia, serif' }}>
+            Your projects deserve a{' '}
+            <span className="italic text-[#4A6BFF]">beautiful home.</span>
+          </span>
+        </Reveal>
+        <Reveal
+          as="p"
+          delay={160}
+          className="text-pretty text-[#475569] text-lg md:text-xl leading-relaxed max-w-2xl mx-auto"
+        >
+          BuildFlow gives you an efficient, interactive way to generate software
+          requirements and architecture. Forget chaotic notes—plan with finesse
+          and build faster.
+        </Reveal>
       </div>
 
       {/* Features Section */}
-      <div id="features" className="bg-[#F8FAFC] py-24">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm font-semibold tracking-widest uppercase text-[#4A6BFF] mb-3">Features</p>
-          <h2 className="text-center text-3xl md:text-4xl font-medium text-[#111827] mb-16" style={{ fontFamily: 'Georgia, serif' }}>
-            From idea to developer-ready docs.
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-12">
-
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Interactive Workflow</h3>
-              <p className="text-[#6B7280] text-sm leading-relaxed">Answer a few quick questions and chat to refine your idea as you go.</p>
-            </div>
-
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
-                <LayoutTemplate className="w-5 h-5" />
-              </div>
-              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Fast &amp; Detailed Modes</h3>
-              <p className="text-[#6B7280] text-sm leading-relaxed">Generate everything in one shot, or step through it stage by stage.</p>
-            </div>
-
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center mb-4">
-                <FileText className="w-5 h-5" />
-              </div>
-              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Requirements, Design &amp; Tasks</h3>
-              <p className="text-[#6B7280] text-sm leading-relaxed">Three ready-to-use documents: what to build, how to build it, and the steps to get there.</p>
-            </div>
-
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-4">
-                <GitBranch className="w-5 h-5" />
-              </div>
-              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Architecture Diagrams</h3>
-              <p className="text-[#6B7280] text-sm leading-relaxed">See your system laid out visually with clear, auto-generated diagrams.</p>
-            </div>
-
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-4">
-                <Code2 className="w-5 h-5" />
-              </div>
-              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Starter Code</h3>
-              <p className="text-[#6B7280] text-sm leading-relaxed">Turn your plan into a working starter project you can download and run.</p>
-            </div>
-
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
-                <Share2 className="w-5 h-5" />
-              </div>
-              <h3 className="text-[#111827] font-semibold text-lg mb-1.5">Share &amp; Export</h3>
-              <p className="text-[#6B7280] text-sm leading-relaxed">Download everything as a ZIP, or share a link with your team.</p>
-            </div>
-
-          </div>
-        </div>
-      </div>
+      <FeaturesShowcase />
 
       {/* Footer */}
       <footer className="bg-[#111827] py-16 border-t border-[#1F2937] text-white">
