@@ -136,19 +136,19 @@ export default function FeaturesShowcase() {
             inView ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
           }`}
         >
-          <span className="mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-[#4A6BFF]">
+          <span className="mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-[#4A6BFF] dark:text-[#7DA4FF]">
             Features
           </span>
 
           <h2
-            className="text-balance text-4xl font-normal leading-[1.1] tracking-[-0.02em] text-[#0F172A] md:text-[2.85rem]"
+            className="text-balance text-4xl font-normal leading-[1.1] tracking-[-0.02em] text-[#0F172A] dark:text-white md:text-[2.85rem]"
             style={{ fontFamily: 'Georgia, serif' }}
           >
             Everything you need{' '}
-            <span className="italic text-[#4A6BFF]">to plan.</span>
+            <span className="italic text-[#4A6BFF] dark:text-[#7DA4FF]">to plan.</span>
           </h2>
 
-          <p className="mt-5 max-w-xl text-pretty text-[17px] leading-relaxed text-[#64748B]">
+          <p className="mt-5 max-w-xl text-pretty text-[17px] leading-relaxed text-[#64748B] dark:text-slate-400">
             A single, intelligent workspace that turns a rough idea into
             documents your developers can build from.
           </p>
@@ -167,7 +167,7 @@ export default function FeaturesShowcase() {
             {/* vertical guide rail behind the nodes */}
             <span
               aria-hidden
-              className="absolute left-[22px] top-7 bottom-7 w-px bg-gradient-to-b from-transparent via-[#DCE3F0] to-transparent"
+              className="absolute left-[22px] top-7 bottom-7 w-px bg-gradient-to-b from-transparent via-[#DCE3F0] dark:via-white/10 to-transparent"
             />
 
             {FEATURES.map((feature, index) => {
@@ -188,8 +188,8 @@ export default function FeaturesShowcase() {
                     <span
                       className={`relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-500 ease-out ${
                         isActive
-                          ? `${feature.chip} ${feature.accent} shadow-[0_8px_24px_-8px_rgba(17,24,39,0.25)] ring-4 ring-[#F4F7FE]`
-                          : 'bg-white text-[#94A3B8] ring-1 ring-[#E5E9F2] group-hover:text-[#475569] group-hover:ring-[#CBD5E1]'
+                          ? `${feature.chip} ${feature.accent} shadow-[0_8px_24px_-8px_rgba(17,24,39,0.25)] ring-4 ring-[#F4F7FE] dark:ring-[#0B1020]`
+                          : 'bg-white text-[#94A3B8] ring-1 ring-[#E5E9F2] group-hover:text-[#475569] group-hover:ring-[#CBD5E1] dark:bg-[#161B29] dark:text-slate-500 dark:ring-white/10 dark:group-hover:text-slate-300 dark:group-hover:ring-white/20'
                       }`}
                     >
                       <Icon className="h-[18px] w-[18px]" />
@@ -198,8 +198,8 @@ export default function FeaturesShowcase() {
                     <h3
                       className={`text-[17px] font-semibold tracking-tight transition-colors duration-500 ease-out ${
                         isActive
-                          ? 'text-[#0F172A]'
-                          : 'text-[#94A3B8] group-hover:text-[#475569]'
+                          ? 'text-[#0F172A] dark:text-white'
+                          : 'text-[#94A3B8] group-hover:text-[#475569] dark:text-slate-500 dark:group-hover:text-slate-300'
                       }`}
                     >
                       {feature.title}
@@ -212,7 +212,7 @@ export default function FeaturesShowcase() {
                       isActive ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                     }`}
                   >
-                    <p className="overflow-hidden pr-2 text-sm leading-relaxed text-[#64748B]">
+                    <p className="overflow-hidden pr-2 text-sm leading-relaxed text-[#64748B] dark:text-slate-400">
                       {feature.description}
                     </p>
                   </div>
@@ -230,10 +230,22 @@ export default function FeaturesShowcase() {
             />
             {/* faint dotted grid, no card */}
             <div
-              className="pointer-events-none absolute inset-0 -z-10 opacity-60"
+              className="pointer-events-none absolute inset-0 -z-10 opacity-60 dark:hidden"
               style={{
                 backgroundImage:
                   'radial-gradient(rgba(17,24,39,0.06) 1px, transparent 1px)',
+                backgroundSize: '22px 22px',
+                maskImage:
+                  'radial-gradient(ellipse 70% 70% at 50% 50%, black 40%, transparent 100%)',
+                WebkitMaskImage:
+                  'radial-gradient(ellipse 70% 70% at 50% 50%, black 40%, transparent 100%)',
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-0 -z-10 hidden opacity-70 dark:block"
+              style={{
+                backgroundImage:
+                  'radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)',
                 backgroundSize: '22px 22px',
                 maskImage:
                   'radial-gradient(ellipse 70% 70% at 50% 50%, black 40%, transparent 100%)',
@@ -469,10 +481,10 @@ function FeaturePreview({ feature }: { feature: Feature }) {
     <div className="w-full max-w-sm">
       {/* Header chip shared by all previews */}
       <div className="feature-rise-item mb-5 flex items-center gap-2.5">
-        <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ${feature.ring} ${feature.accent}`}>
+        <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-[#161B29] shadow-sm ring-1 ${feature.ring} ${feature.accent}`}>
           <Icon className="h-[18px] w-[18px]" />
         </span>
-        <span className="text-sm font-semibold text-[#374151]">{feature.title}</span>
+        <span className="text-sm font-semibold text-[#374151] dark:text-slate-200">{feature.title}</span>
       </div>
 
       {feature.id === 'workflow' && <WorkflowPreview />}
@@ -495,11 +507,11 @@ function WorkflowPreview() {
       <div className="ml-auto w-fit max-w-[80%] rounded-2xl rounded-tr-sm bg-[#4A6BFF] px-4 py-2.5 text-xs font-medium text-white shadow-sm">
         A task app for small teams
       </div>
-      <div className="w-fit max-w-[85%] space-y-2 rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-sm ring-1 ring-[#EEF0F3]">
-        <Bar w="140px" className="bg-[#E5E7EB]" />
-        <Bar w="110px" className="bg-[#EEF0F3]" />
+      <div className="w-fit max-w-[85%] space-y-2 rounded-2xl rounded-tl-sm bg-white dark:bg-[#161B29] px-4 py-3 shadow-sm ring-1 ring-[#EEF0F3] dark:ring-white/10">
+        <Bar w="140px" className="bg-[#E5E7EB] dark:bg-white/10" />
+        <Bar w="110px" className="bg-[#EEF0F3] dark:bg-white/[0.06]" />
       </div>
-      <div className="ml-auto w-fit rounded-2xl rounded-tr-sm bg-[#EEF2FF] px-4 py-2.5 text-xs font-medium text-[#4338CA] shadow-sm">
+      <div className="ml-auto w-fit rounded-2xl rounded-tr-sm bg-[#EEF2FF] dark:bg-[#1E2A4A] px-4 py-2.5 text-xs font-medium text-[#4338CA] dark:text-[#A5B4FC] shadow-sm">
         Add roles & permissions
       </div>
     </div>
@@ -510,25 +522,25 @@ function ModesPreview() {
   return (
     <div className="feature-stagger space-y-4">
       <div className="flex gap-3">
-        <div className="flex-1 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-emerald-300">
-          <div className="mb-2 text-xs font-semibold text-emerald-700">Fast</div>
+        <div className="flex-1 rounded-2xl bg-white dark:bg-[#161B29] p-4 shadow-sm ring-2 ring-emerald-300 dark:ring-emerald-500/40">
+          <div className="mb-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">Fast</div>
           <div className="space-y-1.5">
-            <Bar w="100%" className="bg-emerald-100" />
-            <Bar w="70%" className="bg-[#EEF0F3]" />
+            <Bar w="100%" className="bg-emerald-100 dark:bg-emerald-500/30" />
+            <Bar w="70%" className="bg-[#EEF0F3] dark:bg-white/10" />
           </div>
         </div>
-        <div className="flex-1 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#EEF0F3]">
-          <div className="mb-2 text-xs font-semibold text-[#6B7280]">Detailed</div>
+        <div className="flex-1 rounded-2xl bg-white dark:bg-[#161B29] p-4 shadow-sm ring-1 ring-[#EEF0F3] dark:ring-white/10">
+          <div className="mb-2 text-xs font-semibold text-[#6B7280] dark:text-slate-400">Detailed</div>
           <div className="space-y-1.5">
-            <Bar w="100%" className="bg-[#EEF0F3]" />
-            <Bar w="85%" className="bg-[#EEF0F3]" />
+            <Bar w="100%" className="bg-[#EEF0F3] dark:bg-white/10" />
+            <Bar w="85%" className="bg-[#EEF0F3] dark:bg-white/[0.06]" />
           </div>
         </div>
       </div>
-      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#EEF0F3]">
+      <div className="rounded-2xl bg-white dark:bg-[#161B29] p-4 shadow-sm ring-1 ring-[#EEF0F3] dark:ring-white/10">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-emerald-400" />
-          <Bar w="60%" className="bg-[#EEF0F3]" />
+          <Bar w="60%" className="bg-[#EEF0F3] dark:bg-white/10" />
         </div>
       </div>
     </div>
@@ -546,18 +558,18 @@ function DocsPreview() {
       {docs.map((doc, i) => (
         <div
           key={doc.label}
-          className="doc-card absolute left-1/2 top-3 w-[235px] rounded-2xl bg-white p-4 shadow-[0_16px_40px_-16px_rgba(17,24,39,0.3)] ring-1 ring-[#EEF0F3]"
+          className="doc-card absolute left-1/2 top-3 w-[235px] rounded-2xl bg-white dark:bg-[#161B29] p-4 shadow-[0_16px_40px_-16px_rgba(17,24,39,0.3)] ring-1 ring-[#EEF0F3] dark:ring-white/10"
           style={{ animationDelay: `${-i * 3}s` }}
         >
           <div className="mb-3 flex items-center gap-2">
             <FileText className={`h-4 w-4 ${doc.dot}`} />
-            <span className="font-mono text-xs font-semibold text-[#374151]">{doc.label}</span>
+            <span className="font-mono text-xs font-semibold text-[#374151] dark:text-slate-200">{doc.label}</span>
           </div>
           <div className="space-y-2">
             <Bar w="100%" className={doc.bar} />
-            <Bar w="82%" className="bg-[#F1F3F6]" />
-            <Bar w="92%" className="bg-[#F1F3F6]" />
-            <Bar w="64%" className="bg-[#F1F3F6]" />
+            <Bar w="82%" className="bg-[#F1F3F6] dark:bg-white/10" />
+            <Bar w="92%" className="bg-[#F1F3F6] dark:bg-white/10" />
+            <Bar w="64%" className="bg-[#F1F3F6] dark:bg-white/[0.06]" />
           </div>
         </div>
       ))}
@@ -572,16 +584,16 @@ function DiagramsPreview() {
       <line x1="160" y1="44" x2="240" y2="110" stroke="#DDD6FE" strokeWidth="2" />
       <line x1="80" y1="110" x2="240" y2="110" stroke="#EDE9FE" strokeWidth="2" strokeDasharray="4 4" />
       <g>
-        <rect x="120" y="20" width="80" height="32" rx="9" fill="white" stroke="#C4B5FD" strokeWidth="1.5" />
+        <rect x="120" y="20" width="80" height="32" rx="9" fill="white" className="dark:[fill:#1b2233]" stroke="#C4B5FD" strokeWidth="1.5" />
         <rect x="138" y="33" width="44" height="6" rx="3" fill="#DDD6FE" />
       </g>
       <g>
-        <rect x="40" y="96" width="80" height="32" rx="9" fill="white" stroke="#E5E7EB" strokeWidth="1.5" />
-        <rect x="58" y="109" width="44" height="6" rx="3" fill="#EEF0F3" />
+        <rect x="40" y="96" width="80" height="32" rx="9" fill="white" className="dark:[fill:#1b2233]" stroke="#E5E7EB" strokeWidth="1.5" />
+        <rect x="58" y="109" width="44" height="6" rx="3" fill="#EEF0F3" className="dark:[fill:#3a4253]" />
       </g>
       <g>
-        <rect x="200" y="96" width="80" height="32" rx="9" fill="white" stroke="#E5E7EB" strokeWidth="1.5" />
-        <rect x="218" y="109" width="44" height="6" rx="3" fill="#EEF0F3" />
+        <rect x="200" y="96" width="80" height="32" rx="9" fill="white" className="dark:[fill:#1b2233]" stroke="#E5E7EB" strokeWidth="1.5" />
+        <rect x="218" y="109" width="44" height="6" rx="3" fill="#EEF0F3" className="dark:[fill:#3a4253]" />
       </g>
     </svg>
   );
@@ -620,23 +632,23 @@ function CodePreview() {
 function SharePreview() {
   return (
     <div className="feature-stagger space-y-3">
-      <div className="flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-[#EEF0F3]">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-600 text-xs font-bold">
+      <div className="flex items-center gap-3 rounded-2xl bg-white dark:bg-[#161B29] p-3.5 shadow-sm ring-1 ring-[#EEF0F3] dark:ring-white/10">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold">
           ZIP
         </span>
         <div className="flex-1 space-y-1.5">
-          <Bar w="120px" className="bg-[#EEF0F3]" />
-          <Bar w="80px" className="bg-[#F1F3F6]" />
+          <Bar w="120px" className="bg-[#EEF0F3] dark:bg-white/10" />
+          <Bar w="80px" className="bg-[#F1F3F6] dark:bg-white/[0.06]" />
         </div>
-        <div className="h-7 rounded-lg bg-[#111827] px-3 text-[10px] font-semibold leading-7 text-white">
+        <div className="h-7 rounded-lg bg-[#111827] dark:bg-[#3B5AE0] px-3 text-[10px] font-semibold leading-7 text-white">
           Download
         </div>
       </div>
-      <div className="flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-[#EEF0F3]">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+      <div className="flex items-center gap-3 rounded-2xl bg-white dark:bg-[#161B29] p-3.5 shadow-sm ring-1 ring-[#EEF0F3] dark:ring-white/10">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
           <Share2 className="h-4 w-4" />
         </span>
-        <div className="flex-1 rounded-lg bg-[#F8FAFC] px-3 py-1.5 text-[10px] text-[#6B7280] ring-1 ring-[#EEF0F3]">
+        <div className="flex-1 rounded-lg bg-[#F8FAFC] dark:bg-[#0F1320] px-3 py-1.5 text-[10px] text-[#6B7280] dark:text-slate-400 ring-1 ring-[#EEF0F3] dark:ring-white/10">
           buildflow.app/share/3f9a…
         </div>
       </div>

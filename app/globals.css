@@ -1,6 +1,30 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Theme switch — circular reveal via the View Transitions API.
+   Disable the default cross-fade and let the new theme clip-reveal on top. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+  animation: vtThemeFadeOut 650ms linear both;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+@keyframes vtThemeFadeOut {
+  0%   { opacity: 1; }
+  30%  { opacity: 0.85; }
+  70%  { opacity: 0.72; }
+  100% { opacity: 0.5; }
+}
+
 @theme {
   /* Primary — Blue */
   --color-primary: #4A6BFF;

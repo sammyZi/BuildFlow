@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Blocks, ChevronRight, ChevronLeft } from 'lucide-react';
 import FeaturesShowcase from '@/components/FeaturesShowcase';
 import Reveal from '@/components/Reveal';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -200,11 +201,11 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-[#F4F7FE] to-[#E9EEFA] font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-gradient-to-b from-white via-[#F4F7FE] to-[#E9EEFA] dark:from-[#0A0E1A] dark:via-[#0B1020] dark:to-[#0D1220] font-sans selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-100">
       {/* Hero Section */}
       <div className="relative pt-6 pb-32 lg:pt-10 lg:pb-48 overflow-hidden">
         {/* Sky / Sunset Gradient Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]" />
+        <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0] dark:from-[#0E2353] dark:via-[#0B1530] dark:to-[#0A0E1A]" />
 
         {/* Stars — rendered once via imperative DOM, animated purely in CSS */}
         <div
@@ -219,7 +220,7 @@ export default function LandingPage() {
         />
 
         {/* Animated Floating Orbs — downgraded blur-3xl → blur-2xl for perf */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden dark:hidden">
           <div
             className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-2xl -top-20 -left-40 animate-[float1_12s_ease-in-out_infinite]"
             style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
@@ -277,7 +278,7 @@ export default function LandingPage() {
         `}</style>
 
         {/* Smooth Sunset Color Blend */}
-        <div className="absolute bottom-0 left-0 right-0 h-[400px] bg-gradient-to-t from-white via-[#FF7E67]/40 15% via-[#FF7E67]/20 45% via-[#FF7E67]/5 75% to-transparent z-0 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-[400px] bg-gradient-to-t from-white via-[#FF7E67]/40 15% via-[#FF7E67]/20 45% via-[#FF7E67]/5 75% to-transparent dark:from-[#0A0E1A] dark:via-[#1E3A8A]/18 dark:via-[#1E3A8A]/8 dark:to-transparent z-0 pointer-events-none" />
 
         {/* Navigation */}
         <nav className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -311,6 +312,7 @@ export default function LandingPage() {
             <Link href="/login" className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-5 py-2 rounded-full transition-all">
               Login
             </Link>
+            <ThemeToggle />
           </div>
         </nav>
 
@@ -369,7 +371,7 @@ export default function LandingPage() {
       {/* Main App Screenshot — removed backdrop-blur-xl, kept static bg */}
       <div id="product" className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-40 mb-32">
         <div
-          className="rounded-2xl p-2 bg-white/30 border border-white/40 border-x-[#FF7E67]/20 border-b-[#FF7E67]/20"
+          className="rounded-2xl p-2 bg-white/30 border border-white/40 border-x-[#FF7E67]/20 border-b-[#FF7E67]/20 dark:bg-white/5 dark:border-white/10"
           style={{ transform: 'translate3d(0, 0, 0)' }}
         >
           <div className="rounded-xl overflow-hidden relative bg-[#1E1E2E]">
@@ -387,23 +389,23 @@ export default function LandingPage() {
 
       {/* Value Proposition */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-28">
-        <Reveal as="span" className="mb-5 block text-xs font-semibold uppercase tracking-[0.22em] text-[#4A6BFF]">
+        <Reveal as="span" className="mb-5 block text-xs font-semibold uppercase tracking-[0.22em] text-[#4A6BFF] dark:text-[#7DA4FF]">
           Why BuildFlow
         </Reveal>
         <Reveal
           as="h2"
           delay={80}
-          className="text-balance text-[2rem] md:text-[2.85rem] font-normal leading-[1.1] tracking-[-0.02em] text-[#0F172A] mb-6"
+          className="text-balance text-[2rem] md:text-[2.85rem] font-normal leading-[1.1] tracking-[-0.02em] text-[#0F172A] dark:text-white mb-6"
         >
           <span style={{ fontFamily: 'Georgia, serif' }}>
             Your projects deserve a{' '}
-            <span className="italic text-[#4A6BFF]">beautiful home.</span>
+            <span className="italic text-[#4A6BFF] dark:text-[#7DA4FF]">beautiful home.</span>
           </span>
         </Reveal>
         <Reveal
           as="p"
           delay={160}
-          className="text-pretty text-[#475569] text-lg md:text-xl leading-relaxed max-w-2xl mx-auto"
+          className="text-pretty text-[#475569] dark:text-slate-300 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto"
         >
           BuildFlow gives you an efficient, interactive way to generate software
           requirements and architecture. Forget chaotic notes—plan with finesse
