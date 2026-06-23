@@ -18,16 +18,16 @@ export function Logo({ className = "w-8 h-8" }: LogoProps) {
         className="fill-primary"
       />
       {/* Level 1 */}
-      <path d="M100 140L190 185V225L100 180V140Z" className="fill-text-primary" />
-      <path d="M210 185L300 140V180L210 225V185Z" className="fill-text-primary" />
+      <path d="M100 140L190 185V225L100 180V140Z" className="fill-text-primary dark:fill-white" />
+      <path d="M210 185L300 140V180L210 225V185Z" className="fill-text-primary dark:fill-white" />
       
       {/* Level 2 */}
-      <path d="M100 200L190 245V285L100 240V200Z" className="fill-text-primary" />
-      <path d="M210 245L300 200V240L210 285V245Z" className="fill-text-primary" />
+      <path d="M100 200L190 245V285L100 240V200Z" className="fill-text-primary dark:fill-white" />
+      <path d="M210 245L300 200V240L210 285V245Z" className="fill-text-primary dark:fill-white" />
       
       {/* Level 3 */}
-      <path d="M100 260L190 305V345L100 300V260Z" className="fill-text-primary" />
-      <path d="M210 305L300 260V300L210 345V305Z" className="fill-text-primary" />
+      <path d="M100 260L190 305V345L100 300V260Z" className="fill-text-primary dark:fill-white" />
+      <path d="M210 305L300 260V300L210 345V305Z" className="fill-text-primary dark:fill-white" />
     </svg>
   );
 }
