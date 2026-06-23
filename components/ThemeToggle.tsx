@@ -101,7 +101,13 @@ function spawnCube(
 }
 
 // ─── component ────────────────────────────────────────────────────────────────
-export default function ThemeToggle({ className = '' }: { className?: string }) {
+export default function ThemeToggle({
+  className = '',
+  variant = 'hero',
+}: {
+  className?: string;
+  variant?: 'hero' | 'surface';
+}) {
   const [mounted, setMounted] = useState(false);
   const [dark, setDark] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -160,20 +166,15 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
 
       transition.ready.then(() => {
         root.animate(
-          {
-            clipPath: [
-              `circle(0px at ${landX}px ${landY}px)`,
-              `circle(${endRadius * 0.25}px at ${landX}px ${landY}px)`,
-              `circle(${endRadius * 0.62}px at ${landX}px ${landY}px)`,
-              `circle(${endRadius}px at ${landX}px ${landY}px)`,
-            ],
-            opacity: [0.9, 1, 1, 1],
-            filter: ['blur(8px)', 'blur(2px)', 'blur(0px)', 'blur(0px)'],
-          },
+          [
+            { clipPath: `circle(0px at ${landX}px ${landY}px)`,              opacity: 0.9, filter: 'blur(8px)', offset: 0    },
+            { clipPath: `circle(${endRadius * 0.25}px at ${landX}px ${landY}px)`, opacity: 1,   filter: 'blur(2px)', offset: 0.28 },
+            { clipPath: `circle(${endRadius * 0.62}px at ${landX}px ${landY}px)`, opacity: 1,   filter: 'blur(0px)', offset: 0.68 },
+            { clipPath: `circle(${endRadius}px at ${landX}px ${landY}px)`,    opacity: 1,   filter: 'blur(0px)', offset: 1    },
+          ],
           {
             duration: 600,
             easing: 'linear',
-            offset: [0, 0.28, 0.68, 1],
             pseudoElement: '::view-transition-new(root)',
           }
         );
@@ -187,7 +188,11 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
       type="button"
       onClick={toggle}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className={`relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white/20 text-white backdrop-blur-md transition-all hover:bg-white/30 ${className}`}
+      className={`relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full backdrop-blur-md transition-all ${
+        variant === 'hero'
+          ? 'bg-white/20 text-white hover:bg-white/30'
+          : 'bg-black/5 text-slate-600 hover:bg-black/10 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/20'
+      } ${className}`}
     >
       <span
         className={`absolute transition-all duration-500 ease-out ${

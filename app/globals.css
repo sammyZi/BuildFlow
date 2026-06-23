@@ -25,6 +25,23 @@
   100% { opacity: 0.5; }
 }
 
+/* Scoped dark mode for the auth pages (login / signup).
+   Redefining the semantic tokens on the page shell keeps the override
+   local to these screens without touching the rest of the app. */
+.dark .auth-shell {
+  --color-bg: #0E1320;
+  --color-surface: #161B29;
+  --color-surface-alt: #1B2233;
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #94A3B8;
+  --color-text-faint: #64748B;
+  --color-border: #2A3142;
+  --color-border-light: #222838;
+  --color-primary-muted: #1E2A4A;
+  --color-primary-faint: #161F36;
+}
+
 @theme {
   /* Primary — Blue */
   --color-primary: #4A6BFF;

@@ -45,29 +45,29 @@ export default function LoginPage() {
 
   if (isChecking) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-bg">
+      <main className="auth-shell min-h-screen flex items-center justify-center bg-bg dark:bg-[#0E1320]">
         <Loader2 size={32} className="animate-spin text-primary" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-bg font-sans px-4 relative overflow-hidden">
+    <main className="auth-shell min-h-screen flex items-center justify-center bg-bg dark:bg-[#0E1320] font-sans px-4 relative overflow-hidden">
       {/* Premium Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none animate-pulse duration-1000" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none animate-pulse duration-1000" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px] pointer-events-none animate-pulse duration-1000" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/20 dark:bg-blue-400/10 rounded-full blur-[120px] pointer-events-none animate-pulse duration-1000" style={{ animationDelay: '1s' }} />
 
       <div className="w-full max-w-[420px] relative z-10 px-6">
         {/* Header */}
         <div className="flex flex-col items-center mb-10 gap-4">
-            <div className="p-3 bg-white/5 rounded-2xl shadow-inner border border-white/10">
+            <div className="p-3 bg-white/5 rounded-2xl shadow-inner border border-white/10 dark:border-white/5 dark:bg-white/[0.03]">
               <Logo className="w-12 h-12" />
             </div>
             <div className="text-center">
-              <h1 className="text-2xl font-extrabold text-text-primary tracking-tight mb-2">
+              <h1 className="text-2xl font-extrabold text-text-primary dark:text-slate-100 tracking-tight mb-2">
                 Welcome back
               </h1>
-              <p className="text-[15px] text-text-secondary">
+              <p className="text-[15px] text-text-secondary dark:text-slate-400">
                 Sign in to BuildFlow
               </p>
             </div>
@@ -75,18 +75,18 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-[14px] font-bold text-text-primary tracking-wide uppercase">
+            <label htmlFor="email" className="block text-[14px] font-bold text-text-primary dark:text-slate-200 tracking-wide uppercase">
               Email
             </label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint" strokeWidth={1.5} />
+              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint dark:text-slate-500" strokeWidth={1.5} />
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors dark:border-[#2A3142] dark:bg-[#0E1320] dark:focus:bg-[#161B29] dark:text-slate-200 dark:placeholder:text-slate-500"
                 placeholder="you@example.com"
                 disabled={loading}
               />
@@ -95,7 +95,7 @@ export default function LoginPage() {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-[14px] font-bold text-text-primary tracking-wide uppercase">
+              <label htmlFor="password" className="block text-[14px] font-bold text-text-primary dark:text-slate-200 tracking-wide uppercase">
                 Password
               </label>
               <Link href="/forgot-password" className="text-[13px] font-medium text-primary hover:text-primary-hover transition-colors">
@@ -103,7 +103,7 @@ export default function LoginPage() {
               </Link>
             </div>
             <div className="relative">
-              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint" strokeWidth={1.5} />
+              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint dark:text-slate-500" strokeWidth={1.5} />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -111,14 +111,14 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full pl-10 pr-12 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors"
+                className="w-full pl-10 pr-12 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors dark:border-[#2A3142] dark:bg-[#0E1320] dark:focus:bg-[#161B29] dark:text-slate-200 dark:placeholder:text-slate-500"
                 placeholder="••••••••"
                 disabled={loading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-secondary transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-secondary transition-colors dark:text-slate-500 dark:hover:text-slate-300"
                 tabIndex={-1}
               >
                 {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -127,7 +127,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-error text-[15px] font-medium text-center">
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-error dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-[15px] font-medium text-center">
               {error}
             </div>
           )}
@@ -149,7 +149,7 @@ export default function LoginPage() {
         <div className="mt-8 text-center relative z-10">
           <Link
             href="/signup"
-            className="text-[14px] font-medium text-text-secondary hover:text-primary transition-colors"
+            className="text-[14px] font-medium text-text-secondary dark:text-slate-400 hover:text-primary transition-colors"
           >
             Don't have an account? Sign up
           </Link>

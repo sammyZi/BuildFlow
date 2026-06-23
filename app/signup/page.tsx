@@ -62,7 +62,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <main className="min-h-screen flex font-sans bg-bg">
+    <main className="auth-shell min-h-screen flex font-sans bg-bg dark:bg-[#0E1320]">
       {/* Left Pane - Visual / Marketing */}
       <div className="hidden lg:flex w-1/2 bg-[#0A0A0B] relative flex-col justify-between p-12 overflow-hidden border-r border-border">
         {/* Dynamic Background */}
@@ -105,12 +105,12 @@ export default function SignUpPage() {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-3xl font-extrabold text-text-primary tracking-tight mb-2">Create an account</h2>
-            <p className="text-text-secondary text-[15px]">Join us to start building your next great app.</p>
+            <h2 className="text-3xl font-extrabold text-text-primary dark:text-slate-100 tracking-tight mb-2">Create an account</h2>
+            <p className="text-text-secondary dark:text-slate-400 text-[15px]">Join us to start building your next great app.</p>
           </div>
 
           {successMessage ? (
-            <div className="bg-emerald-50 border border-success/30 rounded-2xl p-6 text-center animate-fade-in-up">
+            <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-success/30 dark:border-emerald-500/20 rounded-2xl p-6 text-center animate-fade-in-up">
               <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail size={24} className="text-success" />
               </div>
@@ -128,18 +128,18 @@ export default function SignUpPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="email" className="block text-[14px] font-bold text-text-primary tracking-wide uppercase">
+                <label htmlFor="email" className="block text-[14px] font-bold text-text-primary dark:text-slate-200 tracking-wide uppercase">
                   Email
                 </label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint" strokeWidth={1.5} />
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint dark:text-slate-500" strokeWidth={1.5} />
                   <input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors dark:border-[#2A3142] dark:bg-[#0E1320] dark:focus:bg-[#161B29] dark:text-slate-200 dark:placeholder:text-slate-500"
                     placeholder="you@example.com"
                     disabled={loading}
                   />
@@ -147,25 +147,25 @@ export default function SignUpPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="password" className="block text-[14px] font-bold text-text-primary tracking-wide uppercase">
+                <label htmlFor="password" className="block text-[14px] font-bold text-text-primary dark:text-slate-200 tracking-wide uppercase">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint" strokeWidth={1.5} />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint dark:text-slate-500" strokeWidth={1.5} />
                   <input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors"
+                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors dark:border-[#2A3142] dark:bg-[#0E1320] dark:focus:bg-[#161B29] dark:text-slate-200 dark:placeholder:text-slate-500"
                     placeholder="••••••••"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-secondary transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-secondary transition-colors dark:text-slate-500 dark:hover:text-slate-300"
                     tabIndex={-1}
                   >
                     {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -174,25 +174,25 @@ export default function SignUpPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="confirmPassword" className="block text-[14px] font-bold text-text-primary tracking-wide uppercase">
+                <label htmlFor="confirmPassword" className="block text-[14px] font-bold text-text-primary dark:text-slate-200 tracking-wide uppercase">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint" strokeWidth={1.5} />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint dark:text-slate-500" strokeWidth={1.5} />
                   <input
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors"
+                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-border bg-bg focus:bg-surface focus:outline-none focus:ring-0 focus:border-primary text-[16px] text-text-secondary placeholder:text-text-faint transition-colors dark:border-[#2A3142] dark:bg-[#0E1320] dark:focus:bg-[#161B29] dark:text-slate-200 dark:placeholder:text-slate-500"
                     placeholder="••••••••"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-secondary transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-secondary transition-colors dark:text-slate-500 dark:hover:text-slate-300"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -200,14 +200,14 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 mt-4 bg-surface p-4 rounded-xl border border-border/50">
+              <div className="flex items-start gap-2 mt-4 bg-surface dark:bg-[#161B29] p-4 rounded-xl border border-border/50 dark:border-white/5">
                 <input
                   id="privacy"
                   type="checkbox"
                   required
-                  className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-bg bg-bg"
+                  className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-bg bg-bg dark:border-[#2A3142] dark:bg-[#0E1320]"
                 />
-                <label htmlFor="privacy" className="text-[13px] text-text-secondary leading-tight">
+                <label htmlFor="privacy" className="text-[13px] text-text-secondary dark:text-slate-400 leading-tight">
                   By creating an account, you agree to our{' '}
                   <Link href="/privacy" className="text-primary hover:underline hover:text-primary-hover font-bold" target="_blank">
                     Privacy Policy
@@ -217,7 +217,7 @@ export default function SignUpPage() {
               </div>
 
               {error && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-error text-[15px] font-medium text-center">
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-error dark:text-red-300 text-[15px] font-medium text-center">
                   {error}
                 </div>
               )}
@@ -239,7 +239,7 @@ export default function SignUpPage() {
 
           {!successMessage && (
             <div className="mt-8 text-center">
-              <p className="text-[14px] text-text-secondary">
+              <p className="text-[14px] text-text-secondary dark:text-slate-400">
                 Already have an account?{' '}
                 <Link
                   href="/login"
