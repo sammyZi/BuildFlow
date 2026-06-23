@@ -106,7 +106,7 @@ export default function ResultsViewer({
     <div className="h-full flex flex-col animate-fade-in">
       {/* Connection warning */}
       {showRefreshPrompt && (
-        <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-200 text-amber-800 text-[15px] flex items-center gap-2 flex-shrink-0">
+        <div className="px-5 py-2.5 bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 text-[15px] flex items-center gap-2 flex-shrink-0">
           <WifiOff size={14} />
           Connection lost.{' '}
           <button onClick={() => window.location.reload()} className="underline font-semibold">Refresh</button>
@@ -258,9 +258,9 @@ export default function ResultsViewer({
                 {/* Document Toolbar */}
                 <div className="flex items-center justify-between px-6 border-b border-border flex-shrink-0 print:hidden h-[53px]">
                   <div className="flex items-center gap-2 text-[14px] text-text-primary font-semibold">
-                    {activeTab === 'requirements' && <FileText size={15} className="text-blue-600" />}
-                    {activeTab === 'design' && <GitBranch size={15} className="text-violet-600" />}
-                    {activeTab === 'tasks' && <ListChecks size={15} className="text-emerald-600" />}
+                    {activeTab === 'requirements' && <FileText size={15} className="text-blue-600 dark:text-blue-400" />}
+                    {activeTab === 'design' && <GitBranch size={15} className="text-violet-600 dark:text-violet-400" />}
+                    {activeTab === 'tasks' && <ListChecks size={15} className="text-emerald-600 dark:text-emerald-400" />}
                     {activeFile?.filename}
                   </div>
                   {activeContent && (

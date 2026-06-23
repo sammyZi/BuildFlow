@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
 import { Logo } from '@/components/ui/Logo';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface ProjectHistoryProps {
   onSelectProject: (projectId: string) => void;
@@ -182,8 +183,8 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
       {/* Logo + collapse */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-            <Logo className="w-6 h-6" />
+          <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center">
+            <Logo className="w-6 h-6" alwaysLight />
           </div>
           <span className="text-[17px] font-extrabold text-white tracking-tight">BuildFlow</span>
         </div>
@@ -333,6 +334,7 @@ export default function ProjectHistory({ onSelectProject, currentProjectId, onCo
       {/* Bottom Actions */}
       <div className="mx-3 border-t border-sidebar-border" />
       <div className="px-3 py-3 space-y-1">
+        <ThemeToggle variant="sidebar" />
         <button
           onClick={() => router.push('/dashboard/settings')}
           className="w-full flex items-center gap-2 px-3 py-2 text-[14px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors"

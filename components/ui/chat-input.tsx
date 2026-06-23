@@ -115,22 +115,22 @@ interface PastedContentCardProps {
 
 const PastedContentCard: React.FC<PastedContentCardProps> = ({ content, onRemove }) => {
     return (
-        <div className="relative group flex-shrink-0 w-28 h-28 rounded-2xl overflow-hidden border border-[#E5E5E5] bg-white animate-fade-in p-3 flex flex-col justify-between shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        <div className="relative group flex-shrink-0 w-28 h-28 rounded-2xl overflow-hidden border border-border bg-surface animate-fade-in p-3 flex flex-col justify-between shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
             <div className="overflow-hidden w-full">
-                <p className="text-[10px] text-[#9CA3AF] leading-[1.4] font-mono break-words whitespace-pre-wrap line-clamp-4 select-none">
+                <p className="text-[10px] text-text-faint leading-[1.4] font-mono break-words whitespace-pre-wrap line-clamp-4 select-none">
                     {content.content}
                 </p>
             </div>
 
             <div className="flex items-center justify-between w-full mt-2">
-                <div className="inline-flex items-center justify-center px-1.5 py-[2px] rounded border border-[#E5E5E5] bg-white">
-                    <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider font-sans">PASTED</span>
+                <div className="inline-flex items-center justify-center px-1.5 py-[2px] rounded border border-border bg-surface">
+                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider font-sans">PASTED</span>
                 </div>
             </div>
 
             <button
                 onClick={() => onRemove(content.id)}
-                className="absolute top-2 right-2 p-[3px] bg-white border border-[#E5E5E5] rounded-full text-[#9CA3AF] hover:text-[#6B7280] transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+                className="absolute top-2 right-2 p-[3px] bg-surface border border-border rounded-full text-text-faint hover:text-text-muted transition-colors shadow-sm opacity-0 group-hover:opacity-100"
             >
                 <Icons.X className="w-2 h-2" />
             </button>
@@ -224,7 +224,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModel, on
             {isOpen && typeof document !== 'undefined' && createPortal(
                 <div
                     ref={menuRef}
-                    className="fixed bg-white border border-[#DDDDDD] rounded-2xl shadow-2xl overflow-hidden z-[200] flex flex-col p-1.5 animate-fade-in origin-bottom-right"
+                    className="fixed bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden z-[200] flex flex-col p-1.5 animate-fade-in origin-bottom-right"
                     style={{
                         left: pos ? pos.left : undefined,
                         bottom: pos ? pos.bottom : undefined,
@@ -248,7 +248,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModel, on
                                     </span>
                                     {model.badge && (
                                         <span className={`px-1.5 py-[1px] rounded-full text-[10px] font-medium border ${model.badge === 'Upgrade'
-                                            ? 'border-blue-200 text-blue-600 bg-white'
+                                            ? 'border-blue-200 text-blue-600 bg-surface'
                                             : 'border-bg-300 text-text-300'
                                             }`}>
                                             {model.badge}
@@ -429,9 +429,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
             <div
                 className={`
                 !box-content flex flex-col mx-2 md:mx-0 items-stretch transition-all duration-300 relative z-10 rounded-3xl cursor-text
-                border border-white/80 focus-within:border-primary/40 
-                shadow-[0_8px_32px_rgba(0,0,0,0.06)] focus-within:shadow-[0_16px_48px_rgba(74,107,255,0.12)]
-                bg-white/60 backdrop-blur-2xl font-sans antialiased
+                border border-white/80 focus-within:border-primary/40 dark:border-white/10 dark:focus-within:border-primary/50
+                shadow-[0_8px_32px_rgba(0,0,0,0.06)] focus-within:shadow-[0_16px_48px_rgba(74,107,255,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] dark:focus-within:shadow-[0_16px_48px_rgba(74,107,255,0.25)]
+                bg-white/60 dark:bg-[#161B29]/70 backdrop-blur-2xl font-sans antialiased
             `}>
 
                 <div className="flex flex-col px-3 pt-3 pb-2 gap-2">

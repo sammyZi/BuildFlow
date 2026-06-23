@@ -36,7 +36,7 @@ function ArchitectureContent() {
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-border/60 p-8 shadow-sm">
+          <div className="bg-surface rounded-2xl border border-border/60 p-8 shadow-sm">
             <MermaidDiagram 
               chart={decodeURIComponent(diagram)}
               className="flex justify-center items-center"

@@ -49,14 +49,14 @@ export default function ScrollButtons({
       <button 
         onClick={scrollToTop}
         title="Scroll to top"
-        className={`p-3 bg-white border border-border/60 text-primary shadow-xl hover:shadow-2xl hover:bg-surface-alt rounded-full hover:-translate-y-1 transition-all duration-300 flex items-center justify-center ${showTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+        className={`p-3 bg-surface border border-border/60 text-primary shadow-xl hover:shadow-2xl hover:bg-surface-alt rounded-full hover:-translate-y-1 transition-all duration-300 flex items-center justify-center ${showTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
       >
         <ChevronUp size={24} strokeWidth={2.5} />
       </button>
       <button 
         onClick={scrollToBottom}
         title="Scroll to bottom"
-        className={`p-3 bg-white border border-border/60 text-primary shadow-xl hover:shadow-2xl hover:bg-surface-alt rounded-full hover:translate-y-1 transition-all duration-300 flex items-center justify-center ${showBottom ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}
+        className={`p-3 bg-surface border border-border/60 text-primary shadow-xl hover:shadow-2xl hover:bg-surface-alt rounded-full hover:translate-y-1 transition-all duration-300 flex items-center justify-center ${showBottom ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}
       >
         <ChevronDown size={24} strokeWidth={2.5} />
       </button>

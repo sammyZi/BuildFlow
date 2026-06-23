@@ -123,16 +123,30 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
   };
 
   useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark');
     mermaid.initialize({
       startOnLoad: false,
-      theme: 'default',
+      theme: isDark ? 'dark' : 'default',
       securityLevel: 'loose',
       suppressErrorRendering: true,
       fontFamily: 'Inter, system-ui, sans-serif',
-      // Force natural size to prevent text from being shrunk to illegibility
       // @ts-expect-error - useMaxWidth is valid at runtime but missing from type config
       useMaxWidth: false,
-      themeVariables: {
+      themeVariables: isDark ? {
+        primaryColor: '#3B5AE0',
+        primaryTextColor: '#F1F5F9',
+        primaryBorderColor: '#4A6BFF',
+        lineColor: '#7DA4FF',
+        secondaryColor: '#1B2233',
+        tertiaryColor: '#161B29',
+        background: '#0E1320',
+        mainBkg: '#161B29',
+        nodeBorder: '#2A3142',
+        clusterBkg: '#1B2233',
+        titleColor: '#F1F5F9',
+        edgeLabelBackground: '#1B2233',
+        textColor: '#CBD5E1',
+      } : {
         primaryColor: '#6366f1',
         primaryTextColor: '#fff',
         primaryBorderColor: '#4f46e5',
@@ -174,7 +188,7 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
         
         // Try to render as plain text fallback
         setError('Unable to render diagram. Showing source code instead.');
-        setSvg(`<pre class="text-xs text-gray-700 whitespace-pre-wrap">${chart}</pre>`);
+        setSvg(`<pre class="text-xs text-text-secondary whitespace-pre-wrap">${chart}</pre>`);
       }
     };
 
@@ -184,7 +198,7 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
   if (error) {
     return (
       <div>
-        <div className="p-3 mb-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+        <div className="p-3 mb-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg text-amber-700 dark:text-amber-300 text-sm">
           <p className="font-semibold">Diagram rendering issue</p>
           <p className="text-xs mt-1">{error}</p>
         </div>
@@ -203,7 +217,7 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
         />
         <button
           onClick={() => setIsFullscreen(true)}
-          className="absolute top-2 right-2 p-2 bg-white shadow-md text-text-muted hover:text-text-primary rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-border"
+          className="absolute top-2 right-2 p-2 bg-surface shadow-md text-text-muted hover:text-text-primary rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-border"
           title="View full screen"
         >
           <Maximize2 size={16} />
@@ -245,7 +259,7 @@ export default function MermaidDiagram({ chart, className = '' }: MermaidDiagram
             </button>
           </div>
           <div 
-            className="flex-1 min-h-0 overflow-hidden bg-white rounded-xl shadow-2xl relative cursor-grab active:cursor-grabbing"
+            className="flex-1 min-h-0 overflow-hidden bg-surface rounded-xl shadow-2xl relative cursor-grab active:cursor-grabbing"
             onWheel={handleWheel}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}

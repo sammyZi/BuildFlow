@@ -87,19 +87,19 @@ export default function DiffViewer({ oldContent, newContent, oldLabel, newLabel 
       <div className="border border-t-0 border-border rounded-b-lg overflow-hidden max-h-[500px] overflow-y-auto custom-scrollbar">
         {diff.map((line, idx) => {
           const bgColor =
-            line.type === 'add' ? 'bg-emerald-50' :
-            line.type === 'remove' ? 'bg-red-50' :
-            'bg-white';
+            line.type === 'add' ? 'bg-emerald-50 dark:bg-emerald-500/10' :
+            line.type === 'remove' ? 'bg-red-50 dark:bg-red-500/10' :
+            'bg-surface';
 
           const textColor =
-            line.type === 'add' ? 'text-emerald-800' :
-            line.type === 'remove' ? 'text-red-700' :
+            line.type === 'add' ? 'text-emerald-800 dark:text-emerald-300' :
+            line.type === 'remove' ? 'text-red-700 dark:text-red-300' :
             'text-text-secondary';
 
           const gutterBg =
-            line.type === 'add' ? 'bg-emerald-100' :
-            line.type === 'remove' ? 'bg-red-100' :
-            'bg-gray-50';
+            line.type === 'add' ? 'bg-emerald-100 dark:bg-emerald-500/20' :
+            line.type === 'remove' ? 'bg-red-100 dark:bg-red-500/20' :
+            'bg-surface-alt';
 
           const symbol =
             line.type === 'add' ? '+' :

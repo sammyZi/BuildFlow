@@ -82,11 +82,11 @@ function getFileIcon(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
   const colors: Record<string, string> = {
     ts: 'text-blue-500', tsx: 'text-blue-400', js: 'text-yellow-500', jsx: 'text-yellow-400',
-    json: 'text-amber-500', md: 'text-gray-500', css: 'text-pink-500', scss: 'text-pink-400',
+    json: 'text-amber-500', md: 'text-text-muted', css: 'text-pink-500', scss: 'text-pink-400',
     html: 'text-orange-500', sql: 'text-emerald-500', py: 'text-green-500',
-    env: 'text-gray-400', prisma: 'text-indigo-500',
+    env: 'text-text-faint', prisma: 'text-indigo-500',
   };
-  return colors[ext] || 'text-gray-400';
+  return colors[ext] || 'text-text-faint';
 }
 
 // ─── FileTree Component ──────────────────────────────────────────────────────

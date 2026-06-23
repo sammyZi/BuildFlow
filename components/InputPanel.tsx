@@ -37,7 +37,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
       )}
 
       {/* Input bar */}
-      <form onSubmit={handleSubmit} className="bg-white border border-chat-border shadow-sm rounded-2xl flex flex-col transition-shadow focus-within:ring-2 focus-within:ring-chat-accent/15 focus-within:border-chat-accent/40 focus-within:shadow-md w-full overflow-hidden">
+      <form onSubmit={handleSubmit} className="bg-surface border border-chat-border shadow-sm rounded-2xl flex flex-col transition-shadow focus-within:ring-2 focus-within:ring-chat-accent/15 focus-within:border-chat-accent/40 focus-within:shadow-md w-full overflow-hidden">
         {/* Text + send */}
         <div className="flex items-end w-full gap-2 px-4 pt-3 pb-1">
           <textarea
@@ -54,7 +54,7 @@ export default function InputPanel({ onSubmit, isLoading = false }: InputPanelPr
           <button
             type="submit"
             disabled={isLoading || !appIdea.trim()}
-            className={`p-2 rounded-lg flex items-center justify-center transition-all shrink-0 mb-0.5 ${appIdea.trim() && !isLoading ? 'bg-chat-accent text-white hover:bg-chat-accentHover' : 'bg-gray-100 text-gray-300'
+            className={`p-2 rounded-lg flex items-center justify-center transition-all shrink-0 mb-0.5 ${appIdea.trim() && !isLoading ? 'bg-chat-accent text-white hover:bg-chat-accentHover' : 'bg-surface-alt text-text-faint'
               }`}
           >
             {isLoading ? (

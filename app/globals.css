@@ -332,6 +332,35 @@ body {
   --text-500: #6B6B65;
   --accent: #D2996E;
   --accent-hover: #E5AA7F;
+
+  /* ── App-wide dark mode: semantic token overrides ── */
+  --color-bg: #0E1320;
+  --color-surface: #161B29;
+  --color-surface-alt: #1B2233;
+
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #94A3B8;
+  --color-text-faint: #64748B;
+
+  --color-border: #2A3142;
+  --color-border-light: #222838;
+
+  --color-primary-muted: #1E2A4A;
+  --color-primary-faint: #161F36;
+
+  /* Chat / app shell */
+  --color-chat-main: #0E1320;
+  --color-chat-text: #F1F5F9;
+  --color-chat-textMuted: #94A3B8;
+  --color-chat-border: #2A3142;
+  --color-chat-sidebar1: #0A0E1A;
+
+  /* Sidebar (deep navy → slightly deeper in dark for contrast) */
+  --color-sidebar-bg: #0A0E1A;
+  --color-sidebar-surface: #11182A;
+  --color-sidebar-border: #1C2540;
+  --color-sidebar-active: #1C2540;
 }
 
 @keyframes fadeInClaude {

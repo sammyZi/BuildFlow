@@ -68,8 +68,8 @@ function FileEntry({ file }: { file: StreamingFile }) {
     switch (file.status) {
       case 'pending':
         return (
-          <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+          <span className="flex items-center gap-1.5 text-[12px] font-medium text-text-faint">
+            <span className="w-1.5 h-1.5 rounded-full bg-text-faint" />
             Pending
           </span>
         );
@@ -199,7 +199,7 @@ export default function StreamingProgress({ files, progress, message }: Streamin
         </div>
 
         {/* Bottom progress bar */}
-        <div className="h-1.5 bg-gray-100 w-full">
+        <div className="h-1.5 bg-surface-alt w-full">
           <div
             className="h-full bg-gradient-to-r from-primary via-violet-500 to-primary rounded-full transition-all duration-700 ease-out"
             style={{ width: `${Math.max(progress, 2)}%` }}

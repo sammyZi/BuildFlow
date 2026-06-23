@@ -111,34 +111,34 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden relative bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0]">
+    <div className="h-full overflow-y-auto overflow-x-hidden relative bg-gradient-to-b from-[#4A6BFF] via-[#7DA4FF] to-[#FDE8D0] dark:from-[#16266B] dark:via-[#101B3E] dark:to-[#0A0E1A]">
       {/* Premium Landing-Page Inspired Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Animated Floating Orbs matching landing page */}
         <div
-          className="absolute w-[500px] h-[500px] rounded-full bg-white/10 blur-2xl -top-20 -left-40"
+          className="absolute w-[500px] h-[500px] rounded-full bg-white/10 dark:bg-blue-500/15 blur-2xl -top-20 -left-40"
           style={{ animation: 'floatOrb1 12s ease-in-out infinite', willChange: 'transform' }}
         />
         <div
-          className="absolute w-[400px] h-[400px] rounded-full bg-indigo-300/15 blur-2xl top-[20%] right-[-10%]"
+          className="absolute w-[400px] h-[400px] rounded-full bg-indigo-300/15 dark:bg-indigo-500/15 blur-2xl top-[20%] right-[-10%]"
           style={{ animation: 'floatOrb2 15s ease-in-out infinite', willChange: 'transform' }}
         />
         <div
-          className="absolute w-[300px] h-[300px] rounded-full bg-pink-200/10 blur-2xl bottom-[10%] left-[30%]"
+          className="absolute w-[300px] h-[300px] rounded-full bg-pink-200/10 dark:bg-violet-500/12 blur-2xl bottom-[10%] left-[30%]"
           style={{ animation: 'floatOrb3 18s ease-in-out infinite', willChange: 'transform' }}
         />
         <div
-          className="absolute w-[200px] h-[200px] rounded-full bg-white/15 blur-xl top-[50%] left-[10%]"
+          className="absolute w-[200px] h-[200px] rounded-full bg-white/15 dark:bg-sky-500/12 blur-xl top-[50%] left-[10%]"
           style={{ animation: 'floatOrb2 10s ease-in-out infinite reverse', willChange: 'transform' }}
         />
         <div
-          className="absolute w-[350px] h-[350px] rounded-full bg-sky-200/10 blur-2xl top-[10%] left-[50%]"
+          className="absolute w-[350px] h-[350px] rounded-full bg-sky-200/10 dark:bg-blue-400/12 blur-2xl top-[10%] left-[50%]"
           style={{ animation: 'floatOrb1 20s ease-in-out infinite reverse', willChange: 'transform' }}
         />
 
-        {/* Optimized Premium Noise Texture */}
+        {/* Optimized Premium Noise Texture — also dithers gradient banding */}
         <div
-          className="absolute inset-0 opacity-[0.15] pointer-events-none"
+          className="absolute inset-0 opacity-[0.15] dark:opacity-[0.2] pointer-events-none"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
             transform: 'translateZ(0)',
@@ -154,8 +154,8 @@ export default function DashboardPage() {
               What would you like
               <br />
               <span className="relative inline-block">
-                <span className="text-[#4C1D95] relative z-10">to build?</span>
-                <svg className="absolute w-full h-4 -bottom-1 left-0 text-[#4C1D95] z-0 opacity-80" viewBox="0 0 100 15" preserveAspectRatio="none">
+                <span className="text-[#4C1D95] dark:text-[#A5B4FC] relative z-10">to build?</span>
+                <svg className="absolute w-full h-4 -bottom-1 left-0 text-[#4C1D95] dark:text-[#A5B4FC] z-0 opacity-80" viewBox="0 0 100 15" preserveAspectRatio="none">
                   <path d="M 2 12 C 20 5, 35 14, 60 7 C 75 2, 88 11, 98 8" stroke="currentColor" strokeWidth="2.5" fill="transparent" strokeLinecap="round" />
                 </svg>
               </span>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
           </div>
 
           {error && (
-            <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-error text-[15px] font-medium text-center animate-fade-in max-w-2xl mx-auto">
+            <div className="mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-error dark:text-red-300 text-[15px] font-medium text-center animate-fade-in max-w-2xl mx-auto">
               {error}
             </div>
           )}

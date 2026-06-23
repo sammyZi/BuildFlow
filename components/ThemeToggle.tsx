@@ -106,7 +106,7 @@ export default function ThemeToggle({
   variant = 'hero',
 }: {
   className?: string;
-  variant?: 'hero' | 'surface';
+  variant?: 'hero' | 'surface' | 'sidebar';
 }) {
   const [mounted, setMounted] = useState(false);
   const [dark, setDark] = useState(false);
@@ -181,6 +181,21 @@ export default function ThemeToggle({
       });
     });
   };
+
+  if (variant === 'sidebar') {
+    return (
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={toggle}
+        aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+        className={`w-full flex items-center gap-2 px-3 py-2 text-[14px] font-medium text-sidebar-text hover:text-white hover:bg-sidebar-active rounded-lg transition-colors ${className}`}
+      >
+        {mounted && dark ? <Sun size={14} strokeWidth={1.5} /> : <Moon size={14} strokeWidth={1.5} />}
+        {mounted && dark ? 'Light mode' : 'Dark mode'}
+      </button>
+    );
+  }
 
   return (
     <button
